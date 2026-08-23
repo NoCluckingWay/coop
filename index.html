@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#faf5ec">
+<title>Coop Tracker</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+         background:#faf5ec; color:#3a2e1f; padding-bottom:90px; }
+  header { padding:18px 16px 6px; }
+  header h1 { margin:0; font-size:24px; }
+  header .sub { color:#8a7a63; font-size:13px; margin-top:2px; }
+  main section { display:none; }
+  main section.active { display:block; }
+  .wrap { padding:12px 16px; }
+  .fact { background:#fff3df; border:1px solid #f0dcbb; border-radius:16px; padding:14px;
+          margin:12px 16px 0; font-size:14px; }
+  .fact b { display:block; font-size:11px; letter-spacing:1px; color:#b07a2e; margin-bottom:4px; }
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px 16px; }
+  .card { background:#fff; border-radius:16px; padding:14px; box-shadow:0 1px 4px rgba(60,40,10,.08); }
+  .card .big { font-size:32px; font-weight:700; line-height:1.1; }
+  .card .label { color:#8a7a63; font-size:13px; margin-top:2px; }
+  .card .note { color:#b07a2e; font-size:12px; margin-top:4px; }
+  .btn { display:block; width:100%; border:0; border-radius:12px; padding:13px; font-size:16px;
+         font-weight:600; background:#e07a2f; color:#fff; margin-top:10px; }
+  .btn.gray { background:#efe7d8; color:#3a2e1f; }
+  .btn.small { width:auto; padding:8px 14px; font-size:14px; margin-top:0; }
+  .counter { display:flex; align-items:center; justify-content:center; gap:22px; margin:14px 0; }
+  .counter button { width:64px; height:64px; border-radius:50%; border:0; font-size:30px;
+                    background:#e07a2f; color:#fff; }
+  .counter .num { font-size:52px; font-weight:700; min-width:80px; text-align:center; }
+  input, select { width:100%; padding:12px; font-size:16px; border:1px solid #ddd2bd;
+                  border-radius:12px; background:#fff; margin-top:6px; }
+  label { font-size:13px; color:#8a7a63; display:block; margin-top:12px; }
+  .row { display:flex; align-items:center; justify-content:space-between; background:#fff;
+         border-radius:12px; padding:12px 14px; margin-top:8px; box-shadow:0 1px 3px rgba(60,40,10,.06); }
+  .row .r { color:#8a7a63; font-size:14px; }
+  .row.sel { outline:2px solid #e07a2f; }
+  .bar { height:8px; background:#efe7d8; border-radius:4px; margin-top:8px; overflow:hidden; }
+  .bar > div { height:100%; background:#e07a2f; border-radius:4px; }
+  .hatchcard { background:#fff; border-radius:16px; padding:14px; margin-top:12px;
+               box-shadow:0 1px 4px rgba(60,40,10,.08); }
+  .hatchcard h3 { margin:0 0 2px; font-size:16px; }
+  .hatchcard .meta { color:#8a7a63; font-size:13px; }
+  .hatchcard .status { margin-top:8px; font-size:14px; font-weight:600; color:#b07a2e; }
+  .hatchcard .actions { display:flex; gap:8px; margin-top:10px; }
+  .taskrow { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px;
+             padding:12px 14px; margin-top:8px; }
+  .taskrow .txt { flex:1; font-size:15px; }
+  .taskrow.done .txt { text-decoration:line-through; color:#b3a48c; }
+  .chk { width:26px; height:26px; border-radius:50%; border:2px solid #e07a2f; flex:none;
+         display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; }
+  .taskrow.done .chk { background:#e07a2f; }
+  .x { border:0; background:none; color:#c9b globalization89; font-size:18px; color:#c9b389; }
+  .stepper { display:flex; align-items:center; gap:16px; }
+  .stepper button { width:44px; height:44px; border-radius:50%; border:0; font-size:22px;
+                    background:#efe7d8; color:#3a2e1f; }
+  .stepper .v { font-size:24px; font-weight:700; min-width:44px; text-align:center; }
+  h2.sec { font-size:15px; margin:20px 0 4px; color:#8a7a63; text-transform:uppercase;
+           letter-spacing:1px; }
+  #tabbar { position:fixed; bottom:0; left:0; right:0; display:flex; background:#fff;
+            border-top:1px solid #e8dfcf; padding-bottom:env(safe-area-inset-bottom); }
+  #tabbar button { flex:1; border:0; background:none; padding:8px 0 10px; font-size:11px;
+                   color:#8a7a63; }
+  #tabbar button .ic { display:block; font-size:22px; margin-bottom:2px; }
+  #tabbar button.active { color:#e07a2f; font-weight:700; }
+  .hint { background:#eef4ff; border:1px solid #cfdefc; border-radius:16px; padding:14px;
+          margin-top:12px; font-size:14px; color:#2f4a7a; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🐔 Coop Tracker</h1>
+  <div class="sub" id="hdrSub"></div>
+</header>
+
+<main>
+
+<!-- HOME -->
+<section id="tab-home" class="active">
+  <div class="fact" id="factCard"><b>DID YOU KNOW?</b><span id="factTxt"></span></div>
+  <div class="cards">
+    <div class="card"><div class="big" id="cFlock">0</div><div class="label">Total Birds</div><div class="note" id="cFlockNote"></div></div>
+    <div class="card"><div class="big" id="cToday">0</div><div class="label">Eggs Today</div><div class="note" id="cRate"></div></div>
+    <div class="card"><div class="big" id="cWeek">0</div><div class="label">Eggs This Week</div></div>
+    <div class="card"><div class="big" id="cMonth">0</div><div class="label">Eggs This Month</div></div>
+    <div class="card"><div class="big" id="cHatch">0</div><div class="label">Active Hatches</div><div class="note" id="cHatchNote"></div></div>
+    <div class="card"><div class="big" id="cTasks">0</div><div class="label">Open Tasks</div></div>
+  </div>
+  <div class="wrap"><button class="btn" onclick="showTab('eggs')">🥚 Log Eggs</button></div>
+</section>
+
+<!-- EGGS -->
+<section id="tab-eggs">
+  <div class="wrap">
+    <h2 class="sec" id="eggDateLbl">Today</h2>
+    <div class="counter">
+      <button onclick="chgEgg(-1)">−</button>
+      <div class="num" id="eggNum">0</div>
+      <button onclick="chgEgg(1)">+</button>
+    </div>
+    <div style="text-align:center;color:#8a7a63;font-size:13px" id="eggHint">Tap + for each egg collected. Saves automatically.</div>
+    <h2 class="sec">Last 14 Days</h2>
+    <div id="eggHist"></div>
+    <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div>
+    <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
+  </div>
+</section>
+
+<!-- HATCH -->
+<section id="tab-hatch">
+  <div class="wrap">
+    <h2 class="sec">Start a Hatch Run</h2>
+    <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
+    <label>Date eggs set</label><input id="hDate" type="date">
+    <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
+    <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
+    <h2 class="sec">Hatch Runs</h2>
+    <div id="hatchList"></div>
+  </div>
+</section>
+
+<!-- TASKS -->
+<section id="tab-tasks">
+  <div class="wrap">
+    <h2 class="sec">Add Task</h2>
+    <input id="tText" placeholder="e.g. Clean coop, order feed…">
+    <button class="btn" onclick="addTask()">✅ Add Task</button>
+    <h2 class="sec">Tasks</h2>
+    <div id="taskList"></div>
+    <button class="btn gray" onclick="clearDone()">Clear Completed</button>
+  </div>
+</section>
+
+<!-- MORE -->
+<section id="tab-more">
+  <div class="wrap">
+    <h2 class="sec">My Flock</h2>
+    <div class="row"><span>🐔 Hens</span><div class="stepper"><button onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button onclick="chgFlock('hens',1)">+</button></div></div>
+    <div class="row"><span>🐓 Roosters</span><div class="stepper"><button onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button onclick="chgFlock('roosters',1)">+</button></div></div>
+
+    <h2 class="sec">Feed Fill-Up</h2>
+    <div class="row"><span>Last fill</span><span class="r" id="feedLast">—</span></div>
+    <label>Date</label><input id="fDate" type="date">
+    <label>Pounds (optional)</label><input id="fLbs" type="number" min="0" placeholder="50">
+    <label>Note (optional)</label><input id="fNote" placeholder="Brand, type…">
+    <button class="btn" onclick="addFeed()">🌾 Log Fill-Up</button>
+    <div id="feedList"></div>
+
+    <h2 class="sec">Data</h2>
+    <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
+    <button class="btn gray" onclick="resetAll()">🗑 Reset Everything</button>
+
+    <div class="hint"><b>Install on your home screen:</b> open this page in Safari, tap
+    <b>Share → Add to Home Screen</b>. It'll sit next to your other apps and your data
+    stays saved on this device.</div>
+  </div>
+</section>
+
+</main>
+
+<nav id="tabbar">
+  <button data-tab="home" class="active" onclick="showTab('home')"><span class="ic">🏠</span>Home</button>
+  <button data-tab="eggs" onclick="showTab('eggs')"><span class="ic">🥚</span>Eggs</button>
+  <button data-tab="hatch" onclick="showTab('hatch')"><span class="ic">🐣</span>Hatch</button>
+  <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">✅</span>Tasks</button>
+  <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>More</button>
+</nav>
+
+<script>
+const KEY = 'coopTrackerV1';
+const FACTS = [
+  "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
+  "A hen's earlobe color usually predicts her egg color: red lobes, brown eggs; white lobes, white eggs.",
+  "Hens lay best with 14–16 hours of light. Short winter days are why production drops.",
+  "An egg takes about 24–26 hours to form, so hens rarely lay more than one per day.",
+  "Chicks can absorb the yolk sac just before hatching — that's how they ship day-old chicks with no food.",
+  "Stop turning eggs at day 18 ('lockdown') so chicks can position themselves to hatch.",
+  "A rooster isn't needed for eggs — only for fertile eggs.",
+  "Candling at day 7–10 lets you spot clear (infertile) eggs before they spoil.",
+  "Humidity matters at hatch: aim ~45–55% early, then 65%+ for lockdown.",
+  "Hens have a 'pecking order' — literal
