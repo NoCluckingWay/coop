@@ -55,7 +55,7 @@
   .chk { width:26px; height:26px; border-radius:50%; border:2px solid #e07a2f; flex:none;
          display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; }
   .taskrow.done .chk { background:#e07a2f; }
-  .x { border:0; background:none; color:#c9b globalization89; font-size:18px; color:#c9b389; }
+  .x { border:0; background:none; font-size:18px; color:#c9b389; }
   .stepper { display:flex; align-items:center; gap:16px; }
   .stepper button { width:44px; height:44px; border-radius:50%; border:0; font-size:22px;
                     background:#efe7d8; color:#3a2e1f; }
@@ -184,4 +184,184 @@ const FACTS = [
   "A rooster isn't needed for eggs — only for fertile eggs.",
   "Candling at day 7–10 lets you spot clear (infertile) eggs before they spoil.",
   "Humidity matters at hatch: aim ~45–55% early, then 65%+ for lockdown.",
-  "Hens have a 'pecking order' — literal
+  "Hens have a 'pecking order' — literally. New birds get ranked by squabbles.",
+  "The average hen eats about 1/4 lb of feed per day.",
+  "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
+];
+
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[] }; }
+function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); return s ? Object.assign(def(), s) : def(); } catch(e){ return def(); } }
+let S = load();
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+
+function dstr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function today(){ return dstr(new Date()); }
+function addDays(ds,n){ const d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+n); return dstr(d); }
+function short(ds){ const d=new Date(ds+'T12:00:00'); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function daysBetween(a,b){ return Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00'))/86400000); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+let selDate = today();
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('active', s.id==='tab-'+t));
+  document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  window.scrollTo(0,0);
+}
+
+/* ---------- eggs ---------- */
+function chgEgg(n){
+  const v = Math.max(0, (S.eggs[selDate]||0) + n);
+  S.eggs[selDate] = v; save(); renderEggs(); renderHome();
+}
+function pickDate(d){ selDate = d; renderEggs(); }
+function sumRange(days){ let t=0; for(let i=0;i<days;i++){ t += S.eggs[addDays(today(),-i)]||0; } return t; }
+function sumMonth(){ const p=today().slice(0,7); let t=0; for(const k in S.eggs){ if(k.startsWith(p)) t+=S.eggs[k]; } return t; }
+
+function renderEggs(){
+  const isToday = selDate===today();
+  document.getElementById('eggDateLbl').textContent = isToday ? 'Today — '+short(selDate) : 'Editing '+short(selDate);
+  document.getElementById('eggNum').textContent = S.eggs[selDate]||0;
+  let h='';
+  for(let i=0;i<14;i++){
+    const d=addDays(today(),-i), v=S.eggs[d];
+    h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?'Today':i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('🥚 '+v):'—')+'</span></div>';
+  }
+  document.getElementById('eggHist').innerHTML = h;
+}
+
+/* ---------- hatch ---------- */
+function addHatch(){
+  const name=document.getElementById('hName').value.trim();
+  const set=document.getElementById('hDate').value || today();
+  const count=parseInt(document.getElementById('hCount').value)||0;
+  if(count<1){ alert('How many eggs?'); return; }
+  S.hatches.push({id:Date.now(), name:name, set:set, count:count, done:false, hatched:null});
+  document.getElementById('hName').value=''; document.getElementById('hCount').value='';
+  save(); renderHatch(); renderHome();
+}
+function doneHatch(id){
+  const h=S.hatches.find(x=>x.id===id); if(!h) return;
+  const n=prompt('How many chicks hatched? (optional)');
+  h.hatched = n===null||n==='' ? null : parseInt(n);
+  h.done = true; save(); renderHatch(); renderHome();
+}
+function delHatch(id){
+  if(!confirm('Delete this hatch run?')) return;
+  S.hatches = S.hatches.filter(x=>x.id!==id); save(); renderHatch(); renderHome();
+}
+function renderHatch(){
+  const list=document.getElementById('hatchList');
+  if(!S.hatches.length){ list.innerHTML='<div class="row"><span class="r">No hatch runs yet.</span></div>'; return; }
+  let h='';
+  S.hatches.slice().sort((a,b)=>a.set<b.set?-1:1).forEach(x=>{
+    const day=daysBetween(x.set, today());
+    const pct=Math.max(0,Math.min(100, Math.round(day/21*100)));
+    let status;
+    if(x.done){ status='✔ Complete'+(x.hatched!=null?(' — '+x.hatched+' of '+x.count+' hatched'):''); }
+    else if(day<7){ status='Day '+day+' of 21 — candle on '+short(addDays(x.set,7)); }
+    else if(day<18){ status='Day '+day+' of 21 — lockdown on '+short(addDays(x.set,18)); }
+    else if(day<=21){ status='Day '+day+' of 21 — hatch day '+short(addDays(x.set,21))+'! 🐥'; }
+    else { status='Day '+day+' — past hatch window'; }
+    h += '<div class="hatchcard"><h3>'+esc(x.name||'Hatch Run')+'</h3>'
+       + '<div class="meta">Set '+short(x.set)+' · '+x.count+' eggs · candle '+short(addDays(x.set,7))+' · lockdown '+short(addDays(x.set,18))+' · hatch '+short(addDays(x.set,21))+'</div>'
+       + '<div class="bar"><div style="width:'+pct+'%"></div></div>'
+       + '<div class="status">'+status+'</div>'
+       + '<div class="actions">'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">✔ Done</button>')
+       + '<button class="btn small gray" onclick="delHatch('+x.id+')">Delete</button></div></div>';
+  });
+  list.innerHTML=h;
+}
+
+/* ---------- tasks ---------- */
+function addTask(){
+  const t=document.getElementById('tText').value.trim(); if(!t) return;
+  S.tasks.push({id:Date.now(), text:t, done:false, created:today()});
+  document.getElementById('tText').value=''; save(); renderTasks(); renderHome();
+}
+function toggleTask(id){ const t=S.tasks.find(x=>x.id===id); if(t){ t.done=!t.done; save(); renderTasks(); renderHome(); } }
+function delTask(id){ S.tasks=S.tasks.filter(x=>x.id!==id); save(); renderTasks(); renderHome(); }
+function clearDone(){ S.tasks=S.tasks.filter(x=>!x.done); save(); renderTasks(); renderHome(); }
+function renderTasks(){
+  const list=document.getElementById('taskList');
+  if(!S.tasks.length){ list.innerHTML='<div class="row"><span class="r">No tasks. Nice.</span></div>'; return; }
+  list.innerHTML = S.tasks.map(t=>
+    '<div class="taskrow'+(t.done?' done':'')+'"><div class="chk" onclick="toggleTask('+t.id+')">'+(t.done?'✓':'')+'</div>'
+    +'<div class="txt" onclick="toggleTask('+t.id+')">'+esc(t.text)+'</div>'
+    +'<button class="x" onclick="delTask('+t.id+')">✕</button></div>').join('');
+}
+
+/* ---------- flock & feed ---------- */
+function chgFlock(k,n){ S[k]=Math.max(0,(S[k]||0)+n); save(); renderMore(); renderHome(); }
+function addFeed(){
+  const d=document.getElementById('fDate').value||today();
+  const lbs=document.getElementById('fLbs').value;
+  const note=document.getElementById('fNote').value.trim();
+  S.feed.push({id:Date.now(), date:d, lbs:lbs, note:note});
+  document.getElementById('fLbs').value=''; document.getElementById('fNote').value='';
+  save(); renderMore();
+}
+function renderMore(){
+  document.getElementById('henV').textContent=S.hens;
+  document.getElementById('rooV').textContent=S.roosters;
+  const last=S.feed.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
+  document.getElementById('feedLast').textContent = last
+    ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
+    : '—';
+  document.getElementById('feedList').innerHTML = S.feed.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5)
+    .map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  const total=S.hens+S.roosters;
+  document.getElementById('hdrSub').textContent = short(today())+' · '+S.hens+' hens · '+S.roosters+' roosters';
+  document.getElementById('cFlock').textContent=total;
+  document.getElementById('cFlockNote').textContent=S.hens+' hens · '+S.roosters+' roos';
+  const t=S.eggs[today()]||0;
+  document.getElementById('cToday').textContent=t;
+  document.getElementById('cRate').textContent = S.hens? Math.round(t/S.hens*100)+'% of hens today' : '';
+  document.getElementById('cWeek').textContent=sumRange(7);
+  document.getElementById('cMonth').textContent=sumMonth();
+  const act=S.hatches.filter(h=>!h.done);
+  document.getElementById('cHatch').textContent=act.length;
+  document.getElementById('cHatchNote').textContent = act.length ? 'next hatch '+short(addDays(act.map(h=>h.set).sort()[0],21)) : '';
+  document.getElementById('cTasks').textContent=S.tasks.filter(x=>!x.done).length;
+}
+
+/* ---------- facts ---------- */
+function newFact(){ document.getElementById('factTxt').textContent = FACTS[Math.floor(Math.random()*FACTS.length)]; }
+document.getElementById('factCard').onclick = newFact;
+
+/* ---------- export & reset ---------- */
+function exportCSV(){
+  const rows=[['section','date','item','value','notes']];
+  rows.push(['flock',today(),'hens',S.hens,'']);
+  rows.push(['flock',today(),'roosters',S.roosters,'']);
+  Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],'']));
+  S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active']));
+  S.tasks.forEach(t=>rows.push(['task',t.created,t.text,t.done?'done':'open','']));
+  S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||'']));
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='coop-tracker-'+today()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function resetAll(){
+  if(confirm('Delete ALL data and start over? This cannot be undone.')){
+    localStorage.removeItem(KEY); S=def(); save(); renderAll();
+  }
+}
+
+/* ---------- init ---------- */
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderTasks(); renderMore(); }
+document.getElementById('hDate').value=today();
+document.getElementById('fDate').value=today();
+document.getElementById('tText').addEventListener('keydown',e=>{ if(e.key==='Enter') addTask(); });
+newFact();
+renderAll();
+</script>
+</body>
+</html>
