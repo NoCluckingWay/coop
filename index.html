@@ -14,9 +14,14 @@
   header { padding:18px 16px 6px; }
   header h1 { margin:0; font-size:24px; }
   header .sub { color:#8a7a63; font-size:13px; margin-top:2px; }
+  #saveTag { color:#b3a48c; font-size:11px; margin-top:3px; min-height:14px; }
   main section { display:none; }
   main section.active { display:block; }
   .wrap { padding:12px 16px; }
+  .warn { background:#fde8e8; border:1px solid #f0b4b4; color:#8a1f1f; border-radius:16px;
+          padding:14px; margin:12px 16px 0; font-size:14px; display:none; }
+  .hint { background:#eef4ff; border:1px solid #cfdefc; border-radius:16px; padding:14px;
+          margin:12px 16px 0; font-size:14px; color:#2f4a7a; }
   .fact { background:#fff3df; border:1px solid #f0dcbb; border-radius:16px; padding:14px;
           margin:12px 16px 0; font-size:14px; }
   .fact b { display:block; font-size:11px; letter-spacing:1px; color:#b07a2e; margin-bottom:4px; }
@@ -68,8 +73,6 @@
                    color:#8a7a63; }
   #tabbar button .ic { display:block; font-size:22px; margin-bottom:2px; }
   #tabbar button.active { color:#e07a2f; font-weight:700; }
-  .hint { background:#eef4ff; border:1px solid #cfdefc; border-radius:16px; padding:14px;
-          margin-top:12px; font-size:14px; color:#2f4a7a; }
 </style>
 </head>
 <body>
@@ -77,7 +80,13 @@
 <header>
   <h1>🐔 Coop Tracker</h1>
   <div class="sub" id="hdrSub"></div>
+  <div id="saveTag"></div>
 </header>
+
+<div class="warn" id="warnBox"></div>
+<div class="hint" id="hsHint" style="display:none">📲 <b>You're in a Safari tab.</b> Data saved here is kept
+separate from the home-screen app. Tap <b>Share → Add to Home Screen</b> and always open from the icon —
+otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
 
 <main>
 
@@ -152,13 +161,17 @@
     <button class="btn" onclick="addFeed()">🌾 Log Fill-Up</button>
     <div id="feedList"></div>
 
+    <h2 class="sec">Storage</h2>
+    <div class="row"><span>Save status</span><span class="r" id="storeStatus">—</span></div>
+    <div class="row"><span>Opened as</span><span class="r" id="openAs">—</span></div>
+
     <h2 class="sec">Data</h2>
     <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
     <button class="btn gray" onclick="resetAll()">🗑 Reset Everything</button>
 
-    <div class="hint"><b>Install on your home screen:</b> open this page in Safari, tap
-    <b>Share → Add to Home Screen</b>. It'll sit next to your other apps and your data
-    stays saved on this device.</div>
+    <div class="hint"><b>Your records save on this device.</b> Two rules for reliability:
+    always open from the <b>home-screen icon</b> (a Safari tab keeps a separate copy),
+    and keep <b>Private Browsing off</b> — private tabs erase everything when closed.</div>
   </div>
 </section>
 
@@ -189,10 +202,38 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[] }; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], hideHsHint:false }; }
 function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); return s ? Object.assign(def(), s) : def(); } catch(e){ return def(); } }
 let S = load();
-function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+let storageOK = true;
+
+function testStorage(){
+  try {
+    localStorage.setItem('__ct','1');
+    storageOK = (localStorage.getItem('__ct')==='1');
+    localStorage.removeItem('__ct');
+  } catch(e){ storageOK = false; }
+  const w = document.getElementById('warnBox');
+  if(!storageOK){
+    w.style.display = 'block';
+    w.innerHTML = "<b>⚠️ Can't save on this browser.</b> Turn off Private Browsing (dark address bar) and make sure Settings → Safari → Block All Cookies is off, then reload.";
+  } else {
+    w.style.display = 'none';
+  }
+  const ss = document.getElementById('storeStatus');
+  if(ss) ss.textContent = storageOK ? '✔ Working' : '⚠️ Blocked';
+}
+
+function save(){
+  try {
+    localStorage.setItem(KEY, JSON.stringify(S));
+    const d = new Date();
+    const tag = document.getElementById('saveTag');
+    if(tag) tag.textContent = '💾 Saved ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  } catch(e){ storageOK = false; testStorage(); }
+}
+
+function isStandalone(){ return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
 
 function dstr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function today(){ return dstr(new Date()); }
@@ -202,6 +243,19 @@ function daysBetween(a,b){ return Math.round((new Date(b+'T12:00:00') - new Date
 function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 let selDate = today();
+let curDay = today();
+
+/* roll over to a new day if the app was left open overnight */
+function tick(){
+  const t = today();
+  if(t !== curDay){
+    if(selDate === curDay) selDate = t;
+    curDay = t;
+  }
+  renderAll();
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') tick(); });
+window.addEventListener('pageshow', tick);
 
 /* ---------- tabs ---------- */
 function showTab(t){
@@ -305,6 +359,8 @@ function addFeed(){
 function renderMore(){
   document.getElementById('henV').textContent=S.hens;
   document.getElementById('rooV').textContent=S.roosters;
+  document.getElementById('storeStatus').textContent = storageOK ? '✔ Working' : '⚠️ Blocked';
+  document.getElementById('openAs').textContent = isStandalone() ? 'Home-screen app ✔' : 'Safari tab — use the icon';
   const last=S.feed.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
   document.getElementById('feedLast').textContent = last
     ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
@@ -328,11 +384,13 @@ function renderHome(){
   document.getElementById('cHatch').textContent=act.length;
   document.getElementById('cHatchNote').textContent = act.length ? 'next hatch '+short(addDays(act.map(h=>h.set).sort()[0],21)) : '';
   document.getElementById('cTasks').textContent=S.tasks.filter(x=>!x.done).length;
+  document.getElementById('hsHint').style.display = (!isStandalone() && !S.hideHsHint) ? 'block' : 'none';
 }
 
 /* ---------- facts ---------- */
 function newFact(){ document.getElementById('factTxt').textContent = FACTS[Math.floor(Math.random()*FACTS.length)]; }
 document.getElementById('factCard').onclick = newFact;
+document.getElementById('hsHint').onclick = function(){ S.hideHsHint = true; save(); renderHome(); };
 
 /* ---------- export & reset ---------- */
 function exportCSV(){
@@ -360,6 +418,7 @@ function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderTasks(); 
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('tText').addEventListener('keydown',e=>{ if(e.key==='Enter') addTask(); });
+testStorage();
 newFact();
 renderAll();
 </script>
