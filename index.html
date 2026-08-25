@@ -34,10 +34,12 @@
          font-weight:600; background:#e07a2f; color:#fff; margin-top:10px; }
   .btn.gray { background:#efe7d8; color:#3a2e1f; }
   .btn.small { width:auto; padding:8px 14px; font-size:14px; margin-top:0; }
-  .counter { display:flex; align-items:center; justify-content:center; gap:22px; margin:14px 0; }
-  .counter button { width:64px; height:64px; border-radius:50%; border:0; font-size:30px;
-                    background:#e07a2f; color:#fff; }
-  .counter .num { font-size:52px; font-weight:700; min-width:80px; text-align:center; }
+  .counter { display:flex; align-items:center; justify-content:center; gap:18px; margin:14px 0; }
+  .counter button { width:60px; height:60px; border-radius:50%; border:0; font-size:28px;
+                    background:#e07a2f; color:#fff; flex:none; }
+  .numin { width:96px; font-size:40px; font-weight:700; text-align:center; padding:8px;
+           border:2px solid #e07a2f; border-radius:16px; background:#fff; color:#3a2e1f;
+           margin-top:0; }
   input, select { width:100%; padding:12px; font-size:16px; border:1px solid #ddd2bd;
                   border-radius:12px; background:#fff; margin-top:6px; }
   label { font-size:13px; color:#8a7a63; display:block; margin-top:12px; }
@@ -110,10 +112,10 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <h2 class="sec" id="eggDateLbl">Today</h2>
     <div class="counter">
       <button onclick="chgEgg(-1)">−</button>
-      <div class="num" id="eggNum">0</div>
+      <input class="numin" type="number" id="eggDirect" inputmode="numeric" min="0" value="0">
       <button onclick="chgEgg(1)">+</button>
     </div>
-    <div style="text-align:center;color:#8a7a63;font-size:13px" id="eggHint">Tap + for each egg collected. Saves automatically.</div>
+    <div style="text-align:center;color:#8a7a63;font-size:13px">Tap +/− or type the number. Saves automatically.</div>
     <h2 class="sec">Last 14 Days</h2>
     <div id="eggHist"></div>
     <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div>
@@ -137,6 +139,9 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
 <!-- TASKS -->
 <section id="tab-tasks">
   <div class="wrap">
+    <h2 class="sec">Supplies — Last Refilled</h2>
+    <div id="supplyList"></div>
+
     <h2 class="sec">Add Task</h2>
     <input id="tText" placeholder="e.g. Clean coop, order feed…">
     <button class="btn" onclick="addTask()">✅ Add Task</button>
@@ -187,6 +192,7 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
 
 <script>
 const KEY = 'coopTrackerV1';
+const SUPPLIES = [ ['fsl','🌾 FSL'], ['water','💧 Water 3x'], ['grit','🪨 Grit'], ['calcium','🐚 Calcium'] ];
 const FACTS = [
   "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
   "A hen's earlobe color usually predicts her egg color: red lobes, brown eggs; white lobes, white eggs.",
@@ -202,7 +208,7 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], hideHsHint:false }; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], supplies:{}, hideHsHint:false }; }
 function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); return s ? Object.assign(def(), s) : def(); } catch(e){ return def(); } }
 let S = load();
 let storageOK = true;
@@ -276,7 +282,8 @@ function sumMonth(){ const p=today().slice(0,7); let t=0; for(const k in S.eggs)
 function renderEggs(){
   const isToday = selDate===today();
   document.getElementById('eggDateLbl').textContent = isToday ? 'Today — '+short(selDate) : 'Editing '+short(selDate);
-  document.getElementById('eggNum').textContent = S.eggs[selDate]||0;
+  const ed = document.getElementById('eggDirect');
+  if(document.activeElement !== ed) ed.value = S.eggs[selDate]||0;
   let h='';
   for(let i=0;i<14;i++){
     const d=addDays(today(),-i), v=S.eggs[d];
@@ -326,6 +333,23 @@ function renderHatch(){
        + '<button class="btn small gray" onclick="delHatch('+x.id+')">Delete</button></div></div>';
   });
   list.innerHTML=h;
+}
+
+/* ---------- supplies ---------- */
+function refillToday(k){ S.supplies[k]=today(); save(); renderSupplies(); }
+function setSupply(k,v){ S.supplies[k]=v||null; save(); renderSupplies(); }
+function renderSupplies(){
+  document.getElementById('supplyList').innerHTML = SUPPLIES.map(([k,label])=>{
+    const last = S.supplies[k];
+    const info = last
+      ? 'Last refilled: <b>'+short(last)+'</b> · '+daysBetween(last,today())+' days ago'
+      : 'Not logged yet';
+    return '<div class="hatchcard"><h3>'+label+'</h3>'
+      + '<div class="meta">'+info+'</div>'
+      + '<label>Refilled / full as of</label>'
+      + '<input type="date" value="'+(last||'')+'" onchange="setSupply(\''+k+'\', this.value)">'
+      + '<div class="actions"><button class="btn small" onclick="refillToday(\''+k+'\')">✔ Refilled Today</button></div></div>';
+  }).join('');
 }
 
 /* ---------- tasks ---------- */
@@ -398,6 +422,7 @@ function exportCSV(){
   rows.push(['flock',today(),'hens',S.hens,'']);
   rows.push(['flock',today(),'roosters',S.roosters,'']);
   Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],'']));
+  SUPPLIES.forEach(([k,label])=>{ const v=S.supplies[k]; if(v) rows.push(['supply',v,label,'refilled/full as of','']); });
   S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active']));
   S.tasks.forEach(t=>rows.push(['task',t.created,t.text,t.done?'done':'open','']));
   S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||'']));
@@ -414,10 +439,14 @@ function resetAll(){
 }
 
 /* ---------- init ---------- */
-function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderTasks(); renderMore(); }
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderSupplies(); renderTasks(); renderMore(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('tText').addEventListener('keydown',e=>{ if(e.key==='Enter') addTask(); });
+document.getElementById('eggDirect').addEventListener('change', e=>{
+  const v = Math.max(0, parseInt(e.target.value,10)||0);
+  S.eggs[selDate] = v; save(); renderEggs(); renderHome();
+});
 testStorage();
 newFact();
 renderAll();
