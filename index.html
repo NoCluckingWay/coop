@@ -160,10 +160,11 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <h2 class="sec">Cloud Sync</h2>
     <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
     <button class="btn gray" onclick="copySyncLink()">🔗 Copy Sync Link — add another device</button>
-    <button class="btn gray" onclick="cloudPull()">🔄 Sync Now</button>
+    <button class="btn gray" onclick="ensureSync()">🔄 Sync Now / Retry</button>
     <div class="hint"><b>Sync turns on by itself</b> — nothing to install. To add a phone, iPad, or
     computer: tap <b>Copy Sync Link</b>, send that link to the device (text or email), and open it there.
-    From then on, the newest edit anywhere wins everywhere.</div>
+    From then on, the newest edit anywhere wins everywhere. If status says blocked, turn off any
+    ad/content blocker for this site or try a different network, then tap Retry.</div>
 
     <h2 class="sec">Storage</h2>
     <div class="row"><span>Save status</span><span class="r" id="storeStatus">—</span></div>
@@ -190,7 +191,13 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
 
 <script>
 const KEY = 'coopTrackerV1';
-const SYNC_API = 'https://api.jsonstorage.net/v1/json';
+/* two independent free sync providers — app tries A, falls back to B */
+const PROVIDERS = [
+  { create:'https://api.jsonstorage.net/v1/json',
+    make: j => j && j.uri },
+  { create:'https://jsonbin-zeta.vercel.app/api/bins',
+    make: j => (j && (j.url || j.uri)) || (j && j.id ? 'https://jsonbin-zeta.vercel.app/api/bins/'+j.id : null) }
+];
 const SUPPLIES = [ ['fsl','🌾 FSL'], ['water','💧 Water 3x'], ['grit','🪨 Grit'], ['calcium','🐚 Calcium'] ];
 const FACTS = [
   "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
@@ -240,7 +247,7 @@ function saveLocal(){
 }
 function save(){ S.updated = Date.now(); saveLocal(); cloudPush(); }
 
-/* ---------- cloud sync: free JSON store, zero setup ---------- */
+/* ---------- cloud sync: zero setup, dual provider ---------- */
 function setSync(t){
   const a = document.getElementById('syncStatus'); if(a) a.textContent = t;
   const b = document.getElementById('syncTag'); if(b) b.textContent = t || '';
@@ -256,20 +263,24 @@ async function ensureSync(){
     return;
   }
   if(S.syncUrl){ cloudPull(); return; }
-  try {
-    setSync('☁️ Turning sync on…');
-    const r = await fetch(SYNC_API, { method:'POST',
-      headers:{ 'Content-Type':'application/json' }, body:'{}' });
-    const j = await r.json();
-    if(j && j.uri){
-      S.syncUrl = j.uri;
-      saveLocal();
-      setSync('☁️ Sync on');
-      cloudPush();
-    } else {
-      setSync('⚠️ Sync unavailable — saved on device');
-    }
-  } catch(e){ setSync('⚠️ Sync unavailable — saved on device'); }
+  setSync('☁️ Turning sync on…');
+  for(const p of PROVIDERS){
+    try {
+      const r = await fetch(p.create, { method:'POST',
+        headers:{ 'Content-Type':'application/json' }, body:'{}' });
+      if(!r.ok) continue;
+      const j = await r.json();
+      const uri = p.make(j);
+      if(uri){
+        S.syncUrl = uri;
+        saveLocal();
+        setSync('☁️ Sync on');
+        cloudPush();
+        return;
+      }
+    } catch(e){ /* try next provider */ }
+  }
+  setSync('⚠️ Sync blocked — see note below, then Retry');
 }
 function cloudPush(){
   if(!S.syncUrl) return;
@@ -303,7 +314,7 @@ async function cloudPull(){
   } catch(e){ setSync('⚠️ Offline — using device copy'); }
 }
 function copySyncLink(){
-  if(!S.syncUrl){ setSync('⚠️ Sync not on yet — wait a moment and retry'); return; }
+  if(!S.syncUrl){ setSync('⚠️ Sync not on yet — tap Sync Now / Retry'); return; }
   const link = 'https://nocluckingway.github.io/coop/#sync=' + encodeURIComponent(S.syncUrl);
   const done = ()=>setSync('✔ Link copied — send it to your other device');
   if(navigator.clipboard && navigator.clipboard.writeText){
