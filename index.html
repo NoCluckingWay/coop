@@ -14,7 +14,7 @@
   header { padding:18px 16px 6px; }
   header h1 { margin:0; font-size:24px; }
   header .sub { color:#8a7a63; font-size:13px; margin-top:2px; }
-  #saveTag { color:#b3a48c; font-size:11px; margin-top:3px; min-height:14px; }
+  #saveTag, #syncTag { color:#b3a48c; font-size:11px; margin-top:3px; min-height:14px; }
   main section { display:none; }
   main section.active { display:block; }
   .wrap { padding:12px 16px; }
@@ -55,14 +55,6 @@
   .hatchcard .meta { color:#8a7a63; font-size:13px; }
   .hatchcard .status { margin-top:8px; font-size:14px; font-weight:600; color:#b07a2e; }
   .hatchcard .actions { display:flex; gap:8px; margin-top:10px; }
-  .taskrow { display:flex; align-items:center; gap:10px; background:#fff; border-radius:12px;
-             padding:12px 14px; margin-top:8px; }
-  .taskrow .txt { flex:1; font-size:15px; }
-  .taskrow.done .txt { text-decoration:line-through; color:#b3a48c; }
-  .chk { width:26px; height:26px; border-radius:50%; border:2px solid #e07a2f; flex:none;
-         display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; }
-  .taskrow.done .chk { background:#e07a2f; }
-  .x { border:0; background:none; font-size:18px; color:#c9b389; }
   .stepper { display:flex; align-items:center; gap:16px; }
   .stepper button { width:44px; height:44px; border-radius:50%; border:0; font-size:22px;
                     background:#efe7d8; color:#3a2e1f; }
@@ -83,6 +75,7 @@
   <h1>🐔 Coop Tracker</h1>
   <div class="sub" id="hdrSub"></div>
   <div id="saveTag"></div>
+  <div id="syncTag"></div>
 </header>
 
 <div class="warn" id="warnBox"></div>
@@ -101,7 +94,7 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <div class="card"><div class="big" id="cWeek">0</div><div class="label">Eggs This Week</div></div>
     <div class="card"><div class="big" id="cMonth">0</div><div class="label">Eggs This Month</div></div>
     <div class="card"><div class="big" id="cHatch">0</div><div class="label">Active Hatches</div><div class="note" id="cHatchNote"></div></div>
-    <div class="card"><div class="big" id="cTasks">0</div><div class="label">Open Tasks</div></div>
+    <div class="card"><div class="big" id="cAvg">0</div><div class="label">Avg Eggs/Day · 7d</div></div>
   </div>
   <div class="wrap"><button class="btn" onclick="showTab('eggs')">🥚 Log Eggs</button></div>
 </section>
@@ -136,18 +129,11 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
   </div>
 </section>
 
-<!-- TASKS -->
+<!-- SUPPLIES -->
 <section id="tab-tasks">
   <div class="wrap">
     <h2 class="sec">Supplies — Last Refilled</h2>
     <div id="supplyList"></div>
-
-    <h2 class="sec">Add Task</h2>
-    <input id="tText" placeholder="e.g. Clean coop, order feed…">
-    <button class="btn" onclick="addTask()">✅ Add Task</button>
-    <h2 class="sec">Tasks</h2>
-    <div id="taskList"></div>
-    <button class="btn gray" onclick="clearDone()">Clear Completed</button>
   </div>
 </section>
 
@@ -166,6 +152,17 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <button class="btn" onclick="addFeed()">🌾 Log Fill-Up</button>
     <div id="feedList"></div>
 
+    <h2 class="sec">Finance</h2>
+    <label>Google Drive / Dropbox link</label>
+    <input id="finLink" type="url" placeholder="https://drive.google.com/… or dropbox.com/…">
+    <div id="finOpen" style="margin-top:8px"></div>
+
+    <h2 class="sec">Cloud Sync</h2>
+    <label>Sync URL (from setup guide)</label>
+    <input id="syncUrl" type="url" placeholder="https://script.google.com/…/exec">
+    <div class="row"><span>Status</span><span class="r" id="syncStatus">Not set up</span></div>
+    <button class="btn gray" onclick="cloudPull()">🔄 Sync Now</button>
+
     <h2 class="sec">Storage</h2>
     <div class="row"><span>Save status</span><span class="r" id="storeStatus">—</span></div>
     <div class="row"><span>Opened as</span><span class="r" id="openAs">—</span></div>
@@ -174,9 +171,9 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
     <button class="btn gray" onclick="resetAll()">🗑 Reset Everything</button>
 
-    <div class="hint"><b>Your records save on this device.</b> Two rules for reliability:
-    always open from the <b>home-screen icon</b> (a Safari tab keeps a separate copy),
-    and keep <b>Private Browsing off</b> — private tabs erase everything when closed.</div>
+    <div class="hint"><b>Your records save on this device</b> and, once Cloud Sync is set up,
+    to your own Google Sheet. Keep <b>Private Browsing off</b> and open from the
+    <b>home-screen icon</b> for best reliability.</div>
   </div>
 </section>
 
@@ -186,7 +183,7 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
   <button data-tab="home" class="active" onclick="showTab('home')"><span class="ic">🏠</span>Home</button>
   <button data-tab="eggs" onclick="showTab('eggs')"><span class="ic">🥚</span>Eggs</button>
   <button data-tab="hatch" onclick="showTab('hatch')"><span class="ic">🐣</span>Hatch</button>
-  <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">✅</span>Tasks</button>
+  <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">🌾</span>Supplies</button>
   <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>More</button>
 </nav>
 
@@ -208,10 +205,11 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], supplies:{}, hideHsHint:false }; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], supplies:{}, hideHsHint:false, syncUrl:'', financeLink:'', updated:0 }; }
 function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); return s ? Object.assign(def(), s) : def(); } catch(e){ return def(); } }
 let S = load();
 let storageOK = true;
+let syncTimer = null;
 
 function testStorage(){
   try {
@@ -230,13 +228,59 @@ function testStorage(){
   if(ss) ss.textContent = storageOK ? '✔ Working' : '⚠️ Blocked';
 }
 
-function save(){
+function saveLocal(){
   try {
     localStorage.setItem(KEY, JSON.stringify(S));
     const d = new Date();
     const tag = document.getElementById('saveTag');
     if(tag) tag.textContent = '💾 Saved ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   } catch(e){ storageOK = false; testStorage(); }
+}
+function save(){ S.updated = Date.now(); saveLocal(); cloudPush(); }
+
+/* ---------- cloud sync (Google Apps Script + Sheet) ---------- */
+function setSync(t){
+  const a = document.getElementById('syncStatus'); if(a) a.textContent = t;
+  const b = document.getElementById('syncTag'); if(b) b.textContent = (t && t!=='Not set up') ? t : '';
+}
+function cloudPush(){
+  if(!S.syncUrl) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(async ()=>{
+    try {
+      await fetch(S.syncUrl, { method:'POST', mode:'no-cors',
+        headers:{ 'Content-Type':'text/plain' }, body: JSON.stringify(S) });
+      setSync('☁️ Synced ' + new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
+    } catch(e){ setSync('⚠️ Offline — saved on device'); }
+  }, 800);
+}
+function cloudPull(){
+  if(!S.syncUrl){ setSync('Not set up'); return; }
+  setSync('☁️ Syncing…');
+  const cb = 'coopCb';
+  window[cb] = function(cloud){
+    try {
+      const cTs = (cloud && cloud.updated) || 0;
+      const lTs = S.updated || 0;
+      if(cTs > lTs){
+        S = Object.assign(def(), cloud);
+        saveLocal(); renderAll();
+        setSync('✔ Updated from cloud');
+      } else if(lTs > cTs){
+        setSync('✔ This device is newest');
+        cloudPush();
+      } else {
+        setSync('✔ Up to date');
+      }
+    } catch(e){ setSync('⚠️ Sync error'); }
+    try { delete window[cb]; } catch(e){}
+    const el = document.getElementById(cb+'s'); if(el) el.remove();
+  };
+  const s = document.createElement('script');
+  s.id = cb + 's';
+  s.src = S.syncUrl + (S.syncUrl.includes('?') ? '&' : '?') + 'callback=' + cb + '&t=' + Date.now();
+  s.onerror = function(){ setSync('⚠️ Offline — using device copy'); };
+  document.body.appendChild(s);
 }
 
 function isStandalone(){ return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
@@ -259,6 +303,7 @@ function tick(){
     curDay = t;
   }
   renderAll();
+  if(S.syncUrl) cloudPull();
 }
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') tick(); });
 window.addEventListener('pageshow', tick);
@@ -352,25 +397,7 @@ function renderSupplies(){
   }).join('');
 }
 
-/* ---------- tasks ---------- */
-function addTask(){
-  const t=document.getElementById('tText').value.trim(); if(!t) return;
-  S.tasks.push({id:Date.now(), text:t, done:false, created:today()});
-  document.getElementById('tText').value=''; save(); renderTasks(); renderHome();
-}
-function toggleTask(id){ const t=S.tasks.find(x=>x.id===id); if(t){ t.done=!t.done; save(); renderTasks(); renderHome(); } }
-function delTask(id){ S.tasks=S.tasks.filter(x=>x.id!==id); save(); renderTasks(); renderHome(); }
-function clearDone(){ S.tasks=S.tasks.filter(x=>!x.done); save(); renderTasks(); renderHome(); }
-function renderTasks(){
-  const list=document.getElementById('taskList');
-  if(!S.tasks.length){ list.innerHTML='<div class="row"><span class="r">No tasks. Nice.</span></div>'; return; }
-  list.innerHTML = S.tasks.map(t=>
-    '<div class="taskrow'+(t.done?' done':'')+'"><div class="chk" onclick="toggleTask('+t.id+')">'+(t.done?'✓':'')+'</div>'
-    +'<div class="txt" onclick="toggleTask('+t.id+')">'+esc(t.text)+'</div>'
-    +'<button class="x" onclick="delTask('+t.id+')">✕</button></div>').join('');
-}
-
-/* ---------- flock & feed ---------- */
+/* ---------- flock, feed, finance ---------- */
 function chgFlock(k,n){ S[k]=Math.max(0,(S[k]||0)+n); save(); renderMore(); renderHome(); }
 function addFeed(){
   const d=document.getElementById('fDate').value||today();
@@ -385,6 +412,13 @@ function renderMore(){
   document.getElementById('rooV').textContent=S.roosters;
   document.getElementById('storeStatus').textContent = storageOK ? '✔ Working' : '⚠️ Blocked';
   document.getElementById('openAs').textContent = isStandalone() ? 'Home-screen app ✔' : 'Safari tab — use the icon';
+  const fl = document.getElementById('finLink');
+  if(document.activeElement !== fl) fl.value = S.financeLink || '';
+  document.getElementById('finOpen').innerHTML = S.financeLink
+    ? '<a class="btn" style="text-decoration:none;text-align:center" href="'+esc(S.financeLink)+'" target="_blank" rel="noopener">📂 Open Finance Folder</a>'
+    : '';
+  const su = document.getElementById('syncUrl');
+  if(document.activeElement !== su) su.value = S.syncUrl || '';
   const last=S.feed.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
   document.getElementById('feedLast').textContent = last
     ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
@@ -404,10 +438,10 @@ function renderHome(){
   document.getElementById('cRate').textContent = S.hens? Math.round(t/S.hens*100)+'% of hens today' : '';
   document.getElementById('cWeek').textContent=sumRange(7);
   document.getElementById('cMonth').textContent=sumMonth();
+  document.getElementById('cAvg').textContent=(sumRange(7)/7).toFixed(1);
   const act=S.hatches.filter(h=>!h.done);
   document.getElementById('cHatch').textContent=act.length;
   document.getElementById('cHatchNote').textContent = act.length ? 'next hatch '+short(addDays(act.map(h=>h.set).sort()[0],21)) : '';
-  document.getElementById('cTasks').textContent=S.tasks.filter(x=>!x.done).length;
   document.getElementById('hsHint').style.display = (!isStandalone() && !S.hideHsHint) ? 'block' : 'none';
 }
 
@@ -424,7 +458,7 @@ function exportCSV(){
   Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],'']));
   SUPPLIES.forEach(([k,label])=>{ const v=S.supplies[k]; if(v) rows.push(['supply',v,label,'refilled/full as of','']); });
   S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active']));
-  S.tasks.forEach(t=>rows.push(['task',t.created,t.text,t.done?'done':'open','']));
+  if(S.tasks && S.tasks.length) S.tasks.forEach(t=>rows.push(['task',t.created,t.text,t.done?'done':'open','']));
   S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||'']));
   const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');
@@ -439,17 +473,24 @@ function resetAll(){
 }
 
 /* ---------- init ---------- */
-function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderSupplies(); renderTasks(); renderMore(); }
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderSupplies(); renderMore(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
-document.getElementById('tText').addEventListener('keydown',e=>{ if(e.key==='Enter') addTask(); });
 document.getElementById('eggDirect').addEventListener('change', e=>{
   const v = Math.max(0, parseInt(e.target.value,10)||0);
   S.eggs[selDate] = v; save(); renderEggs(); renderHome();
 });
+document.getElementById('finLink').addEventListener('change', e=>{
+  S.financeLink = e.target.value.trim(); save(); renderMore();
+});
+document.getElementById('syncUrl').addEventListener('change', e=>{
+  S.syncUrl = e.target.value.trim(); save(); renderMore();
+  if(S.syncUrl) cloudPull();
+});
 testStorage();
 newFact();
 renderAll();
+if(S.syncUrl) cloudPull();
 </script>
 </body>
 </html>
