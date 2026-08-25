@@ -158,10 +158,12 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <div id="finOpen" style="margin-top:8px"></div>
 
     <h2 class="sec">Cloud Sync</h2>
-    <label>Sync URL (from setup guide)</label>
-    <input id="syncUrl" type="url" placeholder="https://script.google.com/…/exec">
-    <div class="row"><span>Status</span><span class="r" id="syncStatus">Not set up</span></div>
+    <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
+    <button class="btn gray" onclick="copySyncLink()">🔗 Copy Sync Link — add another device</button>
     <button class="btn gray" onclick="cloudPull()">🔄 Sync Now</button>
+    <div class="hint"><b>Sync turns on by itself</b> — nothing to install. To add a phone, iPad, or
+    computer: tap <b>Copy Sync Link</b>, send that link to the device (text or email), and open it there.
+    From then on, the newest edit anywhere wins everywhere.</div>
 
     <h2 class="sec">Storage</h2>
     <div class="row"><span>Save status</span><span class="r" id="storeStatus">—</span></div>
@@ -171,9 +173,8 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
     <button class="btn gray" onclick="resetAll()">🗑 Reset Everything</button>
 
-    <div class="hint"><b>Your records save on this device</b> and, once Cloud Sync is set up,
-    to your own Google Sheet. Keep <b>Private Browsing off</b> and open from the
-    <b>home-screen icon</b> for best reliability.</div>
+    <div class="hint"><b>Your records save on this device</b> and sync through a free cloud slot.
+    Keep <b>Private Browsing off</b> and open from the <b>home-screen icon</b> for best reliability.</div>
   </div>
 </section>
 
@@ -189,6 +190,7 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
 
 <script>
 const KEY = 'coopTrackerV1';
+const SYNC_API = 'https://api.jsonstorage.net/v1/json';
 const SUPPLIES = [ ['fsl','🌾 FSL'], ['water','💧 Water 3x'], ['grit','🪨 Grit'], ['calcium','🐚 Calcium'] ];
 const FACTS = [
   "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
@@ -238,49 +240,77 @@ function saveLocal(){
 }
 function save(){ S.updated = Date.now(); saveLocal(); cloudPush(); }
 
-/* ---------- cloud sync (Google Apps Script + Sheet) ---------- */
+/* ---------- cloud sync: free JSON store, zero setup ---------- */
 function setSync(t){
   const a = document.getElementById('syncStatus'); if(a) a.textContent = t;
-  const b = document.getElementById('syncTag'); if(b) b.textContent = (t && t!=='Not set up') ? t : '';
+  const b = document.getElementById('syncTag'); if(b) b.textContent = t || '';
+}
+async function ensureSync(){
+  const m = location.hash.match(/sync=([^&]+)/);
+  if(m){
+    S.syncUrl = decodeURIComponent(m[1]);
+    history.replaceState(null,'',location.pathname);
+    saveLocal();
+    setSync('☁️ Joining sync…');
+    cloudPull();
+    return;
+  }
+  if(S.syncUrl){ cloudPull(); return; }
+  try {
+    setSync('☁️ Turning sync on…');
+    const r = await fetch(SYNC_API, { method:'POST',
+      headers:{ 'Content-Type':'application/json' }, body:'{}' });
+    const j = await r.json();
+    if(j && j.uri){
+      S.syncUrl = j.uri;
+      saveLocal();
+      setSync('☁️ Sync on');
+      cloudPush();
+    } else {
+      setSync('⚠️ Sync unavailable — saved on device');
+    }
+  } catch(e){ setSync('⚠️ Sync unavailable — saved on device'); }
 }
 function cloudPush(){
   if(!S.syncUrl) return;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(async ()=>{
     try {
-      await fetch(S.syncUrl, { method:'POST', mode:'no-cors',
-        headers:{ 'Content-Type':'text/plain' }, body: JSON.stringify(S) });
+      await fetch(S.syncUrl, { method:'PUT',
+        headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(S) });
       setSync('☁️ Synced ' + new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
     } catch(e){ setSync('⚠️ Offline — saved on device'); }
   }, 800);
 }
-function cloudPull(){
-  if(!S.syncUrl){ setSync('Not set up'); return; }
+async function cloudPull(){
+  if(!S.syncUrl){ ensureSync(); return; }
   setSync('☁️ Syncing…');
-  const cb = 'coopCb';
-  window[cb] = function(cloud){
-    try {
-      const cTs = (cloud && cloud.updated) || 0;
-      const lTs = S.updated || 0;
-      if(cTs > lTs){
-        S = Object.assign(def(), cloud);
-        saveLocal(); renderAll();
-        setSync('✔ Updated from cloud');
-      } else if(lTs > cTs){
-        setSync('✔ This device is newest');
-        cloudPush();
-      } else {
-        setSync('✔ Up to date');
-      }
-    } catch(e){ setSync('⚠️ Sync error'); }
-    try { delete window[cb]; } catch(e){}
-    const el = document.getElementById(cb+'s'); if(el) el.remove();
-  };
-  const s = document.createElement('script');
-  s.id = cb + 's';
-  s.src = S.syncUrl + (S.syncUrl.includes('?') ? '&' : '?') + 'callback=' + cb + '&t=' + Date.now();
-  s.onerror = function(){ setSync('⚠️ Offline — using device copy'); };
-  document.body.appendChild(s);
+  try {
+    const r = await fetch(S.syncUrl + (S.syncUrl.includes('?')?'&':'?') + 't=' + Date.now());
+    const cloud = await r.json();
+    const cTs = (cloud && cloud.updated) || 0;
+    const lTs = S.updated || 0;
+    if(cTs > lTs){
+      S = Object.assign(def(), cloud);
+      saveLocal(); renderAll();
+      setSync('✔ Updated from cloud');
+    } else if(lTs > cTs){
+      setSync('✔ This device is newest');
+      cloudPush();
+    } else {
+      setSync('✔ Up to date');
+    }
+  } catch(e){ setSync('⚠️ Offline — using device copy'); }
+}
+function copySyncLink(){
+  if(!S.syncUrl){ setSync('⚠️ Sync not on yet — wait a moment and retry'); return; }
+  const link = 'https://nocluckingway.github.io/coop/#sync=' + encodeURIComponent(S.syncUrl);
+  const done = ()=>setSync('✔ Link copied — send it to your other device');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(done).catch(()=>prompt('Copy this link:', link));
+  } else {
+    prompt('Copy this link:', link);
+  }
 }
 
 function isStandalone(){ return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
@@ -303,7 +333,7 @@ function tick(){
     curDay = t;
   }
   renderAll();
-  if(S.syncUrl) cloudPull();
+  if(S.syncUrl) cloudPull(); else ensureSync();
 }
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') tick(); });
 window.addEventListener('pageshow', tick);
@@ -417,8 +447,6 @@ function renderMore(){
   document.getElementById('finOpen').innerHTML = S.financeLink
     ? '<a class="btn" style="text-decoration:none;text-align:center" href="'+esc(S.financeLink)+'" target="_blank" rel="noopener">📂 Open Finance Folder</a>'
     : '';
-  const su = document.getElementById('syncUrl');
-  if(document.activeElement !== su) su.value = S.syncUrl || '';
   const last=S.feed.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
   document.getElementById('feedLast').textContent = last
     ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
@@ -483,14 +511,10 @@ document.getElementById('eggDirect').addEventListener('change', e=>{
 document.getElementById('finLink').addEventListener('change', e=>{
   S.financeLink = e.target.value.trim(); save(); renderMore();
 });
-document.getElementById('syncUrl').addEventListener('change', e=>{
-  S.syncUrl = e.target.value.trim(); save(); renderMore();
-  if(S.syncUrl) cloudPull();
-});
 testStorage();
 newFact();
 renderAll();
-if(S.syncUrl) cloudPull();
+ensureSync();
 </script>
 </body>
 </html>
