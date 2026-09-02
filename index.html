@@ -345,7 +345,7 @@ async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_
 
 function randomizeNumericPlaceholders(){document.querySelectorAll('[data-random-placeholder]').forEach(x=>x.placeholder=String(1+Math.floor(Math.random()*10)));}
 function showAuth(){
-  const signedIn=isAccountUser();
+  const signedIn=isAccountUser(); if(!signedIn){accountRole='limited';trustedDevice=false;document.body.dataset.role='limited';}
   document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
   document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
   randomizeNumericPlaceholders();
