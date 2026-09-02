@@ -171,6 +171,11 @@
         <div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">Add Meat Bird Record</button><div id="tractorList"></div></div>
       </details>
     </details>
+    <details class="nextgen" id="etcSection"><summary>etc</summary>
+      <div class="workflow"><h2 class="sec">Before and After</h2><label>Filler 1</label><input id="etcFiller1" placeholder="optional" onchange="setEtc('filler1',this.value)"></div>
+      <div class="workflow"><h2 class="sec">Social Media</h2><label>Filler 2</label><input id="etcFiller2" placeholder="optional" onchange="setEtc('filler2',this.value)"></div>
+      <div class="workflow"><h2 class="sec">Ideas/TDL</h2><label>Filler 3</label><input id="etcFiller3" placeholder="optional" onchange="setEtc('filler3',this.value)"></div>
+    </details>
   </div>
 </section>
 
@@ -314,8 +319,8 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:18}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
-function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:18}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, etc:{filler1:'',filler2:'',filler3:''}, updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.etc=Object.assign(def().etc,(x&&x.etc)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
 let accountRole='limited',trustedDevice=false,trustedExists=false;
@@ -629,6 +634,9 @@ function renderHome(){
   document.getElementById('cHatchNote').textContent = act.length ? 'next hatch '+short(addDays(act.map(h=>h.set).sort()[0],21)) : '';
 }
 
+function setEtc(k,v){ S.etc[k]=v; save(); }
+function renderEtc(){ const e=S.etc||def().etc; document.getElementById('etcFiller1').value=e.filler1||''; document.getElementById('etcFiller2').value=e.filler2||''; document.getElementById('etcFiller3').value=e.filler3||''; }
+
 /* ---------- facts ---------- */
 function newFact(){ document.getElementById('factTxt').textContent = FACTS[Math.floor(Math.random()*FACTS.length)]; }
 document.getElementById('factCard').onclick = newFact;
@@ -644,7 +652,7 @@ async function resetAllTesting(){
 }
 
 /* ---------- init ---------- */
-function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderTractor(); renderSupplies(); renderFinance(); renderMore(); }
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderTractor(); renderSupplies(); renderFinance(); renderMore(); renderEtc(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('scratchDate').value=today();
