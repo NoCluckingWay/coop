@@ -91,6 +91,7 @@
   .qr canvas,.qr img { display:block; width:180px!important; height:180px!important; }
   .workflow { margin:18px 0; padding:16px; border:2px solid #eadbc5; border-radius:16px; background:#fffaf2; }
   .workflow h2.sec { margin-top:0; color:#6b4a26; }
+  .history { margin-top:12px; } .history summary { color:#2f281f; font-weight:700; cursor:pointer; }
   .reset-block { margin-top:28px; padding-top:20px; border-top:2px solid #eadbc5; }
   .session-card { margin:10px 0; } .session-card .status { display:inline-block; margin-left:8px; padding:2px 7px; font-size:11px; } .session-card .actions { margin-top:10px; display:flex; gap:8px; }
   .month-block { background:#fff; border-radius:12px; margin-top:8px; box-shadow:0 1px 3px rgba(60,40,10,.06); overflow:hidden; }
@@ -197,9 +198,9 @@
     <div id="supplyList"></div>
     <details class="archive" id="inventory"><summary>Inventory</summary>
       <div class="hatchcard"><h3>🌾 Feed</h3><div class="meta">Last fill: <span id="feedLast">—</span></div>
-        <label>Date</label><input id="fDate" type="date"><label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="fNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addFeed()">Add Feed</button><div id="feedList"></div></div>
+        <label>Date</label><input id="fDate" type="date"><label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="fNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addFeed()">Add Feed</button><details class="history"><summary>History</summary><div id="feedList"></div></details></div>
       <div class="hatchcard"><h3>🌾 Scratch</h3><div class="meta">Last fill: <span id="scratchLast">—</span></div>
-        <label>Date</label><input id="scratchDate" type="date"><label>Pounds</label><input id="scratchLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="scratchNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addScratch()">Add Scratch</button><div id="scratchList"></div></div>
+        <label>Date</label><input id="scratchDate" type="date"><label>Pounds</label><input id="scratchLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="scratchNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addScratch()">Add Scratch</button><details class="history"><summary>History</summary><div id="scratchList"></div></details></div>
       <div id="inventorySupplyList"></div>
     </details>
   </div>
@@ -552,8 +553,10 @@ function delSupply(k,id){ if(!requireAdmin())return; S.supplyEntries[k]=S.supply
 function renderSupplies(){
   const cards=([k,label])=>{ const entries=S.supplyEntries[k]||[], latest=entries.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
     const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional"><button class="btn small" onclick="addSupply('${k}')">✔ Add Refill</button>`;
-    const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,8).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray adminAction" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
-    return `<div class="hatchcard"><h3>${label}</h3><div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${history}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join('');
+    const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray adminAction" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
+    const detail=k==='fsl'?'<div class="meta">Full coop, run, roosting bars, nesting boxes (as used)</div>':'';
+    const archive=k==='fsl'?history:`<details class="history"><summary>History</summary>${history||'<div class="row"><span class="r">No refill history.</span></div>'}</details>`;
+    return `<div class="hatchcard"><h3>${label}</h3>${detail}<div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${archive}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join('');
 }
 
 /* ---------- flock, feed, finance ---------- */
