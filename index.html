@@ -256,8 +256,9 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div>
     <button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button>
     <h2 class="sec">App Restore</h2>
-    <div class="authbox"><p id="restoreNote">This registered device can restore its own session unless you sign it out or clear its app/browser storage.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
-    <button class="btn gray" onclick="signOutAccount()">Log Out</button>
+    <div class="authbox"><p id="restoreNote">Log Out ends this session but keeps this device remembered for one-tap restore. Forget This Device removes that access.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
+    <button class="btn gray" onclick="signOutAccount()">Log Out - Keep Device Remembered</button>
+    <button class="btn gray danger" onclick="forgetThisDevice()">Forget This Device</button>
     <button class="btn gray danger" onclick="resetAll()">Reset All Data</button>
 
     <div class="hint"><b>Offline-ready:</b> records stay cached on this device. Sign in with the same email on another device and your cloud copy appears automatically.</div>
@@ -364,9 +365,9 @@ async function sendSignInLink(){
   }
   authMsg('Link sent. Open it on this device to sign in and sync.');
 }
+async function forgetThisDevice(){ if(!confirm('Forget this device? You will need an email link or QR to sign in here again.'))return; if(isAccountUser())await pairAPI('revoke',{device_id:deviceId()}); localStorage.removeItem(DEVICE_SECRET_KEY); localStorage.removeItem(REMEMBERED_EMAIL_KEY); await db.auth.signOut({scope:'local'}); currentUser=null; showAuth(); renderRestore(); setSync('Device forgotten'); }
 async function signOutAccount(){
   if(dirty) await pushCloud();
-  if(isAccountUser())await pairAPI('revoke',{device_id:deviceId()});
   await db.auth.signOut({scope:'local'});
   currentUser=null; rowVersion=null;
   showAuth(); setSync('Sign in to sync');
