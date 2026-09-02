@@ -34,6 +34,8 @@
   .card .big { font-size:32px; font-weight:700; line-height:1.1; }
   .card .label { color:#8a7a63; font-size:13px; margin-top:2px; }
   .card .note { color:#b07a2e; font-size:12px; margin-top:4px; }
+  .avg-range { color:#8a7a63!important; font-size:10px!important; white-space:nowrap; letter-spacing:-.25px; }
+  .egg-rate { display:block; color:#8a7a63; font-size:11px; margin-top:2px; }
   .btn { display:block; width:100%; border:0; border-radius:12px; padding:13px; font-size:16px;
          font-weight:600; background:#e07a2f; color:#fff; margin-top:10px; }
   .btn.gray { background:#efe7d8; color:#3a2e1f; }
@@ -130,8 +132,8 @@
   <div class="cards">
     <div class="card" role="button" onclick="goMyFlock()"><div class="big" id="cFlock">0</div><div class="label" id="cFlockLabel">Chickens</div></div>
     <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cToday">0</div><div class="label">Eggs Today</div></div>
-    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cAvg30">0</div><div class="label" id="cAvg30Label">Average</div></div>
-    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cAvg">0</div><div class="label" id="cAvgLabel">Average</div></div>
+    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cAvg30">0</div><div class="label">Prior 3m Avg</div><div class="note avg-range" id="cAvg30Range"></div></div>
+    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cAvg">0</div><div class="label">Prior 7d Avg</div><div class="note avg-range" id="cAvgRange"></div></div>
     <div class="card" role="button" onclick="editCounterEggs()"><div class="big" id="cWeek">0</div><div class="label">Counter Eggs</div><div class="note">stored unwashed on counter</div></div>
     <div class="card" role="button" onclick="goFridgeEggs()"><div class="big" id="cFridge">0</div><div class="label">Fridge Eggs</div><div class="note" id="cFridgeDozens"></div></div>
   </div>
@@ -196,7 +198,7 @@
     <div style="text-align:center;color:#8a7a63;font-size:13px">Tap +/− or type the number. Saves automatically.</div>
     <h2 class="sec">Last 7 Days</h2>
     <div id="eggHist"></div>
-    <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div>
+    <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div><div class="cards" id="eggStats"><div class="card"><div class="big" id="eAvg3">0</div><div class="label">Prior 3d Avg</div><div class="note avg-range" id="eAvg3Range"></div></div><div class="card"><div class="big" id="eAvg1m">0</div><div class="label">Prior 1m Avg</div><div class="note avg-range" id="eAvg1mRange"></div></div><div class="card"><div class="big" id="eMonthDiff">0</div><div class="label">Month Difference</div><div class="note avg-range" id="eMonthDiffRange"></div></div></div>
     
   </div>
 </section>
@@ -494,6 +496,9 @@ function pickDate(d){ selDate = d; renderEggs(); }
 function sumRange(days){ let t=0; for(let i=0;i<days;i++){ t += S.eggs[addDays(today(),-i)]||0; } return t; }
 function sumMonth(){ const p=today().slice(0,7); let t=0; for(const k in S.eggs){ if(k.startsWith(p)) t+=S.eggs[k]; } return t; }
 
+function shiftMonths(ds,n){const d=new Date(ds+'T12:00:00'),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+n);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return dstr(d);}
+function rangeText(start,end,shortYear=false){const a=new Date(start+'T12:00:00'),b=new Date(end+'T12:00:00'),cross=a.getFullYear()!==b.getFullYear(),opts={month:'numeric',day:'numeric',...(cross?{year:'numeric'}:{})};if(shortYear&&cross)opts.year='2-digit';const f=new Intl.DateTimeFormat('en-US',opts);return '('+f.format(a)+'-'+f.format(b)+')';}
+function avgBetween(start,end){const days=daysBetween(start,end)+1;let n=0;for(let i=0;i<days;i++)n+=Number(S.eggs[addDays(start,i)]||0);return n/days;}
 function renderEggs(){
   const isToday = selDate===today();
   document.getElementById('eggDateLbl').textContent = isToday ? 'Today — '+short(selDate) : 'Editing '+short(selDate);
@@ -502,9 +507,10 @@ function renderEggs(){
   let h='';
   for(let i=0;i<7;i++){
     const d=addDays(today(),-i), v=S.eggs[d];
-    h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?('Today'+(S.hens?' <span class="note">· '+Math.round((Number(v)||0)/S.hens*100)+'% of hens</span>':'')):i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('🥚 '+v):'—')+'</span></div>';
+    h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?('Today'+(S.hens?' <span class="egg-rate">'+Math.round((Number(v)||0)/S.hens*100)+'% of hens</span>':'')):i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('🥚 '+v):'—')+'</span></div>';
   }
   document.getElementById('eggHist').innerHTML = h;
+  const end=today(),s3=addDays(end,-2),s1=shiftMonths(end,-1),prevEnd=shiftMonths(end,-1),prevStart=shiftMonths(s1,-1),curAvg=avgBetween(s1,end),prevAvg=avgBetween(prevStart,prevEnd);document.getElementById('eAvg3').textContent=avgBetween(s3,end).toFixed(1);document.getElementById('eAvg3Range').textContent=rangeText(s3,end,true);document.getElementById('eAvg1m').textContent=curAvg.toFixed(1);document.getElementById('eAvg1mRange').textContent=rangeText(s1,end,true);document.getElementById('eMonthDiff').textContent=(curAvg-prevAvg).toFixed(1);document.getElementById('eMonthDiffRange').textContent='('+new Intl.DateTimeFormat('en-US',{month:'numeric',day:'numeric'}).format(new Date(prevEnd+'T12:00:00'))+' v '+new Intl.DateTimeFormat('en-US',{month:'numeric',day:'numeric'}).format(new Date(end+'T12:00:00'))+')';
 }
 
 /* ---------- hatch ---------- */
@@ -643,7 +649,7 @@ function renderHome(){
   document.getElementById('cToday').textContent=t;
   document.getElementById('cWeek').textContent=S.counterEggs==null?sumRange(7):Number(S.counterEggs)||0;
   document.getElementById('cMonth').textContent=Object.entries(S.eggs).filter(([d])=>d.slice(0,7)===today().slice(0,7)).reduce((n,[,v])=>n+(Number(v)||0),0);
-  document.getElementById('cAvg30').textContent=(sumRange(30)/30).toFixed(1);document.getElementById('cAvg30Label').textContent='Average '+new Intl.DateTimeFormat('en-US',{month:'numeric',day:'numeric'}).format(new Date(addDays(today(),-30)+'T12:00:00'))+'-'+new Intl.DateTimeFormat('en-US',{month:'numeric',day:'numeric'}).format(new Date(today()+'T12:00:00'));document.getElementById('cAvg').textContent=(sumRange(7)/7).toFixed(1);document.getElementById('cAvgLabel').textContent='Average '+new Intl.DateTimeFormat('en-US',{month:'numeric',day:'numeric'}).format(new Date(addDays(today(),-7)+'T12:00:00'))+'-'+new Intl.DateTimeFormat('en-US',{month:'numeric',day:'numeric'}).format(new Date(today()+'T12:00:00'));
+  const avgEnd=today(),avg3mStart=shiftMonths(avgEnd,-3),avg7Start=addDays(avgEnd,-6);document.getElementById('cAvg30').textContent=avgBetween(avg3mStart,avgEnd).toFixed(1);document.getElementById('cAvg30Range').textContent=rangeText(avg3mStart,avgEnd);document.getElementById('cAvg').textContent=avgBetween(avg7Start,avgEnd).toFixed(1);document.getElementById('cAvgRange').textContent=rangeText(avg7Start,avgEnd);
   document.getElementById('cTotalEggs').textContent=Object.values(S.eggs).reduce((a,b)=>a+(Number(b)||0),0);
   const months={}; Object.entries(S.eggs).forEach(([d,v])=>months[d.slice(0,7)]=(months[d.slice(0,7)]||0)+(Number(v)||0)); document.getElementById('eggMonths').innerHTML=Object.keys(months).sort().reverse().map(m=>monthCalendar(m,months[m])).join('')||'<div class="row"><span class="r">No eggs logged yet.</span></div>';
   const cohortTotals={incubating:0,chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>cohortTotals[cohortStage(x)]+=x.count);document.getElementById('cChicks').textContent=cohortTotals.chick;document.getElementById('cPullets').textContent=cohortTotals.pullet+cohortTotals.ready;const incubating=S.hatches.filter(h=>!h.done&&daysBetween(h.set,today())>=0&&daysBetween(h.set,today())<21).reduce((n,h)=>n+h.count,0),meat=meatBirdTotal(),cartons=Object.values(S.cartons).reduce((n,v)=>n+(Number(v)||0),0);document.getElementById('cIncubating').textContent=incubating;document.getElementById('cMeat').textContent=meat;document.getElementById('cCartons').textContent=cartons;const capacity=cartonCapacity(),readyEggs=Number(S.cartons.ready)||0;document.getElementById('cCartonSpace').textContent=capacity;document.getElementById('cReady').textContent=readyEggs;document.getElementById('cReadyDozens').textContent=(readyEggs/12).toFixed(1)+' dozen';document.getElementById('cFridge').textContent=readyEggs;document.getElementById('cFridgeDozens').textContent=(readyEggs/12).toFixed(1)+' dozen';document.getElementById('cCartonsCard').classList.toggle('hidden',!cartons);document.getElementById('cCartonSpaceCard').classList.toggle('hidden',!capacity);document.getElementById('cReadyCard').classList.toggle('hidden',!readyEggs);if(HIDE_EMPTY_MORE_COUNTERS){document.getElementById('cChicksCard').classList.toggle('hidden',!cohortTotals.chick);document.getElementById('cPulletsCard').classList.toggle('hidden',!(cohortTotals.pullet+cohortTotals.ready));document.getElementById('cIncubatingCard').classList.toggle('hidden',!incubating);document.getElementById('cMeatCard').classList.toggle('hidden',!meat);}
