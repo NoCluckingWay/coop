@@ -87,6 +87,8 @@
   .statmini { background:#fff7ec; border-radius:12px; padding:10px; text-align:center; }
   .statmini b { display:block; font-size:22px; }
   .qr { width:180px; height:180px; margin:10px auto; display:block; }
+  .workflow { margin:18px 0; padding:16px; border:2px solid #eadbc5; border-radius:16px; background:#fffaf2; }
+  .workflow h2.sec { margin-top:0; color:#6b4a26; }
 </style>
 </head>
 <body>
@@ -109,32 +111,43 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 <section id="tab-home" class="active">
   <div class="fact" id="factCard"><b>DID YOU KNOW?</b><span id="factTxt"></span></div>
   <div class="cards">
-    <div class="card"><div class="big" id="cFlock">0</div><div class="label">Total Birds</div><div class="note" id="cFlockNote"></div></div>
+    <div class="card"><div class="big" id="cFlock">0</div><div class="label" id="cFlockLabel">Laying Hens</div><div class="note" id="cFlockNote"></div></div>
     <div class="card"><div class="big" id="cToday">0</div><div class="label">Eggs Today</div><div class="note" id="cRate"></div></div>
     <div class="card"><div class="big" id="cWeek">0</div><div class="label">Eggs This Week</div></div>
     <div class="card"><div class="big" id="cAvg">0</div><div class="label">Avg Eggs/Day · 7d</div></div>
   </div>
   <div class="wrap"><button class="btn" onclick="showTab('eggs')">🥚 Log Eggs</button>
-    <details class="nextgen" id="nextGen"><summary>Next-gen stats & flock details</summary>
+    <details class="nextgen" id="nextGen"><summary>More</summary>
       <div class="cards">
         <div class="card"><div class="big" id="cHatch">0</div><div class="label">Active Hatches</div><div class="note" id="cHatchNote"></div></div>
         <div class="card"><div class="big" id="c30">0</div><div class="label">Eggs Last Month</div><div class="note" id="c30Range"></div></div>
         <div class="card"><div class="big" id="cTotalEggs">0</div><div class="label">Total Eggs</div></div>
       </div>
       <h2 class="sec">Eggs by Month</h2><div id="eggMonths"></div>
-      <h2 class="sec">Hatch Runs</h2><div id="hatchList"></div>
-      <h2 class="sec">Start a Hatch Run</h2>
+      <div class="workflow"><h2 class="sec">🐣 Hatch Runs</h2><div id="hatchList"></div>
+      <h2 class="sec">Add Hatch Run</h2>
       <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
       <label>Date eggs set</label><input id="hDate" type="date">
       <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
-      <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
-      <h2 class="sec">Dispatch Tracker</h2>
+      <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button></div>
+      <div class="workflow"><h2 class="sec">☠️ Dispatch Birds</h2>
       <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
       <label>Dispatched date</label><input id="birdDate" type="date">
       <label>Note (optional)</label><input id="birdNote" placeholder="Optional note">
-      <button class="btn" onclick="addDispatch()">☠️ Log Dispatched Bird</button>
+      <button class="btn" onclick="addDispatch()">☠️ Add Dispatch Bird</button>
       <div class="stats3"><div class="statmini"><b id="d7">0</b>🕊️ last 7 days</div><div class="statmini"><b id="d30">0</b>☠️ last 30 days</div><div class="statmini"><b id="dAll">0</b>🍗 cumulative killed</div></div>
-      <div id="dispatchList"></div>
+      <div id="dispatchList"></div></div>
+      <div class="workflow"><h2 class="sec">🐥 Chick & Pullet Rearing</h2>
+        <div class="stats3"><div class="statmini"><b id="chickCount">0</b>Chicks</div><div class="statmini"><b id="pulletCount">0</b>Pullets</div><div class="statmini"><b id="readyCount">0</b>Pullets - unconfirmed laying</div></div>
+        <label>Chick hatch date</label><input id="cohortDate" type="date">
+        <label>Number of chicks</label><input id="cohortCount" type="number" min="1" placeholder="1">
+        <label>Name / note (optional)</label><input id="cohortNote" placeholder="e.g. Spring hatch">
+        <button class="btn" onclick="addCohort()">🐥 Add Chicks</button>
+        <div id="cohortList"></div>
+        <h2 class="sec">Rearing Ages</h2>
+        <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
+        <label>Flag pullet as unconfirmed laying at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
+      </div>
     </details>
   </div>
 </section>
@@ -160,6 +173,11 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 <section id="tab-tasks">
   <div class="wrap">
     
+    <div class="hatchcard"><h3>🌾 Feed Fill-Up</h3><div class="meta">Last fill: <span id="feedLast">—</span></div>
+      <label>Date</label><input id="fDate" type="date">
+      <label>Pounds (optional)</label><input id="fLbs" type="number" min="0" placeholder="50">
+      <label>Note (optional)</label><input id="fNote" placeholder="Brand, type…">
+      <button class="btn" onclick="addFeed()">🌾 Add Feed Fill-Up</button><div id="feedList"></div></div>
     <div id="supplyList"></div>
   </div>
 </section>
@@ -189,14 +207,6 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <h2 class="sec">My Flock</h2>
     <div class="row"><span>🐔 Hens</span><div class="stepper"><button onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button onclick="chgFlock('hens',1)">+</button></div></div>
     <div class="row"><span>🐓 Roosters</span><div class="stepper"><button onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button onclick="chgFlock('roosters',1)">+</button></div></div>
-
-    <h2 class="sec">Feed Fill-Up</h2>
-    <div class="row"><span>Last fill</span><span class="r" id="feedLast">—</span></div>
-    <label>Date</label><input id="fDate" type="date">
-    <label>Pounds (optional)</label><input id="fLbs" type="number" min="0" placeholder="50">
-    <label>Note (optional)</label><input id="fNote" placeholder="Brand, type…">
-    <button class="btn" onclick="addFeed()">🌾 Log Fill-Up</button>
-    <div id="feedList"></div>
 
     <h2 class="sec">Cloud Sync</h2>
     <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
@@ -239,7 +249,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
   <button data-tab="eggs" onclick="showTab('eggs')"><span class="ic">🥚</span>Eggs</button>
   <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">🌾</span>Supplies</button>
   <button data-tab="finance" onclick="showTab('finance')"><span class="ic">💵</span>Finance</button>
-  <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>More</button>
+  <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>Settings</button>
 </nav>
 
 <script src="supabase.js"></script>
@@ -266,8 +276,8 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], tasks:[], feed:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
-function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], rearing:{chickWeeks:8,henWeeks:18}, tasks:[], feed:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
 let storageOK = true, syncTimer = null, currentUser = null, rowVersion = null, dirty = false, conflictCloud = null, realtimeChannel = null;
@@ -528,6 +538,14 @@ function renderFinance(){
     ? '<a class="btn gray" style="text-decoration:none;text-align:center" href="'+esc(f.lastLink)+'" target="_blank" rel="noopener">🔗 Open purchase link</a>' : '';
 }
 
+/* ---------- chick & pullet rearing ---------- */
+function cohortStage(x){ const w=daysBetween(x.hatchDate,today())/7; return w<(S.rearing.chickWeeks||8)?'chick':w<(S.rearing.henWeeks||18)?'pullet':'ready'; }
+function addCohort(){ const hatchDate=document.getElementById('cohortDate').value||today(), count=Math.max(1,parseInt(document.getElementById('cohortCount').value,10)||1), note=document.getElementById('cohortNote').value.trim(); S.cohorts.push({id:Date.now(),hatchDate,count,note}); document.getElementById('cohortCount').value=''; document.getElementById('cohortNote').value=''; save(); renderCohorts(); renderHome(); }
+function delCohort(id){ if(!confirm('Delete this chick/pullet group?'))return; S.cohorts=S.cohorts.filter(x=>x.id!==id); save(); renderCohorts(); renderHome(); }
+function confirmLaying(id){ const x=S.cohorts.find(x=>x.id===id); if(!x||cohortStage(x)!=='ready')return; S.hens+=x.count; S.cohorts=S.cohorts.filter(y=>y.id!==id); save(); renderAll(); }
+function setRearingAge(k,v){ S.rearing[k]=Math.max(1,parseInt(v,10)||def().rearing[k]); if(S.rearing.henWeeks<=S.rearing.chickWeeks)S.rearing.henWeeks=S.rearing.chickWeeks+1; save(); renderCohorts(); renderHome(); }
+function renderCohorts(){ const totals={chick:0,pullet:0,ready:0}; S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count); document.getElementById('chickCount').textContent=totals.chick; document.getElementById('pulletCount').textContent=totals.pullet; document.getElementById('readyCount').textContent=totals.ready; document.getElementById('chickWeeks').value=S.rearing.chickWeeks; document.getElementById('henWeeks').value=S.rearing.henWeeks; document.getElementById('cohortList').innerHTML=S.cohorts.slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{ const st=cohortStage(x), w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)), next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Review laying '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation'; return '<div class="hatchcard"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):st==='pullet'?'pullet'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s')+' - unconfirmed laying')+'</h3><div class="meta">Hatched '+short(x.hatchDate)+' · '+w+' weeks old'+(x.note?' · '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray" onclick="delCohort('+x.id+')">Delete</button></div></div>'; }).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
+
 /* ---------- dispatch ---------- */
 function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(); if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; save(); renderDispatch(); }
 function delDispatch(id){ if(!confirm('Delete this dispatch record?'))return; S.dispatches=S.dispatches.filter(x=>x.id!==id); save(); renderDispatch(); }
@@ -535,10 +553,11 @@ function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7
 
 /* ---------- home ---------- */
 function renderHome(){
-  const total=S.hens+S.roosters;
+  const ready=S.cohorts.filter(x=>cohortStage(x)==='ready').reduce((n,x)=>n+x.count,0);
   document.getElementById('hdrSub').textContent = short(today())+' · '+S.hens+' hens · '+S.roosters+' roosters';
-  document.getElementById('cFlock').textContent=total;
-  document.getElementById('cFlockNote').textContent=S.hens+' hens · '+S.roosters+' roos';
+  document.getElementById('cFlock').textContent=S.hens+(ready?'*':'');
+  document.getElementById('cFlockLabel').textContent='Laying Hens';
+  document.getElementById('cFlockNote').textContent=S.roosters+' rooster'+(S.roosters===1?'':'s')+(ready?' · '+ready+' pullet'+(ready===1?'':'s')+' awaiting confirmation':'');
   const t=S.eggs[today()]||0;
   document.getElementById('cToday').textContent=t;
   document.getElementById('cRate').textContent = S.hens? Math.round(t/S.hens*100)+'% of hens today' : '';
@@ -582,10 +601,11 @@ function resetAll(){
 }
 
 /* ---------- init ---------- */
-function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderSupplies(); renderFinance(); renderMore(); }
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderSupplies(); renderFinance(); renderMore(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('birdDate').value=today();
+document.getElementById('cohortDate').value=today();
 prefillAccount();
 redeemPair();
 document.getElementById('eggDirect').addEventListener('change', e=>{
