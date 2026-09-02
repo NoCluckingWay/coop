@@ -132,13 +132,10 @@
   <div class="cards">
     <div class="card" role="button" onclick="goMyFlock()"><div class="big" id="cFlock">0</div><div class="label" id="cFlockLabel">Chickens</div></div>
     <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cToday">0</div><div class="label">Eggs Today</div></div>
-    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cAvg30">0</div><div class="label">Prior 3m Avg</div><div class="note avg-range" id="cAvg30Range"></div></div>
-    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cAvg">0</div><div class="label">Prior 7d Avg</div><div class="note avg-range" id="cAvgRange"></div></div>
     <div class="card" role="button" onclick="editCounterEggs()"><div class="big" id="cWeek">0</div><div class="label">Counter Eggs</div><div class="note">stored unwashed on counter</div></div>
     <div class="card" role="button" onclick="goFridgeEggs()"><div class="big" id="cFridge">0</div><div class="label">Fridge Eggs</div><div class="note" id="cFridgeDozens"></div></div>
   </div>
-  <div class="wrap"><button class="btn" onclick="showTab('eggs')">🥚 Log Eggs</button>
-    <details class="nextgen" id="nextGen"><summary>More</summary>
+  <div class="wrap"><details class="nextgen" id="nextGen"><summary>More</summary>
       <div id="myFlockHome"><h2 class="sec">My Flock</h2><div class="row"><span>🐔 Hens</span><div class="stepper"><button class="adminAction" onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button class="adminAction" onclick="chgFlock('hens',1)">+</button></div></div><div class="row"><span>🐓 Roosters</span><div class="stepper"><button class="adminAction" onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button class="adminAction" onclick="chgFlock('roosters',1)">+</button></div></div></div>
       <div class="cards" id="moreActiveCards">
         <div class="card"><div class="big" id="cMonth">0</div><div class="label">Eggs This Month</div></div>
@@ -199,7 +196,7 @@
     <div style="text-align:center;color:#8a7a63;font-size:13px">Tap +/− or type the number. Saves automatically.</div>
     <h2 class="sec">Last 7 Days</h2>
     <div id="eggHist"></div>
-    <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div><div class="cards" id="eggStats"><div class="card"><div class="big" id="eAvg3">0</div><div class="label">Prior 3d Avg</div><div class="note avg-range" id="eAvg3Range"></div></div><div class="card"><div class="big" id="eAvg1m">0</div><div class="label">Prior 1m Avg</div><div class="note avg-range" id="eAvg1mRange"></div></div><div class="card"><div class="big" id="eMonthDiff">0</div><div class="label">Month Difference</div><div class="note avg-range" id="eMonthDiffRange"></div></div></div>
+    <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div><div class="cards" id="eggStats"><div class="card"><div class="big" id="cAvg30">0</div><div class="label">Prior 3m Avg</div><div class="note avg-range" id="cAvg30Range"></div></div><div class="card"><div class="big" id="cAvg">0</div><div class="label">Prior 7d Avg</div><div class="note avg-range" id="cAvgRange"></div></div><div class="card"><div class="big" id="eAvg3">0</div><div class="label">Prior 3d Avg</div><div class="note avg-range" id="eAvg3Range"></div></div><div class="card"><div class="big" id="eAvg1m">0</div><div class="label">Prior 1m Avg</div><div class="note avg-range" id="eAvg1mRange"></div></div><div class="card"><div class="big" id="eMonthDiff">0</div><div class="label">Month Difference</div><div class="note avg-range" id="eMonthDiffRange"></div></div></div>
     
   </div>
 </section>
@@ -262,11 +259,6 @@
         <button class="btn" onclick="resolveConflict('local')">Keep This Device</button>
       </div>
     </div>
-
-    <div class="adminOnlyBlock"><h2 class="sec">Download Your Data</h2>
-    <div class="hint" style="margin:8px 0">Downloads create a copy of your records. TXT is plain readable text, MD keeps headings for notes apps, and XLSX opens as a spreadsheet. Downloading does not change or remove anything from the site.</div>
-    <div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div>
-    <button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button></div>
     <h2 class="sec">App Restore</h2>
     <div class="authbox"><p id="restoreNote">Log Out ends this session but keeps this device remembered for one-tap restore. Forget This Device removes that access.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
     <button class="btn gray" onclick="signOutAccount()">Log Out - Keep Device Remembered</button>
@@ -281,6 +273,8 @@
       <div id="adminMagicLink"><h2 class="sec">Magic Link</h2><button class="btn gray" onclick="generateAdminLink()">Create</button><div id="adminMagicResult" class="hidden"><input id="adminMagicText" readonly><button class="btn gray" onclick="copyAdminLink()">Copy Link</button><div id="adminMagicStatus" class="hint"></div></div></div>
       <div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div></div>
     </div>
+    <div class="workflow" id="factArchive"><h2 class="sec">Did you know? Archive</h2><div class="auth-actions"><button class="btn gray" onclick="toggleFactArchive()">View</button><button class="btn gray" onclick="downloadFactArchive()">Download</button></div><div id="factArchiveBody" class="hidden"><input id="factSearch" placeholder="Search tips or topics" oninput="renderFactArchive()"><div id="factTopics" class="auth-actions"></div><div id="factResults"></div></div></div>
+    <div class="adminOnlyBlock" id="downloadData"><h2 class="sec">Download Your Data</h2><div class="hint" style="margin:8px 0">Downloads create a copy of your records. TXT is plain readable text, MD keeps headings for notes apps, and XLSX opens as a spreadsheet.</div><div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div><button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button></div>
   </div>
 </section>
 
@@ -311,20 +305,569 @@ const SUPPLIES = [ ['water','💧 Big Water'], ['bigFood','🍽️ Big Food'], [
 const INVENTORY_SUPPLIES = [ ['fsl','🌾 FSL'] ];
 const ALL_SUPPLIES=[...SUPPLIES,...INVENTORY_SUPPLIES];
 const ADMIN_EMAIL='aerauwolf15@gmail.com';
-const FACTS = [
-  "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
-  "A hen's earlobe color usually predicts her egg color: red lobes, brown eggs; white lobes, white eggs.",
-  "Hens lay best with 14–16 hours of light. Short winter days are why production drops.",
-  "An egg takes about 24–26 hours to form, so hens rarely lay more than one per day.",
-  "Chicks can absorb the yolk sac just before hatching — that's how they ship day-old chicks with no food.",
-  "Stop turning eggs at day 18 ('lockdown') so chicks can position themselves to hatch.",
-  "A rooster isn't needed for eggs — only for fertile eggs.",
-  "Candling at day 7–10 lets you spot clear (infertile) eggs before they spoil.",
-  "Humidity matters at hatch: aim ~45–55% early, then 65%+ for lockdown.",
-  "Hens have a 'pecking order' — literally. New birds get ranked by squabbles.",
-  "The average hen eats about 1/4 lb of feed per day.",
-  "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
+const FACT_ARCHIVE = [
+  {
+    "category": "Fun Facts",
+    "tip": "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A hen's earlobe color usually predicts her egg color: red lobes, brown eggs; white lobes, white eggs.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Hens lay best with 14–16 hours of light. Short winter days are why production drops.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "An egg takes about 24–26 hours to form, so hens rarely lay more than one per day.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chicks can absorb the yolk sac just before hatching — that's how they ship day-old chicks with no food.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Stop turning eggs at day 18 ('lockdown') so chicks can position themselves to hatch.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A rooster isn't needed for eggs — only for fertile eggs.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Candling at day 7–10 lets you spot clear (infertile) eggs before they spoil.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Humidity matters at hatch: aim ~45–55% early, then 65%+ for lockdown.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Hens have a 'pecking order' — literally. New birds get ranked by squabbles.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "The average hen eats about 1/4 lb of feed per day.",
+    "existing": true
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp.",
+    "existing": true
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Embryonic development starts only after a fertile egg is warmed to incubation temperature."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Store hatching eggs cool, not refrigerated, before setting them."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Set clean, normal-shaped eggs for the best hatch results."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Turning during early incubation keeps the embryo from sticking to shell membranes."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Chicken eggs normally hatch around day 21, though strain and temperature can shift timing."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Stop turning chicken eggs around day 18 so chicks can position for hatch."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "A chick pips internally into the air cell before breaking the outer shell."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Hatching can take many hours after the first external pip; avoid opening the incubator unnecessarily."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Newly hatched chicks can remain in the incubator until dry and fluffy."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Brooder temperature should be reduced gradually as chicks feather out."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Chicks crowding under heat are cold; chicks avoiding it may be too hot."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Clean water should be available as soon as chicks enter the brooder."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Chick starter is formulated with more protein than typical layer feed."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Pullets are young female chickens that have not begun laying."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Comb and wattle growth often becomes more noticeable as a pullet nears laying age."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Many laying breeds begin around 18 to 24 weeks, but genetics and season matter."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "The first eggs from a pullet are often smaller than her later eggs."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "A hen ovulates a new yolk shortly after laying when her cycle is active."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Egg formation generally takes a little over a day, so laying time often shifts later."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Day length strongly influences reproductive maturity and laying cycles."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Molting replaces worn feathers and commonly reduces or pauses egg production."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Adult hens often molt in late summer or fall as days shorten."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "A chicken is most vulnerable to chilling before it is fully feathered."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Growth rate differs greatly between egg, dual-purpose, and meat breeds."
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Keep age records because feeding, heat, and housing needs change quickly during the first weeks."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Provide a complete feed matched to the flock’s age and purpose."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Treat scratch grains as a supplement, not a substitute for balanced feed."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Keep feed dry and protected from rodents and wild birds."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Fresh, clean water is the most important daily nutrient for chickens."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Water intake rises sharply in hot weather, so check drinkers more often."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Place enough feeders and drinkers to prevent timid birds from being crowded out."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Grit helps chickens grind whole grains and fibrous foods in the gizzard."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Laying hens need an available calcium source for strong shells."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Do not feed high-calcium layer ration to young chicks unless a veterinarian directs it."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Dry bedding helps control ammonia and foot problems."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "If you can smell ammonia at bird level, ventilation or litter management needs attention."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Ventilation should remove moisture without creating a cold draft on roosting birds."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Roosts should be wide enough for birds to balance comfortably."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Provide about one nest box for every four to five hens to reduce competition."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Collect eggs often to limit breakage, dirt, and egg eating."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Shade and moving air are essential heat-stress protections."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Panting with wings held away from the body is a warning sign of heat stress."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "During extreme heat, offer cool water and minimize handling during the hottest hours."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Protect combs and toes from frostbite by keeping the coop dry and well ventilated."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "A quarantine area should have separate equipment and be cared for after the healthy flock."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Quarantine new birds before mixing them with the established flock."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Introduce birds with visual separation first when possible to reduce fighting."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Give birds enough space and enrichment to reduce feather pecking."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Inspect feet, vents, eyes, nostrils, combs, and body condition during routine checks."
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Count birds at lockup so a missing or trapped chicken is noticed quickly."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Isolate a sick bird promptly while you investigate the cause."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Sudden deaths, severe respiratory signs, or a sharp egg drop warrant a veterinarian and animal-health report."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Limit visitors and dedicated footwear reduce the chance of carrying disease into the coop."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Clean and disinfect equipment before sharing it between flocks."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Wild birds can carry poultry pathogens, so keep them away from feed and water."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Standing water and spilled feed attract wildlife and pests; clean them up promptly."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Rodent-proof feed storage removes both food and nesting opportunities."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Mice can pass through surprisingly small gaps, so seal openings around the coop."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Check birds at night for northern fowl mites because some mites feed after dark."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Pale combs, irritated skin, or dirty feathers near the vent can signal external parasites."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Scaly leg mites cause raised, crusty scales on legs and feet."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Do not use a pesticide on chickens unless its label specifically allows poultry use."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Follow every medication withdrawal time before eating eggs or meat."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Coccidiosis risk is highest in young birds exposed to contaminated litter."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Bloody droppings, weakness, or huddling in chicks needs prompt professional guidance."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Marek’s disease prevention is most effective when chicks are vaccinated at hatch."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Vaccination plans should match local disease risk and veterinary advice."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Infectious bronchitis can cause respiratory illness and misshapen or poor-quality eggs."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Bumblefoot is an infected foot lesion often linked with injury or poor surfaces."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Smooth roosts, dry litter, and prompt wound care help prevent foot infections."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Wet litter encourages flies and raises parasite and disease pressure."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Rotate or rest outdoor areas when practical to reduce mud and parasite buildup."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Never add visibly sick birds to a healthy flock."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Keep a record of symptoms, deaths, treatments, and dates for veterinary diagnosis."
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Wash hands after handling birds, eggs, litter, or coop equipment."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chickens can recognize many individual flock mates and people."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A flock’s pecking order helps determine access to food, roosts, and nest boxes."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Hens use distinct calls for laying, alarm, contact, and food discovery."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Mother hens begin communicating with chicks before hatch through soft calls."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chicks can answer a broody hen from inside the egg."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A rooster may perform a food call and tidbitting display when he finds a treat."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chickens see color well and can detect ultraviolet wavelengths people cannot see."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Each eye can focus somewhat independently, helping chickens watch for food and predators."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chickens have a third eyelid called a nictitating membrane that protects the eye."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A chicken’s body temperature is higher than a human’s, generally around 105 to 107°F."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Dust bathing helps chickens maintain feathers and discourage external parasites."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Sunbathing with a wing and leg extended is normal relaxed behavior."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A broody hen may flatten herself, puff feathers, and growl when her nest is disturbed."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Eggshell color comes from breed genetics and does not determine nutrition."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Blue eggshell pigment is deposited through the shell, while brown pigment is mainly on the surface."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A hen can store sperm after mating and lay fertile eggs for days or weeks."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Double-yolk eggs are more common in young hens with irregular ovulation cycles."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A blood spot usually comes from a tiny ruptured vessel during egg formation, not an embryo."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Shell-less eggs can occur when the shell gland cycle is disrupted."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "The chalazae are twisted protein cords that help center the yolk."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "An egg’s air cell grows larger as moisture leaves through shell pores."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Fresh eggs tend to have firmer whites and more centered yolks."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Roosters often scan for danger while hens forage."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chickens dream during REM sleep."
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A chicken’s gizzard uses grit and strong muscles to grind food without teeth."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Check local rules before keeping chickens because flock size and rooster limits vary."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Plan manure storage before building a coop; dry covered storage reduces odor and runoff."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Composted chicken manure can enrich soil, but fresh manure may burn plants and carry pathogens."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Wear a dust mask when cleaning a dry, dusty coop."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Moisten dusty surfaces lightly before cleaning to keep particles out of the air."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Do not wash eggs in cool water because contraction can draw contamination through shell pores."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "If washing eggs, use water warmer than the egg and follow local food-safety guidance."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Refrigerate washed eggs promptly."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Discard cracked eggs if contamination may have entered through the shell."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Cook eggs until whites and yolks are firm when serving higher-risk people."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Use a dedicated coop brush and boots rather than bringing household tools into litter."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Keep emergency contacts for an avian veterinarian and local animal-health officials."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "A backup water supply matters because chickens can decline quickly without water."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Test backup heat sources safely before brooder season and avoid fire hazards."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Secure latches with two-step mechanisms because raccoons can open simple hooks."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Hardware cloth protects openings better than chicken wire against many predators."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Bury an apron of wire outward from the run to discourage digging predators."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Lock birds inside before dusk because many predators become active around sunset."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Motion cameras can help identify a predator before changing defenses."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Plantings around a run can provide shade, but verify every plant is safe for poultry."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Avoid moldy feed; some molds produce toxins that harm poultry."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Rotate stored feed so the oldest safe bag is used first."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Label medicines and cleaning products and store them away from feed."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Record daily egg totals because abrupt changes can reveal stress, illness, molt, or predator disturbance."
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Review flock records monthly to spot trends in feed use, mortality, and laying."
+  }
 ];
+const FACTS = FACT_ARCHIVE.map(x=>x.tip);
 
 function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:24}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, etc:{filler1:'',filler2:'',filler3:''}, cartons:{regular:0,large:0,plastic:0,plasticCapacity:12,ready:0,log:{}}, counterEggs:null, updated:0 }; }
 function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.etc=Object.assign(def().etc,(x&&x.etc)||{}); y.cartons=Object.assign(def().cartons,(x&&x.cartons)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); if(y.rearing.henWeeks===18)y.rearing.henWeeks=24; y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
@@ -666,6 +1209,11 @@ function setEtc(k,v){ S.etc[k]=v; save(); }
 function renderEtc(){ const e=S.etc||def().etc; document.getElementById('etcFiller1').value=e.filler1||''; document.getElementById('etcFiller2').value=e.filler2||''; document.getElementById('etcFiller3').value=e.filler3||''; }
 
 /* ---------- facts ---------- */
+let selectedFactTopic='All';
+function toggleFactArchive(){document.getElementById('factArchiveBody').classList.toggle('hidden');renderFactArchive();}
+function selectFactTopic(topic){selectedFactTopic=topic;renderFactArchive();}
+function renderFactArchive(){const q=(document.getElementById('factSearch')?.value||'').trim().toLowerCase(),topics=['All',...new Set(FACT_ARCHIVE.map(x=>x.category))];document.getElementById('factTopics').innerHTML=topics.map(t=>'<button class="btn small '+(selectedFactTopic===t?'':'gray')+'" onclick="selectFactTopic(\''+t.replace(/'/g,"\'")+'\')">'+esc(t)+'</button>').join('');const rows=FACT_ARCHIVE.filter(x=>(selectedFactTopic==='All'||x.category===selectedFactTopic)&&(!q||(x.category+' '+x.tip).toLowerCase().includes(q)));document.getElementById('factResults').innerHTML=rows.map(x=>'<div class="row"><span><b>'+esc(x.category)+'</b><br>'+esc(x.tip)+'</span></div>').join('')||'<div class="row"><span class="r">No matching tips.</span></div>';}
+function downloadFactArchive(){const topics={};FACT_ARCHIVE.forEach(x=>(topics[x.category]??=[]).push(x.tip));let out='# Did You Know? Archive\n\n';Object.entries(topics).forEach(([k,v])=>{out+='## '+k+'\n\n'+v.map(x=>'- '+x).join('\n')+'\n\n'});downloadBlob('coop-did-you-know-archive.md','text/markdown',out);}
 function newFact(){ document.getElementById('factTxt').textContent = FACTS[Math.floor(Math.random()*FACTS.length)]; }
 document.getElementById('factCard').onclick = newFact;
 
@@ -705,4 +1253,4 @@ setInterval(checkDevice,60000);
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
 </script>
 </body>
-</html>
+ </html>
