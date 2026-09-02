@@ -140,8 +140,11 @@
         <div class="card"><div class="big" id="cTotalEggs">0</div><div class="label">Total Eggs</div></div>
         <div class="card"><div class="big" id="cChicks">0</div><div class="label">Chicks 0-8 weeks</div><div class="note">1 day to 8 weeks</div></div>
         <div class="card"><div class="big" id="cPullets">0</div><div class="label">Pullets 8-18 weeks</div><div class="note">8 weeks to 18 weeks</div></div>
+        <div class="card moreOptionalCounter" id="cIncubatingCard"><div class="big" id="cIncubating">0</div><div class="label">Incubating Eggs</div><div class="note">1 day to hatch</div></div>
+        <div class="card moreOptionalCounter" id="cMeatCard"><div class="big" id="cMeat">0</div><div class="label">Meat birds 7+ weeks old</div></div>
+        <div class="card" id="cCartonsCard"><div class="big" id="cCartons">0</div><div class="label">Egg cartons available</div></div>
       </div>
-      <h2 class="sec">Eggs by Month</h2><div id="eggMonths"></div>
+      <h2 class="sec">Eggs by Month</h2><div id="eggMonths"></div><div class="workflow"><h2 class="sec">Egg Cartons</h2><label>Regular (12 pack, cardboard)</label><input id="cartonRegular" type="number" min="0" onchange="setCarton('regular',this.value)"><label>Large (18 pack, cardboard)</label><input id="cartonLarge" type="number" min="0" onchange="setCarton('large',this.value)"><label>Plastic (all sizes)</label><input id="cartonPlastic" type="number" min="0" onchange="setCarton('plastic',this.value)"></div>
       <div class="workflow"><h2 class="sec">Dispatch Tracking</h2>
         <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
         <label>Dispatched date</label><input id="birdDate" type="date">
@@ -158,8 +161,7 @@
           <label>Number of eggs</label><input id="hCount" type="number" min="1" data-random-placeholder>
           <label>Hatch + 7 days survivors</label><input id="hSurvivors" type="number" min="0" data-random-placeholder>
           <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
-        </div>
-        <div class="workflow"><h2 class="sec">Pre-Layer Tracking</h2>
+          <h2 class="sec">Pre-Layer Tracking</h2>
           <div class="stats3" style="grid-template-columns:1fr 1fr"><div class="statmini"><b id="chickCount">0</b>Chicks<div class="note">1 day to 8 weeks</div></div><div class="statmini"><b id="pulletCount">0</b>Pullets<div class="note">8 weeks to 18 weeks</div></div></div>
           <label>Chick hatch date</label><input id="cohortDate" type="date">
           <label>Number of chicks</label><input id="cohortCount" type="number" min="1" data-random-placeholder>
@@ -169,7 +171,7 @@
           <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
           <label>Pullet becomes a hen at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
         </div>
-        <div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">🍗 Add Meat Bird</button><div id="tractorList"></div></div>
+        <div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><div class="statmini"><b id="meatBirdCount">0</b>Meat birds 7+ weeks old</div><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">🍗 Add Meat Bird</button><div id="tractorList"></div></div>
       </details>
     </details>
     <details class="nextgen" id="etcSection"><summary>etc</summary>
@@ -322,8 +324,8 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:18}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, etc:{filler1:'',filler2:'',filler3:''}, updated:0 }; }
-function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.etc=Object.assign(def().etc,(x&&x.etc)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:24}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, etc:{filler1:'',filler2:'',filler3:''}, cartons:{regular:0,large:0,plastic:0}, updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.etc=Object.assign(def().etc,(x&&x.etc)||{}); y.cartons=Object.assign(def().cartons,(x&&x.cartons)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); if(y.rearing.henWeeks===18)y.rearing.henWeeks=24; y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
 let accountRole='limited',trustedDevice=false,trustedExists=false;
@@ -513,7 +515,7 @@ function addHatch(){
   const count=parseInt(document.getElementById('hCount').value)||0;
   const rawSurvivors=document.getElementById('hSurvivors').value, survivors7=rawSurvivors===''?null:Math.max(0,parseInt(rawSurvivors,10)||0);
   if(count<1){ alert('How many eggs?'); return; }
-  S.hatches.push({id:Date.now(), name:name, set:set, count:count, done:false, hatched:null, survivors7});
+  const hatch={id:Date.now(),name,set,count,done:false,hatched:null,survivors7};S.hatches.push(hatch);syncHatchCohort(hatch);
   document.getElementById('hName').value=''; document.getElementById('hCount').value=''; document.getElementById('hSurvivors').value='';
   save(); renderHatch(); renderHome();
 }
@@ -523,10 +525,11 @@ function doneHatch(id){
   h.hatched = n===null||n==='' ? null : parseInt(n);
   h.done = true; save(); renderHatch(); renderHome();
 }
-function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Hatch + 7 days survivors',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0); save(); renderHatch(); }
+function syncHatchCohort(h){const id='hatch-'+h.id,i=S.cohorts.findIndex(x=>String(x.id)===id);if(h.survivors7==null){if(i>=0)S.cohorts.splice(i,1);return;}const x={id,hatchDate:addDays(h.set,21),count:h.survivors7,note:h.name||'Hatch run'};if(i>=0)S.cohorts[i]=x;else S.cohorts.push(x);}
+function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Hatch + 7 days survivors',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0);syncHatchCohort(h);save();renderHatch();renderCohorts();renderHome(); }
 function delHatch(id){ if(!requireAdmin())return;
   if(!confirm('Delete this hatch run?')) return;
-  S.hatches = S.hatches.filter(x=>x.id!==id); save(); renderHatch(); renderHome();
+  S.hatches=S.hatches.filter(x=>x.id!==id);S.cohorts=S.cohorts.filter(x=>String(x.id)!=='hatch-'+id);save();renderHatch();renderCohorts();renderHome();
 }
 function renderHatch(){
   const list=document.getElementById('hatchList');
@@ -553,9 +556,10 @@ function renderHatch(){
 }
 
 /* ---------- chicken tractor ---------- */
-function addTractorLog(){ const count=Math.max(0,parseInt(document.getElementById('tractorCount').value,10)||0), created=document.getElementById('tractorCreated').value||today(), moved=document.getElementById('tractorMoved').value||created, note=document.getElementById('tractorNote').value.trim(); S.tractorLogs.push({id:Date.now(),count,created,moved,note}); document.getElementById('tractorCount').value=''; document.getElementById('tractorNote').value=''; save(); renderTractor(); }
-function delTractorLog(id){ if(!requireAdmin())return; S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); save(); renderTractor(); }
-function renderTractor(){ const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><button class="btn small gray adminAction" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No meat bird records yet.</span></div>'; }
+function addTractorLog(){ const count=Math.max(0,parseInt(document.getElementById('tractorCount').value,10)||0), created=document.getElementById('tractorCreated').value||today(), moved=document.getElementById('tractorMoved').value||created, note=document.getElementById('tractorNote').value.trim(); S.tractorLogs.push({id:Date.now(),count,created,moved,note}); document.getElementById('tractorCount').value=''; document.getElementById('tractorNote').value=''; save();renderTractor();renderHome(); }
+function editTractorLog(id){const x=S.tractorLogs.find(x=>x.id===id);if(!x)return;const n=parseInt(prompt('Number of meat birds',x.count),10);if(!Number.isFinite(n)||n<0)return;x.count=n;save();renderTractor();renderHome();}
+function delTractorLog(id){ if(!requireAdmin())return; S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); save();renderTractor();renderHome(); }
+function renderTractor(){const mc=meatBirdTotal();document.getElementById('meatBirdCount').textContent=mc; const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><button class="btn small gray" onclick="editTractorLog('+x.id+')">Edit</button><button class="btn small gray adminAction" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No meat bird records yet.</span></div>'; }
 
 /* ---------- supplies ---------- */
 function addSupply(k){ const d=document.getElementById('sd-'+k).value||today(), note=document.getElementById('sn-'+k).value.trim(); S.supplyEntries[k].push({id:Date.now()+k,date:d,note}); S.supplies[k]=d; save(); renderSupplies(); }
@@ -605,18 +609,23 @@ function renderFinance(){
 }
 
 /* ---------- chick & pullet rearing ---------- */
-function cohortStage(x){ const w=daysBetween(x.hatchDate,today())/7; return w<(S.rearing.chickWeeks||8)?'chick':w<(S.rearing.henWeeks||18)?'pullet':'ready'; }
+function cohortStage(x){ const w=daysBetween(x.hatchDate,today())/7; if(w<0)return 'incubating'; return w<(S.rearing.chickWeeks||8)?'chick':w<(S.rearing.henWeeks||18)?'pullet':'ready'; }
 function addCohort(){ const hatchDate=document.getElementById('cohortDate').value||today(), count=Math.max(1,parseInt(document.getElementById('cohortCount').value,10)||1), note=document.getElementById('cohortNote').value.trim(); S.cohorts.push({id:Date.now(),hatchDate,count,note}); document.getElementById('cohortCount').value=''; document.getElementById('cohortNote').value=''; save(); renderCohorts(); renderHome(); }
 function editCohort(id){ const x=S.cohorts.find(x=>x.id===id);if(!x)return;const count=parseInt(prompt('Number of birds',x.count),10),date=prompt('Hatch date (YYYY-MM-DD)',x.hatchDate),note=prompt('Name / note',x.note||'');if(!Number.isFinite(count)||count<1||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date||''))return;x.count=count;x.hatchDate=date;x.note=note||'';save();renderCohorts();renderHome();}
 function delCohort(id){ if(!requireAdmin())return; if(!confirm('Delete this chick/pullet group?'))return; S.cohorts=S.cohorts.filter(x=>x.id!==id); save(); renderCohorts(); renderHome(); }
 function confirmLaying(id){ if(!requireAdmin())return; const x=S.cohorts.find(x=>x.id===id); if(!x||cohortStage(x)!=='ready')return; S.hens+=x.count; S.cohorts=S.cohorts.filter(y=>y.id!==id); save(); renderAll(); }
 function setRearingAge(k,v){ if(!requireAdmin())return; S.rearing[k]=Math.max(1,parseInt(v,10)||def().rearing[k]); if(S.rearing.henWeeks<=S.rearing.chickWeeks)S.rearing.henWeeks=S.rearing.chickWeeks+1; save(); renderCohorts(); renderHome(); }
-function renderCohorts(){ const totals={chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count);document.getElementById('chickCount').textContent=totals.chick;document.getElementById('pulletCount').textContent=totals.pullet+totals.ready;document.getElementById('chickWeeks').value=S.rearing.chickWeeks;document.getElementById('henWeeks').value=S.rearing.henWeeks;document.getElementById('cohortList').innerHTML=S.cohorts.slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{const st=cohortStage(x),w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)),next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Hen '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation';return '<div class="hatchcard"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s'))+'</h3><div class="meta">Hatched '+short(x.hatchDate)+' · '+w+' weeks old'+(x.note?' · '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small adminAction" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray" onclick="editCohort('+x.id+')">Edit</button><button class="btn small gray adminAction" onclick="delCohort('+x.id+')">Delete</button></div></div>';}).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
+function renderCohorts(){ const totals={incubating:0,chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count);document.getElementById('chickCount').textContent=totals.chick;document.getElementById('pulletCount').textContent=totals.pullet+totals.ready;document.getElementById('chickWeeks').value=S.rearing.chickWeeks;document.getElementById('henWeeks').value=S.rearing.henWeeks;document.getElementById('cohortList').innerHTML=S.cohorts.filter(x=>cohortStage(x)!=='incubating').slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{const st=cohortStage(x),w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)),next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Hen '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation';return '<div class="hatchcard"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s'))+'</h3><div class="meta">Hatched '+short(x.hatchDate)+' · '+w+' weeks old'+(x.note?' · '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small adminAction" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray" onclick="editCohort('+x.id+')">Edit</button><button class="btn small gray adminAction" onclick="delCohort('+x.id+')">Delete</button></div></div>';}).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
 
 /* ---------- dispatch ---------- */
 function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(), destination=document.getElementById('birdDestination').value.trim(), codes={'😀':'code1','😁':'code2','🙂':'code3','😊':'code4','😚':'code5'}; if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note,destination,destinationCode:codes[destination]||''}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; document.getElementById('birdDestination').value=''; save(); renderDispatch(); }
 function delDispatch(id){ if(!requireAdmin())return; if(!confirm('Delete this dispatch record?'))return; S.dispatches=S.dispatches.filter(x=>x.id!==id); save(); renderDispatch(); }
 function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>☠️ <b>'+esc(x.name)+'</b> · '+short(x.date)+(x.note?' · '+esc(x.note):'')+(x.destination?' · '+esc(x.destination):'')+'</span><button class="btn small gray adminAction" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
+
+const HIDE_EMPTY_MORE_COUNTERS=false;
+function meatBirdTotal(){const current=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1)[0];return current&&daysBetween(current.created||current.date,today())>=49?Number(current.count||0):0;}
+function setCarton(k,v){S.cartons[k]=Math.max(0,parseInt(v,10)||0);save();renderCartons();renderHome();}
+function renderCartons(){for(const [id,k] of [['cartonRegular','regular'],['cartonLarge','large'],['cartonPlastic','plastic']]){const e=document.getElementById(id);if(document.activeElement!==e)e.value=S.cartons[k]||'';}}
 
 /* ---------- home ---------- */
 function monthCalendar(m,total){ const [y,mo]=m.split('-').map(Number), days=new Date(y,mo,0).getDate(), offset=new Date(y,mo-1,1).getDay(); const pad=n=>String(n).padStart(2,'0'), label=pad(mo)+'/01 - '+pad(mo)+'/'+pad(days)+'/'+y; let cells=['S','M','T','W','T','F','S'].map(x=>'<div class="dow">'+x+'</div>').join(''); for(let i=0;i<offset;i++)cells+='<div class="calday blank"></div>'; for(let d=1;d<=days;d++){ const key=y+'-'+pad(mo)+'-'+pad(d), has=Object.prototype.hasOwnProperty.call(S.eggs,key), eggs=has?(Number(S.eggs[key])||0):''; cells+='<div class="calday"><span class="daynum">'+d+'</span><span class="eggnum">'+eggs+'</span></div>'; } return '<details class="month-block"><summary><span>'+label+'</span><b>'+total+' eggs</b></summary><div class="month-cal">'+cells+'</div></details>'; }
@@ -635,7 +644,7 @@ function renderHome(){
   document.getElementById('cAvg').textContent=(sumRange(7)/7).toFixed(1);
   document.getElementById('cTotalEggs').textContent=Object.values(S.eggs).reduce((a,b)=>a+(Number(b)||0),0);
   const months={}; Object.entries(S.eggs).forEach(([d,v])=>months[d.slice(0,7)]=(months[d.slice(0,7)]||0)+(Number(v)||0)); document.getElementById('eggMonths').innerHTML=Object.keys(months).sort().reverse().map(m=>monthCalendar(m,months[m])).join('')||'<div class="row"><span class="r">No eggs logged yet.</span></div>';
-  const cohortTotals={chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>cohortTotals[cohortStage(x)]+=x.count);document.getElementById('cChicks').textContent=cohortTotals.chick;document.getElementById('cPullets').textContent=cohortTotals.pullet+cohortTotals.ready;
+  const cohortTotals={incubating:0,chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>cohortTotals[cohortStage(x)]+=x.count);document.getElementById('cChicks').textContent=cohortTotals.chick;document.getElementById('cPullets').textContent=cohortTotals.pullet+cohortTotals.ready;const incubating=S.hatches.filter(h=>!h.done&&daysBetween(h.set,today())>=0&&daysBetween(h.set,today())<21).reduce((n,h)=>n+h.count,0),meat=meatBirdTotal(),cartons=Object.values(S.cartons).reduce((n,v)=>n+(Number(v)||0),0);document.getElementById('cIncubating').textContent=incubating;document.getElementById('cMeat').textContent=meat;document.getElementById('cCartons').textContent=cartons;document.getElementById('cCartonsCard').classList.toggle('hidden',!cartons);if(HIDE_EMPTY_MORE_COUNTERS){document.getElementById('cIncubatingCard').classList.toggle('hidden',!incubating);document.getElementById('cMeatCard').classList.toggle('hidden',!meat);}
 }
 
 function setEtc(k,v){ S.etc[k]=v; save(); }
@@ -656,7 +665,7 @@ async function resetAllTesting(){
 }
 
 /* ---------- init ---------- */
-function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderTractor(); renderSupplies(); renderFinance(); renderMore(); renderEtc(); }
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderTractor(); renderSupplies(); renderFinance(); renderMore(); renderEtc(); renderCartons(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('scratchDate').value=today();
