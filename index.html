@@ -120,10 +120,6 @@
 </header>
 
 <div class="warn" id="warnBox"></div>
-<div class="hint" id="hsHint" style="display:none">📲 <b>Install Coop Tracker for quick access.</b>
-Use your browser’s Share or menu button, then choose <b>Add to Home Screen</b> or <b>Install app</b>.
-Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</div>
-
 <main>
 
 <!-- HOME -->
@@ -624,13 +620,11 @@ function renderHome(){
   const act=S.hatches.filter(h=>!h.done);
   document.getElementById('cHatch').textContent=act.length;
   document.getElementById('cHatchNote').textContent = act.length ? 'next hatch '+short(addDays(act.map(h=>h.set).sort()[0],21)) : '';
-  document.getElementById('hsHint').style.display = (!isStandalone() && !S.hideHsHint) ? 'block' : 'none';
 }
 
 /* ---------- facts ---------- */
 function newFact(){ document.getElementById('factTxt').textContent = FACTS[Math.floor(Math.random()*FACTS.length)]; }
 document.getElementById('factCard').onclick = newFact;
-document.getElementById('hsHint').onclick = function(){ S.hideHsHint = true; save(); renderHome(); };
 
 /* ---------- export & reset ---------- */
 function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); ALL_SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Meat Bird Tracking',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' · '+x.note:'')])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.scratch.forEach(f=>rows.push(['scratch',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
