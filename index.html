@@ -116,6 +116,7 @@
 </head>
 <body>
 
+<div id="supportBanner" class="hidden" style="position:sticky;top:0;z-index:9;background:#8b271f;color:#fff;text-align:center;padding:7px;font-weight:800">SUPPORT MODE · ANOTHER ACCOUNT</div>
 <header>
   <h1>🐔 Coop Tracker</h1>
   <div class="sub" id="hdrSub"></div>
@@ -296,6 +297,7 @@ const DEVICE_KEY='coopDeviceId';
 const DEVICE_SECRET_KEY='coopDeviceSecret';
 const REMEMBERED_EMAIL_KEY='coopRememberedEmail';
 const ADMIN_TOKEN_KEY='coopPasskeyAdminToken';
+let supportMode=false;
 const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
 const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdWFoemN2ZmRobmZ0d21sdnJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTIzNzIsImV4cCI6MjEwMzg4ODM3Mn0.6rksBqxsn51ARofrxt48p7QaBMngU2VGzrc9UXxcUTc';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
@@ -1409,7 +1411,7 @@ async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_
 
 function randomizeNumericPlaceholders(){document.querySelectorAll('[data-random-placeholder]').forEach(x=>x.placeholder=String(1+Math.floor(Math.random()*10)));}
 function showAuth(){
-  const signedIn=isAccountUser(); if(!signedIn){accountRole='limited';trustedDevice=false;document.body.dataset.role='limited';document.getElementById('qrWrap')?.classList.add('hidden');}
+  const signedIn=isAccountUser(); if(!signedIn){supportMode=false;document.getElementById('supportBanner').classList.add('hidden');accountRole='limited';trustedDevice=false;document.body.dataset.role='limited';document.getElementById('qrWrap')?.classList.add('hidden');}
   document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
   document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
   randomizeNumericPlaceholders();
@@ -1425,8 +1427,8 @@ function credentialJSON(c){return {id:c.id,rawId:bytesToB64u(c.rawId),type:c.typ
 async function publicPairAPI(action,extra={}){const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action,...extra})});const x=await r.json();return r.ok?x:{error:x.error||'Request failed'};}
 async function pairAPI(action,extra={}){ const {data:{session}}=await db.auth.getSession(); if(!session?.access_token)return {error:'No active session'}; const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action,device_id:deviceId(),secret:localStorage.getItem(DEVICE_SECRET_KEY)||'',admin_token:localStorage.getItem(ADMIN_TOKEN_KEY)||'',...extra})}); return await r.json(); }
 async function registerDevice(){ if(!isAccountUser())return; const x=await pairAPI('register',{device:deviceInfo()}); if(!x.error)await renderDevices(); }
-async function setupPasskeyDiscovery(){const btn=document.getElementById('passkeySignInBtn');if(!btn||!window.PublicKeyCredential)return;try{const [platform,conditional]=await Promise.all([PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),PublicKeyCredential.isConditionalMediationAvailable?.()||false]);btn.classList.toggle('hidden',!platform);document.getElementById('passkeyHelp').classList.toggle('hidden',!platform);if(conditional){const b=await publicPairAPI('passkey_auth_begin');if(!b.error){const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));navigator.credentials.get({publicKey:o,mediation:'conditional'}).then(async cred=>{if(!cred)return;const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo()});if(f.error)return;localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});}).catch(()=>{});}}}catch(e){btn.classList.add('hidden')}}
-async function signInWithPasskey(){if(!window.PublicKeyCredential){authMsg('Passkeys are not supported in this browser.',true);return;}try{authMsg('Waiting for passkey…');const b=await publicPairAPI('passkey_auth_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.get({publicKey:o});const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo()});if(f.error)throw new Error(f.error);localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);const v=await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});if(v.error)throw v.error;authMsg('Admin+ passkey verified. Syncing…');}catch(e){authMsg(e.name==='NotAllowedError'?'Passkey unavailable or canceled. Use the email link below for Admin access.':e.message+' Use the email link below if needed.',true)}}
+async function setupPasskeyDiscovery(){const btn=document.getElementById('passkeySignInBtn');if(!btn||!window.PublicKeyCredential)return;try{const [platform,conditional]=await Promise.all([PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),PublicKeyCredential.isConditionalMediationAvailable?.()||false]);btn.classList.toggle('hidden',!platform);document.getElementById('passkeyHelp').classList.toggle('hidden',!platform);if(conditional){const b=await publicPairAPI('passkey_auth_begin');if(!b.error){const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));navigator.credentials.get({publicKey:o,mediation:'conditional'}).then(async cred=>{if(!cred)return;const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo(),target_email:accountEmail()});if(f.error)return;localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);supportMode=!!f.support_mode;await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});}).catch(()=>{});}}}catch(e){btn.classList.add('hidden')}}
+async function signInWithPasskey(){if(!window.PublicKeyCredential){authMsg('Passkeys are not supported in this browser.',true);return;}try{authMsg('Waiting for passkey…');const b=await publicPairAPI('passkey_auth_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.get({publicKey:o});const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo(),target_email:accountEmail()});if(f.error)throw new Error(f.error);localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);supportMode=!!f.support_mode;const v=await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});if(v.error)throw v.error;authMsg('Admin+ passkey verified. Syncing…');}catch(e){authMsg(e.name==='NotAllowedError'?'Passkey unavailable or canceled. Use the email link below for Admin access.':e.message+' Use the email link below if needed.',true)}}
 async function registerPasskey(){try{const b=await pairAPI('passkey_register_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.user.id=b64uToBytes(o.user.id);o.excludeCredentials=(o.excludeCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.create({publicKey:o});const f=await pairAPI('passkey_register_finish',{challenge,response:credentialJSON(cred),label:'sean0donnell@icloud.com passkey'});if(f.error)throw new Error(f.error);await renderPasskeys();alert('Admin+ passkey added.');}catch(e){alert(e.name==='NotAllowedError'?'Passkey setup was canceled.':e.message)}}
 async function generateAdminLink(){ if(!confirm('Are you sure? Link expires after 2 minutes or when opened.'))return; const x=await pairAPI('create_admin_link'); const status=document.getElementById('adminMagicStatus'); if(x.error){status.textContent=x.error;document.getElementById('adminMagicResult').classList.remove('hidden');return;} const link=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token);document.getElementById('adminMagicText').value=link;document.getElementById('adminMagicResult').classList.remove('hidden');status.textContent='Expires '+new Date(x.expires_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' or after first use.'; }
 async function copyAdminLink(){ const input=document.getElementById('adminMagicText');try{await navigator.clipboard.writeText(input.value);}catch(e){input.focus();input.select();document.execCommand('copy');} }
@@ -1477,7 +1479,7 @@ function schedulePush(){ if(!isAccountUser()){ setSync('Sign in to sync'); retur
 async function loadCloud(){
   if(!currentUser)return; setSync('☁️ Syncing…');
   const x=await pairAPI('state_get'); if(x.error){setSync('⚠️ Offline — using device copy');renderAll();return;}
-  accountRole=x.role||'limited'; showAuth(); const local=loadKey(CACHE_PREFIX+currentUser.id); if(local)S=local;
+  accountRole=x.role||'limited';supportMode=!!x.support_mode;document.getElementById('supportBanner').classList.toggle('hidden',!supportMode);showAuth(); const local=loadKey(CACHE_PREFIX+currentUser.id); if(local)S=local;
   if(!x.data){ if(!isAdmin()){setSync('Waiting for admin to initialize records');renderAll();return;} rowVersion=0;dirty=true;await pushCloud();return; }
   const cloudState=cleanState(x.data); S=cloudState;rowVersion=x.version;dirty=false;saveLocal();renderAll();setSync('✔ Up to date');
 }
@@ -1767,4 +1769,4 @@ setInterval(checkDevice,60000);
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
 </script>
 </body>
-     </html>
+ </html>
