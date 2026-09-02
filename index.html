@@ -78,6 +78,15 @@
   .hidden { display:none !important; }
   .danger { color:#8a1f1f; }
   @media (min-width:760px) { main, header { max-width:920px; margin-left:auto; margin-right:auto; } }
+  details.nextgen { margin:12px 0; background:#fff; border-radius:16px; padding:0 14px; box-shadow:0 1px 4px rgba(60,40,10,.08); }
+  details.nextgen > summary { cursor:pointer; list-style:none; padding:15px 0; font-weight:700; color:#5b4933; }
+  details.nextgen > summary::-webkit-details-marker { display:none; }
+  details.nextgen > summary:after { content:"⌄"; float:right; font-size:20px; }
+  details.nextgen[open] > summary:after { content:"⌃"; }
+  .stats3 { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0 14px; }
+  .statmini { background:#fff7ec; border-radius:12px; padding:10px; text-align:center; }
+  .statmini b { display:block; font-size:22px; }
+  .qr { width:180px; height:180px; margin:10px auto; display:block; }
 </style>
 </head>
 <body>
@@ -103,11 +112,31 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="card"><div class="big" id="cFlock">0</div><div class="label">Total Birds</div><div class="note" id="cFlockNote"></div></div>
     <div class="card"><div class="big" id="cToday">0</div><div class="label">Eggs Today</div><div class="note" id="cRate"></div></div>
     <div class="card"><div class="big" id="cWeek">0</div><div class="label">Eggs This Week</div></div>
-    <div class="card"><div class="big" id="cMonth">0</div><div class="label">Eggs This Month</div></div>
-    <div class="card"><div class="big" id="cHatch">0</div><div class="label">Active Hatches</div><div class="note" id="cHatchNote"></div></div>
     <div class="card"><div class="big" id="cAvg">0</div><div class="label">Avg Eggs/Day · 7d</div></div>
   </div>
-  <div class="wrap"><button class="btn" onclick="showTab('eggs')">🥚 Log Eggs</button></div>
+  <div class="wrap"><button class="btn" onclick="showTab('eggs')">🥚 Log Eggs</button>
+    <details class="nextgen" id="nextGen"><summary>Next-gen stats & flock details</summary>
+      <div class="cards">
+        <div class="card"><div class="big" id="cHatch">0</div><div class="label">Active Hatches</div><div class="note" id="cHatchNote"></div></div>
+        <div class="card"><div class="big" id="cMonth">0</div><div class="label">Eggs This Month</div></div>
+        <div class="card"><div class="big" id="cTotalEggs">0</div><div class="label">Total Eggs Tracked</div></div>
+      </div>
+      <h2 class="sec">Eggs by Month</h2><div id="eggMonths"></div>
+      <h2 class="sec">Hatch Runs</h2><div id="hatchList"></div>
+      <h2 class="sec">Start a Hatch Run</h2>
+      <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
+      <label>Date eggs set</label><input id="hDate" type="date">
+      <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
+      <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
+      <h2 class="sec">Dispatch Tracker</h2>
+      <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
+      <label>Dispatched date</label><input id="birdDate" type="date">
+      <label>Note (optional)</label><input id="birdNote" placeholder="Optional note">
+      <button class="btn" onclick="addDispatch()">☠️ Log Dispatched Bird</button>
+      <div class="stats3"><div class="statmini"><b id="d7">0</b>🕊️ last 7 days</div><div class="statmini"><b id="d30">0</b>☠️ last 30 days</div><div class="statmini"><b id="dAll">0</b>🍗 cumulative killed</div></div>
+      <div id="dispatchList"></div>
+    </details>
+  </div>
 </section>
 
 <!-- EGGS -->
@@ -120,30 +149,17 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
       <button onclick="chgEgg(1)">+</button>
     </div>
     <div style="text-align:center;color:#8a7a63;font-size:13px">Tap +/− or type the number. Saves automatically.</div>
-    <h2 class="sec">Last 14 Days</h2>
+    <h2 class="sec">Last 7 Days</h2>
     <div id="eggHist"></div>
     <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div>
     <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
   </div>
 </section>
 
-<!-- HATCH -->
-<section id="tab-hatch">
-  <div class="wrap">
-    <h2 class="sec">Start a Hatch Run</h2>
-    <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
-    <label>Date eggs set</label><input id="hDate" type="date">
-    <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
-    <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
-    <h2 class="sec">Hatch Runs</h2>
-    <div id="hatchList"></div>
-  </div>
-</section>
-
 <!-- SUPPLIES -->
 <section id="tab-tasks">
   <div class="wrap">
-    <h2 class="sec">Supplies — Last Refilled</h2>
+    <h2 class="sec">Supplies — Refill History</h2>
     <div id="supplyList"></div>
   </div>
 </section>
@@ -193,6 +209,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="authbox hidden" id="authSignedIn">
       <p><b id="accountNote">Signed in.</b><br>Your records stay with this email and sync on every signed-in device.</p>
       <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button>
+      <div id="qrWrap"><p style="margin-top:12px"><b>Add another device</b><br>Scan to open this account on another device, then tap the email link there.</p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
       <button class="btn gray" onclick="signOutAccount()">Use a different email</button>
     </div>
     <div class="authbox hidden" id="conflictBox">
@@ -220,13 +237,13 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 <nav id="tabbar">
   <button data-tab="home" class="active" onclick="showTab('home')"><span class="ic">🏠</span>Home</button>
   <button data-tab="eggs" onclick="showTab('eggs')"><span class="ic">🥚</span>Eggs</button>
-  <button data-tab="hatch" onclick="showTab('hatch')"><span class="ic">🐣</span>Hatch</button>
   <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">🌾</span>Supplies</button>
   <button data-tab="finance" onclick="showTab('finance')"><span class="ic">💵</span>Finance</button>
   <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>More</button>
 </nav>
 
 <script src="supabase.js"></script>
+<script src="qrcode.min.js"></script>
 <script>
 const LEGACY_KEY = 'coopTrackerV1';
 const CACHE_PREFIX = 'coopTrackerV2:';
@@ -249,8 +266,8 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], supplies:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
-function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], tasks:[], feed:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
 let storageOK = true, syncTimer = null, currentUser = null, rowVersion = null, dirty = false, conflictCloud = null, realtimeChannel = null;
@@ -275,9 +292,11 @@ function showAuth(){
   const signedIn=isAccountUser();
   document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
   document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
-  if(signedIn) document.getElementById('accountNote').textContent='Signed in as '+currentUser.email;
+  if(signedIn){ document.getElementById('accountNote').textContent='Signed in as '+currentUser.email; setTimeout(renderAccountQR,0); }
 }
 function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
+function renderAccountQR(){ const el=document.getElementById('accountQR'); if(!el||!currentUser?.email||typeof QRCode==='undefined')return; el.innerHTML=''; const u=location.origin+location.pathname+'?account='+encodeURIComponent(currentUser.email); new QRCode(el,{text:u,width:180,height:180}); }
+function prefillAccount(){ const e=new URLSearchParams(location.search).get('account'); if(e)document.getElementById('accountEmail').value=e; }
 function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
 async function sendSignInLink(){
   const email=accountEmail(); if(!email){authMsg('Enter your email.',true);return;}
@@ -412,7 +431,7 @@ function renderEggs(){
   const ed = document.getElementById('eggDirect');
   if(document.activeElement !== ed) ed.value = S.eggs[selDate]||0;
   let h='';
-  for(let i=0;i<14;i++){
+  for(let i=0;i<7;i++){
     const d=addDays(today(),-i), v=S.eggs[d];
     h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?'Today':i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('🥚 '+v):'—')+'</span></div>';
   }
@@ -463,20 +482,13 @@ function renderHatch(){
 }
 
 /* ---------- supplies ---------- */
-function refillToday(k){ S.supplies[k]=today(); save(); renderSupplies(); }
-function setSupply(k,v){ S.supplies[k]=v||null; save(); renderSupplies(); }
+function addSupply(k){ const d=document.getElementById('sd-'+k).value||today(), note=document.getElementById('sn-'+k).value.trim(); S.supplyEntries[k].push({id:Date.now()+k,date:d,note}); S.supplies[k]=d; save(); renderSupplies(); }
+function delSupply(k,id){ S.supplyEntries[k]=S.supplyEntries[k].filter(x=>String(x.id)!==String(id)); S.supplies[k]=S.supplyEntries[k].slice().sort((a,b)=>a.date<b.date?1:-1)[0]?.date||null; save(); renderSupplies(); }
 function renderSupplies(){
-  document.getElementById('supplyList').innerHTML = SUPPLIES.map(([k,label])=>{
-    const last = S.supplies[k];
-    const info = last
-      ? 'Last refilled: <b>'+short(last)+'</b> · '+daysBetween(last,today())+' days ago'
-      : 'Not logged yet';
-    return '<div class="hatchcard"><h3>'+label+'</h3>'
-      + '<div class="meta">'+info+'</div>'
-      + '<label>Refilled / full as of</label>'
-      + '<input type="date" value="'+(last||'')+'" onchange="setSupply(\''+k+'\', this.value)">'
-      + '<div class="actions"><button class="btn small" onclick="refillToday(\''+k+'\')">✔ Refilled Today</button></div></div>';
-  }).join('');
+  document.getElementById('supplyList').innerHTML=SUPPLIES.map(([k,label])=>{ const entries=S.supplyEntries[k]||[], latest=entries.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
+    const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional note"><button class="btn small" onclick="addSupply('${k}')">✔ Add Refill</button>`;
+    const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,8).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
+    return `<div class="hatchcard"><h3>${label}</h3><div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${history}</div>`; }).join('');
 }
 
 /* ---------- flock, feed, finance ---------- */
@@ -515,6 +527,11 @@ function renderFinance(){
     ? '<a class="btn gray" style="text-decoration:none;text-align:center" href="'+esc(f.lastLink)+'" target="_blank" rel="noopener">🔗 Open purchase link</a>' : '';
 }
 
+/* ---------- dispatch ---------- */
+function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(); if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; save(); renderDispatch(); }
+function delDispatch(id){ if(!confirm('Delete this dispatch record?'))return; S.dispatches=S.dispatches.filter(x=>x.id!==id); save(); renderDispatch(); }
+function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>☠️ <b>'+esc(x.name)+'</b> · '+short(x.date)+(x.note?' · '+esc(x.note):'')+'</span><button class="btn small gray" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
+
 /* ---------- home ---------- */
 function renderHome(){
   const total=S.hens+S.roosters;
@@ -527,6 +544,8 @@ function renderHome(){
   document.getElementById('cWeek').textContent=sumRange(7);
   document.getElementById('cMonth').textContent=sumMonth();
   document.getElementById('cAvg').textContent=(sumRange(7)/7).toFixed(1);
+  document.getElementById('cTotalEggs').textContent=Object.values(S.eggs).reduce((a,b)=>a+(Number(b)||0),0);
+  const months={}; Object.entries(S.eggs).forEach(([d,v])=>months[d.slice(0,7)]=(months[d.slice(0,7)]||0)+(Number(v)||0)); document.getElementById('eggMonths').innerHTML=Object.keys(months).sort().reverse().map(m=>'<div class="row"><span>'+new Date(m+'-01T12:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})+'</span><b>'+months[m]+'</b></div>').join('')||'<div class="row"><span class="r">No eggs logged yet.</span></div>';
   const act=S.hatches.filter(h=>!h.done);
   document.getElementById('cHatch').textContent=act.length;
   document.getElementById('cHatchNote').textContent = act.length ? 'next hatch '+short(addDays(act.map(h=>h.set).sort()[0],21)) : '';
@@ -544,7 +563,8 @@ function exportCSV(){
   rows.push(['flock',today(),'hens',S.hens,'']);
   rows.push(['flock',today(),'roosters',S.roosters,'']);
   Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],'']));
-  SUPPLIES.forEach(([k,label])=>{ const v=S.supplies[k]; if(v) rows.push(['supply',v,label,'refilled/full as of','']); });
+  SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||''])));
+  S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched',x.note||'']));
   S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active']));
   if(S.tasks && S.tasks.length) S.tasks.forEach(t=>rows.push(['task',t.created,t.text,t.done?'done':'open','']));
   S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||'']));
@@ -561,9 +581,11 @@ function resetAll(){
 }
 
 /* ---------- init ---------- */
-function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderSupplies(); renderFinance(); renderMore(); }
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderSupplies(); renderFinance(); renderMore(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
+document.getElementById('birdDate').value=today();
+prefillAccount();
 document.getElementById('eggDirect').addEventListener('change', e=>{
   const v = Math.max(0, parseInt(e.target.value,10)||0);
   S.eggs[selDate] = v; save(); renderEggs(); renderHome();
