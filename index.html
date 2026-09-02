@@ -154,7 +154,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
           <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
           <label>Date eggs set</label><input id="hDate" type="date">
           <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
-          <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
+          <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button><div class="hint" style="margin:10px 0 0">Surviving chicks is recorded on the run beginning H+7 days.</div>
         </div>
         <div class="workflow"><h2 class="sec">🐥 Tracking - Chicks & Pullets</h2>
           <div class="stats3"><div class="statmini"><b id="chickCount">0</b>Chicks</div><div class="statmini"><b id="pulletCount">0</b>Pullets</div><div class="statmini"><b id="readyCount">0</b>Pullets - unconfirmed laying</div></div>
@@ -166,7 +166,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
           <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
           <label>Flag pullet as unconfirmed laying at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
         </div>
-        <div class="workflow"><h2 class="sec">🚜 Chicken Tractor</h2><div class="meta">Setup details to be added.</div></div>
+        <div class="workflow"><h2 class="sec">🚜 Chicken Tractor</h2><label>Date</label><input id="tractorDate" type="date"><label>Note</label><input id="tractorNote" placeholder="Move, setup, maintenance…"><button class="btn" onclick="addTractorLog()">Add Tractor Log</button><div id="tractorList"></div></div>
       </details>
     </details>
   </div>
@@ -298,8 +298,8 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], rearing:{chickWeeks:8,henWeeks:18}, tasks:[], feed:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
-function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:18}, tasks:[], feed:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
 let storageOK = true, syncTimer = null, currentUser = null, rowVersion = null, dirty = false, conflictCloud = null, realtimeChannel = null;
@@ -331,7 +331,8 @@ function deviceId(){ let id=localStorage.getItem(DEVICE_KEY); if(!id){ const b=c
 function deviceInfo(){ const ua=navigator.userAgent, browser=/CriOS|Chrome/.test(ua)?'Chrome':/FxiOS|Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Web browser', client_type=isStandalone()?'Installed App':'Browser', device=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'Device'; return {id:deviceId(),label:device+' · '+browser+' · '+client_type,client_type,browser}; }
 async function pairAPI(action,extra={}){ const {data:{session}}=await db.auth.getSession(); if(!session?.access_token)return {error:'No active session'}; const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action,...extra})}); return await r.json(); }
 async function registerDevice(){ if(!isAccountUser())return; const x=await pairAPI('register',{device:deviceInfo()}); if(!x.error)await renderDevices(); }
-async function renderDevices(){ const el=document.getElementById('deviceList'); if(!el||!isAccountUser())return; const x=await pairAPI('list'); if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load sessions.</span></div>';return;} el.innerHTML=(x.devices||[]).map(d=>'<div class="row"><span><b>'+esc(d.label)+(d.device_id===deviceId()?' · This device':'')+'</b><br><span class="r">Last active '+new Date(d.last_seen).toLocaleString()+ (d.revoked_at?' · Signed out':'')+'</span></span>'+(d.revoked_at?'':'<button class="btn small gray" onclick="revokeDevice(\''+d.device_id+'\')">Sign Out</button>')+'</div>').join('')||'<div class="row"><span class="r">No active sessions.</span></div>'; }
+async function renameDevice(id,current){ const label=prompt('Device name',current); if(!label?.trim())return; const x=await pairAPI('rename',{device_id:id,label:label.trim()}); if(x.error)alert(x.error); else await renderDevices(); }
+async function renderDevices(){ const el=document.getElementById('deviceList'); if(!el||!isAccountUser())return; const x=await pairAPI('list'); if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load sessions.</span></div>';return;} el.innerHTML=(x.devices||[]).map(d=>'<div class="row"><span><b>'+esc(d.label)+(d.device_id===deviceId()?' · This device':'')+'</b><br><span class="r">Last active '+new Date(d.last_seen).toLocaleString()+ (d.revoked_at?' · Signed out':'')+'</span></span>'+(d.revoked_at?'':'<button class="btn small gray" onclick="renameDevice(\''+d.device_id+'\',\''+esc(d.label).replace(/'/g,'&#39;')+'\')">Rename</button><button class="btn small gray" onclick="revokeDevice(\''+d.device_id+'\')">Sign Out</button>')+'</div>').join('')||'<div class="row"><span class="r">No active sessions.</span></div>'; }
 async function revokeDevice(id){ if(!confirm('Sign out this device?'))return; const x=await pairAPI('revoke',{device_id:id}); if(x.error){alert(x.error);return;} if(id===deviceId()){await signOutAccount();return;} await renderDevices(); }
 async function checkDevice(){ if(!isAccountUser())return; const x=await pairAPI('check',{device_id:deviceId()}); if(x.active===false){ await db.auth.signOut({scope:'local'}); currentUser=null; showAuth(); setSync('Signed out on another device'); } }
 
@@ -485,7 +486,7 @@ function addHatch(){
   const set=document.getElementById('hDate').value || today();
   const count=parseInt(document.getElementById('hCount').value)||0;
   if(count<1){ alert('How many eggs?'); return; }
-  S.hatches.push({id:Date.now(), name:name, set:set, count:count, done:false, hatched:null});
+  S.hatches.push({id:Date.now(), name:name, set:set, count:count, done:false, hatched:null, survivors7:null});
   document.getElementById('hName').value=''; document.getElementById('hCount').value='';
   save(); renderHatch(); renderHome();
 }
@@ -495,6 +496,7 @@ function doneHatch(id){
   h.hatched = n===null||n==='' ? null : parseInt(n);
   h.done = true; save(); renderHatch(); renderHome();
 }
+function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Surviving chicks at H+7 days',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0); save(); renderHatch(); }
 function delHatch(id){
   if(!confirm('Delete this hatch run?')) return;
   S.hatches = S.hatches.filter(x=>x.id!==id); save(); renderHatch(); renderHome();
@@ -516,11 +518,17 @@ function renderHatch(){
        + '<div class="meta">Set '+short(x.set)+' · '+x.count+' eggs · candle '+short(addDays(x.set,7))+' · lockdown '+short(addDays(x.set,18))+' · hatch '+short(addDays(x.set,21))+'</div>'
        + '<div class="bar"><div style="width:'+pct+'%"></div></div>'
        + '<div class="status">'+status+'</div>'
-       + '<div class="actions">'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">✔ Done</button>')
+       + '<div class="status">Surviving chicks (H+7 days): '+(x.survivors7==null?'Not recorded':x.survivors7)+'</div>'
+       + '<div class="actions"><button class="btn small gray" onclick="setSurvivors('+x.id+')">Edit H+7 Survivors</button>'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">✔ Done</button>')
        + '<button class="btn small gray" onclick="delHatch('+x.id+')">Delete</button></div></div>';
   });
   list.innerHTML=h;
 }
+
+/* ---------- chicken tractor ---------- */
+function addTractorLog(){ const date=document.getElementById('tractorDate').value||today(), note=document.getElementById('tractorNote').value.trim(); if(!note){alert('Add a tractor note.');return;} S.tractorLogs.push({id:Date.now(),date,note}); document.getElementById('tractorNote').value=''; save(); renderTractor(); }
+function delTractorLog(id){ S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); save(); renderTractor(); }
+function renderTractor(){ const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>a.date<b.date?1:-1).map(x=>'<div class="row"><span>'+short(x.date)+' · '+esc(x.note)+'</span><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No tractor logs yet.</span></div>'; }
 
 /* ---------- supplies ---------- */
 function addSupply(k){ const d=document.getElementById('sd-'+k).value||today(), note=document.getElementById('sn-'+k).value.trim(); S.supplyEntries[k].push({id:Date.now()+k,date:d,note}); S.supplies[k]=d; save(); renderSupplies(); }
@@ -608,7 +616,7 @@ document.getElementById('factCard').onclick = newFact;
 document.getElementById('hsHint').onclick = function(){ S.hideHsHint = true; save(); renderHome(); };
 
 /* ---------- export & reset ---------- */
-function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
+function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.date,'Chicken Tractor','',x.note])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
 function downloadBlob(name,type,text){ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0); }
 function exportData(format){ const rows=exportRows(), base='coop-tracker-'+today(); if(format==='xlsx'){ if(typeof XLSX==='undefined'){alert('Spreadsheet exporter is still loading. Try again.');return;} const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Coop Records');XLSX.writeFile(wb,base+'.xlsx');return; } if(format==='txt'){ downloadBlob(base+'.txt','text/plain',rows.map(r=>r.join(' | ')).join('\n'));return; } const groups={};rows.slice(1).forEach(r=>(groups[r[0]]??=[]).push(r));let md='# Coop Tracker Export\n\nGenerated '+today()+'\n';Object.entries(groups).forEach(([k,v])=>{md+='\n## '+k[0].toUpperCase()+k.slice(1)+'\n\n| Date | Item | Value | Notes |\n|---|---|---|---|\n'+v.map(r=>'| '+r.slice(1).map(x=>String(x).replace(/\|/g,'\\|')).join(' | ')+' |').join('\n')+'\n'});downloadBlob(base+'.md','text/markdown',md); }
 function exportCSV(){ exportData('xlsx'); }
@@ -619,11 +627,12 @@ function resetAll(){
 }
 
 /* ---------- init ---------- */
-function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderSupplies(); renderFinance(); renderMore(); }
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderTractor(); renderSupplies(); renderFinance(); renderMore(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('birdDate').value=today();
 document.getElementById('cohortDate').value=today();
+document.getElementById('tractorDate').value=today();
 prefillAccount();
 redeemPair();
 document.getElementById('eggDirect').addEventListener('change', e=>{
