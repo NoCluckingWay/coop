@@ -86,7 +86,9 @@
   .stats3 { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0 14px; }
   .statmini { background:#fff7ec; border-radius:12px; padding:10px; text-align:center; }
   .statmini b { display:block; font-size:22px; }
-  .qr { width:180px; height:180px; margin:10px auto; display:block; }
+  .qr { width:180px; height:180px; margin:10px auto; display:grid; place-items:center; overflow:hidden; color:#8d7a62; background:#f4eee4; border-radius:12px; }
+  body[data-role="limited"] .adminAction { display:none!important; }
+  .qr canvas,.qr img { display:block; width:180px!important; height:180px!important; }
   .workflow { margin:18px 0; padding:16px; border:2px solid #eadbc5; border-radius:16px; background:#fffaf2; }
   .workflow h2.sec { margin-top:0; color:#6b4a26; }
   .month-block { background:#fff; border-radius:12px; margin-top:8px; box-shadow:0 1px 3px rgba(60,40,10,.06); overflow:hidden; }
@@ -194,12 +196,14 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 <section id="tab-tasks">
   <div class="wrap">
     
-    <div class="hatchcard"><h3>🌾 Feed Fill-Up</h3><div class="meta">Last fill: <span id="feedLast">—</span></div>
-      <label>Date</label><input id="fDate" type="date">
-      <label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional">
-      <label>Note</label><input id="fNote" placeholder="Optional · brand, type…">
-      <button class="btn" onclick="addFeed()">🌾 Add Feed Fill-Up</button><div id="feedList"></div></div>
     <div id="supplyList"></div>
+    <details class="archive" id="inventory"><summary>Inventory</summary>
+      <div class="hatchcard"><h3>🌾 Feed</h3><div class="meta">Last fill: <span id="feedLast">—</span></div>
+        <label>Date</label><input id="fDate" type="date"><label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="fNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addFeed()">Add Feed</button><div id="feedList"></div></div>
+      <div class="hatchcard"><h3>🌾 Scratch</h3><div class="meta">Last fill: <span id="scratchLast">—</span></div>
+        <label>Date</label><input id="scratchDate" type="date"><label>Pounds</label><input id="scratchLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="scratchNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addScratch()">Add Scratch</button><div id="scratchList"></div></div>
+      <div id="inventorySupplyList"></div>
+    </details>
   </div>
 </section>
 
@@ -225,9 +229,9 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 <!-- MORE -->
 <section id="tab-more">
   <div class="wrap">
-    <h2 class="sec">My Flock</h2>
-    <div class="row"><span>🐔 Hens</span><div class="stepper"><button onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button onclick="chgFlock('hens',1)">+</button></div></div>
-    <div class="row"><span>🐓 Roosters</span><div class="stepper"><button onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button onclick="chgFlock('roosters',1)">+</button></div></div>
+    <h2 class="sec">My Flock</h2><div class="hint" id="roleNote"></div>
+    <div class="row"><span>🐔 Hens</span><div class="stepper adminOnly"><button onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button onclick="chgFlock('hens',1)">+</button></div></div>
+    <div class="row"><span>🐓 Roosters</span><div class="stepper adminOnly"><button onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button onclick="chgFlock('roosters',1)">+</button></div></div>
 
     <h2 class="sec">Cloud Sync</h2>
     <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
@@ -239,7 +243,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     </div>
     <div class="authbox hidden" id="authSignedIn">
       <p><b id="accountNote">Signed in.</b><br>Your records stay with this email and sync on every signed-in device.</p>
-      <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div>
+      <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button><div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div></div>
       <div id="qrWrap"><p style="margin-top:12px"><b>Add another device</b><br>Scan within 5 minutes to sign in this account on another device. This QR works once.</p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
       <button class="btn gray" onclick="signOutAccount()">Use a different email</button>
     </div>
@@ -259,7 +263,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="authbox"><p id="restoreNote">Log Out ends this session but keeps this device remembered for one-tap restore. Forget This Device removes that access.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
     <button class="btn gray" onclick="signOutAccount()">Log Out - Keep Device Remembered</button>
     <button class="btn gray danger" onclick="forgetThisDevice()">Forget This Device</button>
-    <button class="btn gray danger" onclick="resetAll()">Reset All Data</button>
+    <button class="btn gray danger adminAction" onclick="resetAll()">Reset All Data</button>
 
     <div class="hint"><b>Offline-ready:</b> records stay cached on this device. Sign in with the same email on another device and your cloud copy appears automatically.</div>
   </div>
@@ -287,7 +291,10 @@ const REMEMBERED_EMAIL_KEY='coopRememberedEmail';
 const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
 const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdWFoemN2ZmRobmZ0d21sdnJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTIzNzIsImV4cCI6MjEwMzg4ODM3Mn0.6rksBqxsn51ARofrxt48p7QaBMngU2VGzrc9UXxcUTc';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
-const SUPPLIES = [ ['fsl','🌾 FSL'], ['water','💧 Big Water'], ['bigFood','🍽️ Big Food'], ['grit','🪨 Grit'], ['calcium','🐚 Calcium'] ];
+const SUPPLIES = [ ['water','💧 Big Water'], ['bigFood','🍽️ Big Food'], ['calcium','🐚 Calcium'], ['grit','🪨 Grit'] ];
+const INVENTORY_SUPPLIES = [ ['fsl','🌾 FSL'] ];
+const ALL_SUPPLIES=[...SUPPLIES,...INVENTORY_SUPPLIES];
+const ADMIN_EMAIL='aerauwolf15@gmail.com';
 const FACTS = [
   "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
   "A hen's earlobe color usually predicts her egg color: red lobes, brown eggs; white lobes, white eggs.",
@@ -303,10 +310,11 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:18}, tasks:[], feed:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
-function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:18}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
+let accountRole='limited';
 let storageOK = true, syncTimer = null, currentUser = null, rowVersion = null, dirty = false, conflictCloud = null, realtimeChannel = null;
 
 function cacheKey(){ return currentUser ? CACHE_PREFIX + currentUser.id : LEGACY_KEY; }
@@ -325,6 +333,8 @@ function save(){ S.updated=Date.now(); dirty=true; saveLocal(); schedulePush(); 
 function setSync(t){ const a=document.getElementById('syncStatus'); if(a)a.textContent=t; const b=document.getElementById('syncTag'); if(b)b.textContent=t||''; }
 function authMsg(t,bad=false){ const e=document.getElementById('authMessage'); if(!e)return; e.textContent=t||''; e.classList.toggle('danger',bad); }
 function isAccountUser(u=currentUser){ return !!u && !u.is_anonymous && !!u.email; }
+function isAdmin(){ return isAccountUser()&&accountRole==='admin'; }
+function requireAdmin(){ if(isAdmin())return true; alert('Admin access is required for that change.'); return false; }
 function renderRestore(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY)||''; const note=document.getElementById('restoreNote'),btn=document.getElementById('restoreBtn'); if(!note||!btn)return; note.textContent=email?'Remembered on this device: '+email:'No remembered email on this device yet.'; btn.disabled=!localStorage.getItem(DEVICE_SECRET_KEY); }
 async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){authMsg('This device is not registered yet. Use an email sign-in link.',true);return;} authMsg('Restoring this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action:'restore',device_id:deviceId(),secret})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Could not restore this device',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device restored. Syncing…'); }
 
@@ -332,7 +342,7 @@ function showAuth(){
   const signedIn=isAccountUser();
   document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
   document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
-  if(signedIn){ document.getElementById('accountNote').textContent='Signed in as '+currentUser.email; setTimeout(renderAccountQR,0); }
+  if(signedIn){ const admin=isAdmin(); document.getElementById('accountNote').textContent='Signed in as '+currentUser.email+' · '+(admin?'Admin':'Limited'); document.body.dataset.role=admin?'admin':'limited'; document.getElementById('adminSessions').classList.toggle('hidden',!admin); document.getElementById('qrWrap').classList.toggle('hidden',!admin); document.querySelectorAll('.adminOnly').forEach(x=>x.classList.toggle('hidden',!admin)); setTimeout(renderAccountQR,0); }
 }
 function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
 function deviceId(){ let id=localStorage.getItem(DEVICE_KEY); if(!id){ const b=crypto.getRandomValues(new Uint8Array(16)); id=[...b].map(x=>x.toString(16).padStart(2,'0')).join(''); localStorage.setItem(DEVICE_KEY,id); } return id; }
@@ -341,11 +351,12 @@ function deviceInfo(){ const ua=navigator.userAgent, browser=/CriOS|Chrome/.test
 async function pairAPI(action,extra={}){ const {data:{session}}=await db.auth.getSession(); if(!session?.access_token)return {error:'No active session'}; const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action,...extra})}); return await r.json(); }
 async function registerDevice(){ if(!isAccountUser())return; const x=await pairAPI('register',{device:deviceInfo()}); if(!x.error)await renderDevices(); }
 async function renameDevice(id,current){ const label=prompt('Device name',current); if(!label?.trim())return; const x=await pairAPI('rename',{device_id:id,label:label.trim()}); if(x.error)alert(x.error); else await renderDevices(); }
-async function renderDevices(){ const el=document.getElementById('deviceList'); if(!el||!isAccountUser())return; const x=await pairAPI('list'); if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load sessions.</span></div>';return;} el.innerHTML=(x.devices||[]).map(d=>'<div class="row"><span><b>'+esc(d.label)+(d.device_id===deviceId()?' · This device':'')+'</b><br><span class="r">Last active '+new Date(d.last_seen).toLocaleString()+ (d.revoked_at?' · Signed out':'')+'</span></span>'+(d.revoked_at?'':'<button class="btn small gray" onclick="renameDevice(\''+d.device_id+'\',\''+esc(d.label).replace(/'/g,'&#39;')+'\')">Rename</button><button class="btn small gray" onclick="revokeDevice(\''+d.device_id+'\')">Sign Out</button>')+'</div>').join('')||'<div class="row"><span class="r">No active sessions.</span></div>'; }
+async function renderDevices(){ const el=document.getElementById('deviceList'); if(!el||!isAdmin())return; const x=await pairAPI('list'); if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load sessions.</span></div>';return;} el.innerHTML=(x.devices||[]).map(d=>'<div class="row"><span><b>'+esc(d.label)+(d.device_id===deviceId()?' · This device':'')+'</b><br><span class="r">Last active '+new Date(d.last_seen).toLocaleString()+ (d.revoked_at?' · Signed out':'')+'</span></span>'+(d.revoked_at?'':'<button class="btn small gray" onclick="renameDevice(\''+d.device_id+'\',\''+esc(d.label).replace(/'/g,'&#39;')+'\')">Rename</button><button class="btn small gray" onclick="revokeDevice(\''+d.device_id+'\')">Sign Out</button>')+'</div>').join('')||'<div class="row"><span class="r">No active sessions.</span></div>'; }
 async function revokeDevice(id){ if(!confirm('Sign out this device?'))return; const x=await pairAPI('revoke',{device_id:id}); if(x.error){alert(x.error);return;} if(id===deviceId()){await signOutAccount();return;} await renderDevices(); }
 async function checkDevice(){ if(!isAccountUser())return; const x=await pairAPI('check',{device_id:deviceId()}); if(x.active===false){ await db.auth.signOut({scope:'local'}); currentUser=null; showAuth(); setSync('Signed out on another device'); } }
 
-async function renderAccountQR(){ const el=document.getElementById('accountQR'); if(!el||!isAccountUser()||typeof QRCode==='undefined')return; el.innerHTML='Creating secure QR…'; let {data:{session}}=await db.auth.refreshSession(); if(!session?.access_token){ const cached=await db.auth.getSession(); session=cached.data.session; } if(!session?.access_token){el.textContent='Session needs refreshing. Tap Sync Now, then reopen Settings.';return;} const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'create'})}); const x=await r.json(); if(!r.ok){el.textContent=x.error||'Could not create QR';return;} el.innerHTML=''; const u=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token); new QRCode(el,{text:u,width:180,height:180}); }
+let qrGeneration=null,qrOwner='';
+async function renderAccountQR(){ const el=document.getElementById('accountQR'); if(!el||!isAccountUser()||typeof QRCode==='undefined')return; if(qrGeneration&&qrOwner===currentUser.id)return qrGeneration; qrOwner=currentUser.id; el.replaceChildren(Object.assign(document.createElement('span'),{textContent:'Creating secure QR…'})); qrGeneration=(async()=>{ let {data:{session}}=await db.auth.refreshSession(); if(!session?.access_token){ const cached=await db.auth.getSession(); session=cached.data.session; } if(!session?.access_token){el.textContent='Session needs refreshing. Tap Sync Now, then reopen Settings.';return;} const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'create'})}); const x=await r.json(); if(!r.ok){el.textContent=x.error||'Could not create QR';return;} el.innerHTML=''; const u=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token); new QRCode(el,{text:u,width:180,height:180}); })().finally(()=>setTimeout(()=>{qrGeneration=null},1000)); return qrGeneration; }
 function prefillAccount(){ const e=new URLSearchParams(location.search).get('account'); if(e)document.getElementById('accountEmail').value=e; }
 async function redeemPair(){ const token=new URLSearchParams(location.search).get('pair'); if(!token)return; history.replaceState({},'',location.pathname); authMsg('Securely pairing this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',token})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Pairing failed',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device paired. Syncing records…'); }
 function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
@@ -365,7 +376,7 @@ async function sendSignInLink(){
   }
   authMsg('Link sent. Open it on this device to sign in and sync.');
 }
-async function forgetThisDevice(){ if(!confirm('Forget this device? You will need an email link or QR to sign in here again.'))return; if(isAccountUser())await pairAPI('revoke',{device_id:deviceId()}); localStorage.removeItem(DEVICE_SECRET_KEY); localStorage.removeItem(REMEMBERED_EMAIL_KEY); await db.auth.signOut({scope:'local'}); currentUser=null; showAuth(); renderRestore(); setSync('Device forgotten'); }
+async function forgetThisDevice(){ if(!confirm('Forget this device? You will need an email link or QR to sign in here again.'))return; if(isAccountUser())await pairAPI('forget',{device_id:deviceId()}); localStorage.removeItem(DEVICE_SECRET_KEY); localStorage.removeItem(REMEMBERED_EMAIL_KEY); await db.auth.signOut({scope:'local'}); currentUser=null; showAuth(); renderRestore(); setSync('Device forgotten'); }
 async function signOutAccount(){
   if(dirty) await pushCloud();
   await db.auth.signOut({scope:'local'});
@@ -375,37 +386,16 @@ async function signOutAccount(){
 function schedulePush(){ if(!isAccountUser()){ setSync('Sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
 async function loadCloud(){
   if(!currentUser)return; setSync('☁️ Syncing…');
-  const local=loadKey(CACHE_PREFIX+currentUser.id); if(local) S=local;
-  const {data,error}=await db.from('coop_state').select('data,version,updated_at').eq('user_id',currentUser.id).maybeSingle();
-  if(error){ setSync('⚠️ Offline — using device copy'); renderAll(); return; }
-  if(!data){
-    const migration=cleanState(loadKey(LEGACY_KEY)||S); migration.updated=migration.updated||Date.now();
-    const ins=await db.from('coop_state').insert({user_id:currentUser.id,data:migration,version:1}).select('data,version').single();
-    if(ins.error){ setSync('⚠️ Could not start cloud sync'); return; }
-    S=cleanState(ins.data.data); rowVersion=ins.data.version; dirty=false; saveLocal(); try { localStorage.removeItem('coopPendingEmailMigration'); } catch(e){} renderAll(); setSync('✔ Current records moved to cloud'); return;
-  }
-  const cloudState=cleanState(data.data);
-  const pending=localStorage.getItem('coopPendingEmailMigration')==='1' ? loadKey(LEGACY_KEY) : null;
-  const freshest=[local,pending].filter(Boolean).sort((a,b)=>(b.updated||0)-(a.updated||0))[0];
-  if(freshest && (freshest.updated||0) > (cloudState.updated||0)){
-    S=freshest; rowVersion=data.version; dirty=true; renderAll(); setSync('☁️ Uploading newer records from this device…'); await pushCloud();
-  } else {
-    S=cloudState; rowVersion=data.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Up to date');
-  }
-  try { localStorage.removeItem('coopPendingEmailMigration'); } catch(e){}
+  const x=await pairAPI('state_get'); if(x.error){setSync('⚠️ Offline — using device copy');renderAll();return;}
+  accountRole=x.role||'limited'; showAuth(); const local=loadKey(CACHE_PREFIX+currentUser.id); if(local)S=local;
+  if(!x.data){ if(!isAdmin()){setSync('Waiting for admin to initialize records');renderAll();return;} rowVersion=0;dirty=true;await pushCloud();return; }
+  const cloudState=cleanState(x.data),freshest=local&&local.updated>cloudState.updated?local:null;
+  if(freshest){S=freshest;rowVersion=x.version;dirty=true;renderAll();await pushCloud();}else{S=cloudState;rowVersion=x.version;dirty=false;saveLocal();renderAll();setSync('✔ Up to date');}
 }
 async function pushCloud(force=false){
-  if(!currentUser||rowVersion===null)return; setSync('☁️ Syncing…'); const next=rowVersion+1;
-  let q=db.from('coop_state').update({data:cleanState(S),version:next}).eq('user_id',currentUser.id);
-  if(!force)q=q.eq('version',rowVersion);
-  const {data,error}=await q.select('data,version');
-  if(error){ setSync('⚠️ Offline — changes saved on device'); return; }
-  if(!data.length){
-    const latest=await db.from('coop_state').select('data,version').eq('user_id',currentUser.id).single();
-    if(!latest.error){ conflictCloud=latest.data; document.getElementById('conflictBox').classList.remove('hidden'); setSync('⚠️ Choose which copy to keep'); }
-    return;
-  }
-  rowVersion=data[0].version; dirty=false; setSync('☁️ Synced '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
+ if(!currentUser||rowVersion===null)return;setSync('☁️ Syncing…');const x=await pairAPI('state_update',{data:cleanState(S),version:rowVersion});
+ if(x.error){if(x.error==='version_conflict'){conflictCloud={data:x.data,version:x.version};document.getElementById('conflictBox').classList.remove('hidden');setSync('⚠️ Choose which copy to keep');}else{setSync('⚠️ '+x.error);if(!isAdmin())await loadCloud();}return;}
+ rowVersion=x.version;dirty=false;setSync('☁️ Synced '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
 }
 async function syncNow(){ if(!currentUser)return; setSync('Checking session…'); const fresh=await db.auth.refreshSession(); if(fresh.error||!fresh.data.session){ setSync('⚠️ Sign-in expired'); authMsg('Your device session was invalidated. Use the sign-in link once more; future sign-outs now affect only this device.',true); document.getElementById('authSignedIn').classList.add('hidden'); document.getElementById('authSignedOut').classList.remove('hidden'); document.getElementById('accountEmail').value=currentUser.email||''; return; } currentUser=fresh.data.session.user; if(dirty)await pushCloud(); else await loadCloud(); setTimeout(renderAccountQR,0); }
 async function resolveConflict(which){
@@ -413,18 +403,11 @@ async function resolveConflict(which){
   if(which==='cloud'){ S=cleanState(conflictCloud.data); rowVersion=conflictCloud.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Cloud copy loaded'); }
   else { rowVersion=conflictCloud.version; conflictCloud=null; dirty=true; await pushCloud(); }
 }
-function subscribeRealtime(){
-  if(realtimeChannel)db.removeChannel(realtimeChannel);
-  realtimeChannel=db.channel('coop-state-'+currentUser.id).on('postgres_changes',{event:'UPDATE',schema:'public',table:'coop_state',filter:'user_id=eq.'+currentUser.id},payload=>{
-    const incoming=payload.new; if(incoming.version<=rowVersion)return;
-    if(dirty){ conflictCloud={data:incoming.data,version:incoming.version}; document.getElementById('conflictBox').classList.remove('hidden'); setSync('⚠️ Choose which copy to keep'); }
-    else { S=cleanState(incoming.data); rowVersion=incoming.version; saveLocal(); renderAll(); setSync('✔ Updated from another device'); }
-  }).subscribe();
-}
+function subscribeRealtime(){}
 async function handleSession(session){
   const next=session?.user||null;
   const same=next?.id===currentUser?.id && next?.email===currentUser?.email;
-  currentUser=next; if(isAccountUser())localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email); showAuth(); renderRestore();
+  currentUser=next; if(isAccountUser()){localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email);const r=await pairAPI('role');accountRole=r.role||'limited';} showAuth(); renderRestore();
   if(same)return;
   if(isAccountUser()){ subscribeRealtime(); await loadCloud(); await registerDevice(); }
   else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||S||def(); renderAll(); setSync('Sign in to sync'); }
@@ -470,6 +453,7 @@ function showTab(t){
 
 /* ---------- eggs ---------- */
 function chgEgg(n){
+  if(n<0&&!isAdmin()){alert('Limited accounts can add data but cannot remove it.');return;}
   const v = Math.max(0, (S.eggs[selDate]||0) + n);
   S.eggs[selDate] = v; save(); renderEggs(); renderHome();
 }
@@ -508,7 +492,7 @@ function doneHatch(id){
   h.done = true; save(); renderHatch(); renderHome();
 }
 function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Total hatched at H+7 days',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0); save(); renderHatch(); }
-function delHatch(id){
+function delHatch(id){ if(!requireAdmin())return;
   if(!confirm('Delete this hatch run?')) return;
   S.hatches = S.hatches.filter(x=>x.id!==id); save(); renderHatch(); renderHome();
 }
@@ -531,28 +515,28 @@ function renderHatch(){
        + '<div class="status">'+status+'</div>'
        + '<div class="status">Total hatched (H+7 days): '+(x.survivors7==null?'Not recorded':x.survivors7)+'</div>'
        + '<div class="actions"><button class="btn small gray" onclick="setSurvivors('+x.id+')">Edit H+7 Survivors</button>'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">✔ Done</button>')
-       + '<button class="btn small gray" onclick="delHatch('+x.id+')">Delete</button></div></div>';
+       + '<button class="btn small gray adminAction" onclick="delHatch('+x.id+')">Delete</button></div></div>';
   });
   list.innerHTML=h;
 }
 
 /* ---------- chicken tractor ---------- */
 function addTractorLog(){ const count=Math.max(0,parseInt(document.getElementById('tractorCount').value,10)||0), created=document.getElementById('tractorCreated').value||today(), moved=document.getElementById('tractorMoved').value||created, note=document.getElementById('tractorNote').value.trim(); S.tractorLogs.push({id:Date.now(),count,created,moved,note}); document.getElementById('tractorCount').value=''; document.getElementById('tractorNote').value=''; save(); renderTractor(); }
-function delTractorLog(id){ S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); save(); renderTractor(); }
-function renderTractor(){ const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No meat bird records yet.</span></div>'; }
+function delTractorLog(id){ if(!requireAdmin())return; S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); save(); renderTractor(); }
+function renderTractor(){ const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><button class="btn small gray adminAction" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No meat bird records yet.</span></div>'; }
 
 /* ---------- supplies ---------- */
 function addSupply(k){ const d=document.getElementById('sd-'+k).value||today(), note=document.getElementById('sn-'+k).value.trim(); S.supplyEntries[k].push({id:Date.now()+k,date:d,note}); S.supplies[k]=d; save(); renderSupplies(); }
-function delSupply(k,id){ S.supplyEntries[k]=S.supplyEntries[k].filter(x=>String(x.id)!==String(id)); S.supplies[k]=S.supplyEntries[k].slice().sort((a,b)=>a.date<b.date?1:-1)[0]?.date||null; save(); renderSupplies(); }
+function delSupply(k,id){ if(!requireAdmin())return; S.supplyEntries[k]=S.supplyEntries[k].filter(x=>String(x.id)!==String(id)); S.supplies[k]=S.supplyEntries[k].slice().sort((a,b)=>a.date<b.date?1:-1)[0]?.date||null; save(); renderSupplies(); }
 function renderSupplies(){
-  document.getElementById('supplyList').innerHTML=SUPPLIES.map(([k,label])=>{ const entries=S.supplyEntries[k]||[], latest=entries.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
+  const cards=([k,label])=>{ const entries=S.supplyEntries[k]||[], latest=entries.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
     const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional"><button class="btn small" onclick="addSupply('${k}')">✔ Add Refill</button>`;
-    const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,8).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
-    return `<div class="hatchcard"><h3>${label}</h3><div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${history}</div>`; }).join('');
+    const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,8).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray adminAction" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
+    return `<div class="hatchcard"><h3>${label}</h3><div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${history}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join('');
 }
 
 /* ---------- flock, feed, finance ---------- */
-function chgFlock(k,n){ S[k]=Math.max(0,(S[k]||0)+n); save(); renderMore(); renderHome(); }
+function chgFlock(k,n){ if(!requireAdmin())return; S[k]=Math.max(0,(S[k]||0)+n); save(); renderMore(); renderHome(); }
 function addFeed(){
   const d=document.getElementById('fDate').value||today();
   const lbs=document.getElementById('fLbs').value;
@@ -561,6 +545,7 @@ function addFeed(){
   document.getElementById('fLbs').value=''; document.getElementById('fNote').value='';
   save(); renderMore();
 }
+function addScratch(){ const d=document.getElementById('scratchDate').value||today(),lbs=document.getElementById('scratchLbs').value,note=document.getElementById('scratchNote').value.trim(); S.scratch.push({id:Date.now(),date:d,lbs,note}); document.getElementById('scratchLbs').value='';document.getElementById('scratchNote').value='';save();renderMore(); }
 function renderMore(){
   document.getElementById('henV').textContent=S.hens;
   document.getElementById('rooV').textContent=S.roosters;
@@ -568,8 +553,9 @@ function renderMore(){
   document.getElementById('feedLast').textContent = last
     ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
     : '—';
-  document.getElementById('feedList').innerHTML = S.feed.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5)
-    .map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
+  document.getElementById('feedList').innerHTML = S.feed.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
+  const sl=S.scratch.slice().sort((a,b)=>a.date<b.date?1:-1); document.getElementById('scratchLast').textContent=sl[0]?short(sl[0].date)+' ('+daysBetween(sl[0].date,today())+' days ago)'+(sl[0].lbs?' · '+sl[0].lbs+' lbs':''):'—'; document.getElementById('scratchList').innerHTML=sl.slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
+  document.getElementById('roleNote').textContent=isAccountUser()?(isAdmin()?'Admin · full access':'Limited · can add records, but cannot delete records or change flock counts'):'';
 }
 
 /* ---------- finance ---------- */
@@ -588,15 +574,15 @@ function renderFinance(){
 /* ---------- chick & pullet rearing ---------- */
 function cohortStage(x){ const w=daysBetween(x.hatchDate,today())/7; return w<(S.rearing.chickWeeks||8)?'chick':w<(S.rearing.henWeeks||18)?'pullet':'ready'; }
 function addCohort(){ const hatchDate=document.getElementById('cohortDate').value||today(), count=Math.max(1,parseInt(document.getElementById('cohortCount').value,10)||1), note=document.getElementById('cohortNote').value.trim(); S.cohorts.push({id:Date.now(),hatchDate,count,note}); document.getElementById('cohortCount').value=''; document.getElementById('cohortNote').value=''; save(); renderCohorts(); renderHome(); }
-function delCohort(id){ if(!confirm('Delete this chick/pullet group?'))return; S.cohorts=S.cohorts.filter(x=>x.id!==id); save(); renderCohorts(); renderHome(); }
-function confirmLaying(id){ const x=S.cohorts.find(x=>x.id===id); if(!x||cohortStage(x)!=='ready')return; S.hens+=x.count; S.cohorts=S.cohorts.filter(y=>y.id!==id); save(); renderAll(); }
-function setRearingAge(k,v){ S.rearing[k]=Math.max(1,parseInt(v,10)||def().rearing[k]); if(S.rearing.henWeeks<=S.rearing.chickWeeks)S.rearing.henWeeks=S.rearing.chickWeeks+1; save(); renderCohorts(); renderHome(); }
-function renderCohorts(){ const totals={chick:0,pullet:0,ready:0}; S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count); document.getElementById('chickCount').textContent=totals.chick; document.getElementById('pulletCount').textContent=totals.pullet; document.getElementById('readyCount').textContent=totals.ready; document.getElementById('chickWeeks').value=S.rearing.chickWeeks; document.getElementById('henWeeks').value=S.rearing.henWeeks; document.getElementById('cohortList').innerHTML=S.cohorts.slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{ const st=cohortStage(x), w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)), next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Review laying '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation'; return '<div class="hatchcard"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):st==='pullet'?'pullet'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s')+' - unconfirmed laying')+'</h3><div class="meta">Hatched '+short(x.hatchDate)+' · '+w+' weeks old'+(x.note?' · '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray" onclick="delCohort('+x.id+')">Delete</button></div></div>'; }).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
+function delCohort(id){ if(!requireAdmin())return; if(!confirm('Delete this chick/pullet group?'))return; S.cohorts=S.cohorts.filter(x=>x.id!==id); save(); renderCohorts(); renderHome(); }
+function confirmLaying(id){ if(!requireAdmin())return; const x=S.cohorts.find(x=>x.id===id); if(!x||cohortStage(x)!=='ready')return; S.hens+=x.count; S.cohorts=S.cohorts.filter(y=>y.id!==id); save(); renderAll(); }
+function setRearingAge(k,v){ if(!requireAdmin())return; S.rearing[k]=Math.max(1,parseInt(v,10)||def().rearing[k]); if(S.rearing.henWeeks<=S.rearing.chickWeeks)S.rearing.henWeeks=S.rearing.chickWeeks+1; save(); renderCohorts(); renderHome(); }
+function renderCohorts(){ const totals={chick:0,pullet:0,ready:0}; S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count); document.getElementById('chickCount').textContent=totals.chick; document.getElementById('pulletCount').textContent=totals.pullet; document.getElementById('readyCount').textContent=totals.ready; document.getElementById('chickWeeks').value=S.rearing.chickWeeks; document.getElementById('henWeeks').value=S.rearing.henWeeks; document.getElementById('cohortList').innerHTML=S.cohorts.slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{ const st=cohortStage(x), w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)), next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Review laying '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation'; return '<div class="hatchcard"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):st==='pullet'?'pullet'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s')+' - unconfirmed laying')+'</h3><div class="meta">Hatched '+short(x.hatchDate)+' · '+w+' weeks old'+(x.note?' · '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small adminAction" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray adminAction" onclick="delCohort('+x.id+')">Delete</button></div></div>'; }).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
 
 /* ---------- dispatch ---------- */
 function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(), destination=document.getElementById('birdDestination').value.trim(), codes={'😀':'code1','😁':'code2','🙂':'code3','😊':'code4','😚':'code5'}; if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note,destination,destinationCode:codes[destination]||''}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; document.getElementById('birdDestination').value=''; save(); renderDispatch(); }
-function delDispatch(id){ if(!confirm('Delete this dispatch record?'))return; S.dispatches=S.dispatches.filter(x=>x.id!==id); save(); renderDispatch(); }
-function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>☠️ <b>'+esc(x.name)+'</b> · '+short(x.date)+(x.note?' · '+esc(x.note):'')+(x.destination?' · '+esc(x.destination):'')+'</span><button class="btn small gray" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
+function delDispatch(id){ if(!requireAdmin())return; if(!confirm('Delete this dispatch record?'))return; S.dispatches=S.dispatches.filter(x=>x.id!==id); save(); renderDispatch(); }
+function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>☠️ <b>'+esc(x.name)+'</b> · '+short(x.date)+(x.note?' · '+esc(x.note):'')+(x.destination?' · '+esc(x.destination):'')+'</span><button class="btn small gray adminAction" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
 
 /* ---------- home ---------- */
 function monthCalendar(m,total){ const [y,mo]=m.split('-').map(Number), days=new Date(y,mo,0).getDate(), offset=new Date(y,mo-1,1).getDay(); const pad=n=>String(n).padStart(2,'0'), label=pad(mo)+'/01 - '+pad(mo)+'/'+pad(days)+'/'+y; let cells=['S','M','T','W','T','F','S'].map(x=>'<div class="dow">'+x+'</div>').join(''); for(let i=0;i<offset;i++)cells+='<div class="calday blank"></div>'; for(let d=1;d<=days;d++){ const key=y+'-'+pad(mo)+'-'+pad(d), has=Object.prototype.hasOwnProperty.call(S.eggs,key), eggs=has?(Number(S.eggs[key])||0):''; cells+='<div class="calday"><span class="daynum">'+d+'</span><span class="eggnum">'+eggs+'</span></div>'; } return '<details class="month-block"><summary><span>'+label+'</span><b>'+total+' eggs</b></summary><div class="month-cal">'+cells+'</div></details>'; }
@@ -627,13 +613,14 @@ document.getElementById('factCard').onclick = newFact;
 document.getElementById('hsHint').onclick = function(){ S.hideHsHint = true; save(); renderHome(); };
 
 /* ---------- export & reset ---------- */
-function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Meat Bird Tracking',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' · '+x.note:'')])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
+function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); ALL_SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Meat Bird Tracking',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' · '+x.note:'')])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.scratch.forEach(f=>rows.push(['scratch',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
 function downloadBlob(name,type,text){ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0); }
 function exportData(format){ const rows=exportRows(), base='coop-tracker-'+today(); if(format==='xlsx'){ if(typeof XLSX==='undefined'){alert('Spreadsheet exporter is still loading. Try again.');return;} const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Coop Records');XLSX.writeFile(wb,base+'.xlsx');return; } if(format==='txt'){ downloadBlob(base+'.txt','text/plain',rows.map(r=>r.join(' | ')).join('\n'));return; } const groups={};rows.slice(1).forEach(r=>(groups[r[0]]??=[]).push(r));let md='# Coop Tracker Export\n\nGenerated '+today()+'\n';Object.entries(groups).forEach(([k,v])=>{md+='\n## '+k[0].toUpperCase()+k.slice(1)+'\n\n| Date | Item | Value | Notes |\n|---|---|---|---|\n'+v.map(r=>'| '+r.slice(1).map(x=>String(x).replace(/\|/g,'\\|')).join(' | ')+' |').join('\n')+'\n'});downloadBlob(base+'.md','text/markdown',md); }
 function exportCSV(){ exportData('xlsx'); }
 function resetAll(){
+  if(!requireAdmin())return;
   if(confirm('Delete ALL data and start over? This cannot be undone.')){
-    localStorage.removeItem(cacheKey()); S=def(); save(); renderAll();
+    localStorage.removeItem(cacheKey()); S=def(); S.hens=0; S.roosters=0; save(); renderAll();
   }
 }
 
@@ -641,6 +628,7 @@ function resetAll(){
 function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderTractor(); renderSupplies(); renderFinance(); renderMore(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
+document.getElementById('scratchDate').value=today();
 document.getElementById('birdDate').value=today();
 document.getElementById('cohortDate').value=today();
 document.getElementById('tractorCreated').value=today();
@@ -649,7 +637,7 @@ renderRestore();
 prefillAccount();
 redeemPair();
 document.getElementById('eggDirect').addEventListener('change', e=>{
-  const v = Math.max(0, parseInt(e.target.value,10)||0);
+  const v = Math.max(0, parseInt(e.target.value,10)||0); if(v<(S.eggs[selDate]||0)&&!isAdmin()){alert('Limited accounts can add data but cannot remove it.');e.target.value=S.eggs[selDate]||0;return;}
   S.eggs[selDate] = v; save(); renderEggs(); renderHome();
 });
 testStorage();
