@@ -118,7 +118,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <details class="nextgen" id="nextGen"><summary>Next-gen stats & flock details</summary>
       <div class="cards">
         <div class="card"><div class="big" id="cHatch">0</div><div class="label">Active Hatches</div><div class="note" id="cHatchNote"></div></div>
-        <div class="card"><div class="big" id="cMonth">0</div><div class="label">Eggs This Month</div></div>
+        <div class="card"><div class="big" id="c30">0</div><div class="label">Eggs · Last 30 Days</div></div>
         <div class="card"><div class="big" id="cTotalEggs">0</div><div class="label">Total Eggs Tracked</div></div>
       </div>
       <h2 class="sec">Eggs by Month</h2><div id="eggMonths"></div>
@@ -542,7 +542,7 @@ function renderHome(){
   document.getElementById('cToday').textContent=t;
   document.getElementById('cRate').textContent = S.hens? Math.round(t/S.hens*100)+'% of hens today' : '';
   document.getElementById('cWeek').textContent=sumRange(7);
-  document.getElementById('cMonth').textContent=sumMonth();
+  document.getElementById('c30').textContent=sumRange(30);
   document.getElementById('cAvg').textContent=(sumRange(7)/7).toFixed(1);
   document.getElementById('cTotalEggs').textContent=Object.values(S.eggs).reduce((a,b)=>a+(Number(b)||0),0);
   const months={}; Object.entries(S.eggs).forEach(([d,v])=>months[d.slice(0,7)]=(months[d.slice(0,7)]||0)+(Number(v)||0)); document.getElementById('eggMonths').innerHTML=Object.keys(months).sort().reverse().map(m=>'<div class="row"><span>'+new Date(m+'-01T12:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})+'</span><b>'+months[m]+'</b></div>').join('')||'<div class="row"><span class="r">No eggs logged yet.</span></div>';
