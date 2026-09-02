@@ -155,8 +155,7 @@
         <div class="stats3"><div class="statmini"><b id="d7">0</b>Prior Week</div><div class="statmini"><b id="d30">0</b>Prior Month</div><div class="statmini"><b id="dAll">0</b>Cumulative</div></div>
         <div id="dispatchList"></div>
       </div>
-      <details class="archive"><summary>Archive</summary>
-        <details class="archive"><summary>Chick Hatches</summary><div class="workflow"><h2 class="sec">Hatch Tracking</h2><div id="hatchList"></div>
+      <details class="nextgen"><summary>Chick Hatches</summary><div class="workflow"><h2 class="sec">Hatch Tracking</h2><div id="hatchList"></div>
           <label>Name</label><input id="hName" placeholder="Optional">
           <label>Date eggs set</label><input id="hDate" type="date">
           <label>Number of eggs</label><input id="hCount" type="number" min="1" data-random-placeholder>
@@ -173,8 +172,7 @@
           <label>Pullet becomes a hen at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
         </div>
 </details>
-                <details class="archive"><summary>Chicken Tractor</summary><div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><div class="statmini"><b id="meatBirdCount">0</b>Meat birds 7+ weeks old</div><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">🍗 Add Meat Bird</button><div id="tractorList"></div></div></details>
-      </details>
+      <details class="nextgen"><summary>Chicken Tractor</summary><div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><div class="statmini"><b id="meatBirdCount">0</b>Meat birds 7+ weeks old</div><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">🍗 Add Meat Bird</button><div id="tractorList"></div></div></details>
     </details>
     <details class="nextgen" id="etcSection"><summary>etc</summary>
       <div class="workflow"><h2 class="sec">Before and After</h2><label>Filler 1</label><input id="etcFiller1" placeholder="optional" onchange="setEtc('filler1',this.value)"></div>
