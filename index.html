@@ -154,7 +154,8 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
           <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
           <label>Date eggs set</label><input id="hDate" type="date">
           <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
-          <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button><div class="hint" style="margin:10px 0 0">Surviving chicks is recorded on the run beginning H+7 days.</div>
+          <label>Surviving chicks (H+7 days)</label><input id="hSurvivors" type="number" min="0" placeholder="Optional">
+          <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
         </div>
         <div class="workflow"><h2 class="sec">🐥 Tracking - Chicks & Pullets</h2>
           <div class="stats3"><div class="statmini"><b id="chickCount">0</b>Chicks</div><div class="statmini"><b id="pulletCount">0</b>Pullets</div><div class="statmini"><b id="readyCount">0</b>Pullets - unconfirmed laying</div></div>
@@ -166,7 +167,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
           <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
           <label>Flag pullet as unconfirmed laying at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
         </div>
-        <div class="workflow"><h2 class="sec">🚜 Chicken Tractor</h2><label>Date</label><input id="tractorDate" type="date"><label>Note</label><input id="tractorNote" placeholder="Move, setup, maintenance…"><button class="btn" onclick="addTractorLog()">Add Tractor Log</button><div id="tractorList"></div></div>
+        <div class="workflow"><h2 class="sec">🚜 Chicken Tractor</h2><label># Chickens inside</label><input id="tractorCount" type="number" min="0"><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note (optional)</label><input id="tractorNote" placeholder="Optional note"><button class="btn" onclick="addTractorLog()">Add Chicken Tractor</button><div id="tractorList"></div></div>
       </details>
     </details>
   </div>
@@ -255,6 +256,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div>
     <button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button>
     <h2 class="sec">App Restore</h2>
+    <div class="authbox"><p id="restoreNote">This device can remember the last email used here, unless its browser or app history is cleared.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">QR code not working? Sign in with remembered email</button></div>
     <button class="btn gray" onclick="signOutAccount()">Log Out</button>
     <button class="btn gray danger" onclick="resetAll()">Reset All Data</button>
 
@@ -279,6 +281,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 const LEGACY_KEY = 'coopTrackerV1';
 const CACHE_PREFIX = 'coopTrackerV2:';
 const DEVICE_KEY='coopDeviceId';
+const REMEMBERED_EMAIL_KEY='coopRememberedEmail';
 const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
 const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdWFoemN2ZmRobmZ0d21sdnJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTIzNzIsImV4cCI6MjEwMzg4ODM3Mn0.6rksBqxsn51ARofrxt48p7QaBMngU2VGzrc9UXxcUTc';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
@@ -320,6 +323,9 @@ function save(){ S.updated=Date.now(); dirty=true; saveLocal(); schedulePush(); 
 function setSync(t){ const a=document.getElementById('syncStatus'); if(a)a.textContent=t; const b=document.getElementById('syncTag'); if(b)b.textContent=t||''; }
 function authMsg(t,bad=false){ const e=document.getElementById('authMessage'); if(!e)return; e.textContent=t||''; e.classList.toggle('danger',bad); }
 function isAccountUser(u=currentUser){ return !!u && !u.is_anonymous && !!u.email; }
+function renderRestore(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY)||''; const note=document.getElementById('restoreNote'),btn=document.getElementById('restoreBtn'); if(!note||!btn)return; note.textContent=email?'Remembered on this device: '+email:'No remembered email on this device yet.'; btn.disabled=!email; }
+async function restoreSignIn(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY); if(!email){authMsg('No remembered email on this device.',true);return;} document.getElementById('accountEmail').value=email; showTab('more'); await sendSignInLink(); }
+
 function showAuth(){
   const signedIn=isAccountUser();
   document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
@@ -342,7 +348,7 @@ async function redeemPair(){ const token=new URLSearchParams(location.search).ge
 function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
 async function sendSignInLink(){
   const email=accountEmail(); if(!email){authMsg('Enter your email.',true);return;}
-  authMsg('Sending sign-in link…');
+  localStorage.setItem(REMEMBERED_EMAIL_KEY,email); renderRestore(); authMsg('Sending sign-in link…');
   if(currentUser?.is_anonymous){
     const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname});
     if(error && /already|registered|exists/i.test(error.message||'')){
@@ -414,7 +420,7 @@ function subscribeRealtime(){
 async function handleSession(session){
   const next=session?.user||null;
   const same=next?.id===currentUser?.id && next?.email===currentUser?.email;
-  currentUser=next; showAuth();
+  currentUser=next; if(isAccountUser())localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email); showAuth(); renderRestore();
   if(same)return;
   if(isAccountUser()){ subscribeRealtime(); await loadCloud(); await registerDevice(); }
   else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||S||def(); renderAll(); setSync('Sign in to sync'); }
@@ -485,9 +491,10 @@ function addHatch(){
   const name=document.getElementById('hName').value.trim();
   const set=document.getElementById('hDate').value || today();
   const count=parseInt(document.getElementById('hCount').value)||0;
+  const rawSurvivors=document.getElementById('hSurvivors').value, survivors7=rawSurvivors===''?null:Math.max(0,parseInt(rawSurvivors,10)||0);
   if(count<1){ alert('How many eggs?'); return; }
-  S.hatches.push({id:Date.now(), name:name, set:set, count:count, done:false, hatched:null, survivors7:null});
-  document.getElementById('hName').value=''; document.getElementById('hCount').value='';
+  S.hatches.push({id:Date.now(), name:name, set:set, count:count, done:false, hatched:null, survivors7});
+  document.getElementById('hName').value=''; document.getElementById('hCount').value=''; document.getElementById('hSurvivors').value='';
   save(); renderHatch(); renderHome();
 }
 function doneHatch(id){
@@ -526,9 +533,9 @@ function renderHatch(){
 }
 
 /* ---------- chicken tractor ---------- */
-function addTractorLog(){ const date=document.getElementById('tractorDate').value||today(), note=document.getElementById('tractorNote').value.trim(); if(!note){alert('Add a tractor note.');return;} S.tractorLogs.push({id:Date.now(),date,note}); document.getElementById('tractorNote').value=''; save(); renderTractor(); }
+function addTractorLog(){ const count=Math.max(0,parseInt(document.getElementById('tractorCount').value,10)||0), created=document.getElementById('tractorCreated').value||today(), moved=document.getElementById('tractorMoved').value||created, note=document.getElementById('tractorNote').value.trim(); S.tractorLogs.push({id:Date.now(),count,created,moved,note}); document.getElementById('tractorCount').value=''; document.getElementById('tractorNote').value=''; save(); renderTractor(); }
 function delTractorLog(id){ S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); save(); renderTractor(); }
-function renderTractor(){ const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>a.date<b.date?1:-1).map(x=>'<div class="row"><span>'+short(x.date)+' · '+esc(x.note)+'</span><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No tractor logs yet.</span></div>'; }
+function renderTractor(){ const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No chicken tractors yet.</span></div>'; }
 
 /* ---------- supplies ---------- */
 function addSupply(k){ const d=document.getElementById('sd-'+k).value||today(), note=document.getElementById('sn-'+k).value.trim(); S.supplyEntries[k].push({id:Date.now()+k,date:d,note}); S.supplies[k]=d; save(); renderSupplies(); }
@@ -616,7 +623,7 @@ document.getElementById('factCard').onclick = newFact;
 document.getElementById('hsHint').onclick = function(){ S.hideHsHint = true; save(); renderHome(); };
 
 /* ---------- export & reset ---------- */
-function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.date,'Chicken Tractor','',x.note])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
+function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Chicken Tractor',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' · '+x.note:'')])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
 function downloadBlob(name,type,text){ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0); }
 function exportData(format){ const rows=exportRows(), base='coop-tracker-'+today(); if(format==='xlsx'){ if(typeof XLSX==='undefined'){alert('Spreadsheet exporter is still loading. Try again.');return;} const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Coop Records');XLSX.writeFile(wb,base+'.xlsx');return; } if(format==='txt'){ downloadBlob(base+'.txt','text/plain',rows.map(r=>r.join(' | ')).join('\n'));return; } const groups={};rows.slice(1).forEach(r=>(groups[r[0]]??=[]).push(r));let md='# Coop Tracker Export\n\nGenerated '+today()+'\n';Object.entries(groups).forEach(([k,v])=>{md+='\n## '+k[0].toUpperCase()+k.slice(1)+'\n\n| Date | Item | Value | Notes |\n|---|---|---|---|\n'+v.map(r=>'| '+r.slice(1).map(x=>String(x).replace(/\|/g,'\\|')).join(' | ')+' |').join('\n')+'\n'});downloadBlob(base+'.md','text/markdown',md); }
 function exportCSV(){ exportData('xlsx'); }
@@ -632,7 +639,9 @@ document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('birdDate').value=today();
 document.getElementById('cohortDate').value=today();
-document.getElementById('tractorDate').value=today();
+document.getElementById('tractorCreated').value=today();
+document.getElementById('tractorMoved').value=today();
+renderRestore();
 prefillAccount();
 redeemPair();
 document.getElementById('eggDirect').addEventListener('change', e=>{
