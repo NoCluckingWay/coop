@@ -148,6 +148,25 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
   </div>
 </section>
 
+<!-- FINANCE -->
+<section id="tab-finance">
+  <div class="wrap">
+    <h2 class="sec">Finance</h2>
+    <div class="card" style="margin-top:8px"><div class="big" id="financeTotal">$0.00</div><div class="label">Tracked total</div><div class="note">Updates as amounts change</div></div>
+
+    <div class="hatchcard">
+      <h3>Last related purchase</h3>
+      <label>Amount</label><input id="financeLastAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('lastAmount',this.value)">
+      <label>Receipt or product link</label><input id="financeLastLink" type="url" placeholder="https://…" onchange="setFinance('lastLink',this.value)">
+      <div id="financeLastOpen" style="margin-top:8px"></div>
+    </div>
+
+    <div class="hatchcard"><h3>Future category 1</h3><div class="meta">Name and details TBD</div><label>Amount</label><input id="financeTbd1" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('tbd1',this.value)"></div>
+    <div class="hatchcard"><h3>Future category 2</h3><div class="meta">Name and details TBD</div><label>Amount</label><input id="financeTbd2" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('tbd2',this.value)"></div>
+    <div class="hatchcard"><h3>Future category 3</h3><div class="meta">Name and details TBD</div><label>Amount</label><input id="financeTbd3" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('tbd3',this.value)"></div>
+  </div>
+</section>
+
 <!-- MORE -->
 <section id="tab-more">
   <div class="wrap">
@@ -163,27 +182,24 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <button class="btn" onclick="addFeed()">🌾 Log Fill-Up</button>
     <div id="feedList"></div>
 
-    <h2 class="sec">Finance</h2>
-    <label>Google Drive / Dropbox link</label>
-    <input id="finLink" type="url" placeholder="https://drive.google.com/… or dropbox.com/…">
-    <div id="finOpen" style="margin-top:8px"></div>
-
-    <h2 class="sec">Account & Cloud Sync</h2>
-    <div class="row"><span>Status</span><span class="r" id="syncStatus">Checking…</span></div>
-    <div class="authbox" id="authSignedOut">
-      <p>Sign in with the same account on every device. Your current device records will move to your account the first time you sign in.</p>
-      <label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com">
-      <label>Password</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Password">
-      <div class="auth-actions">
-        <button class="btn" onclick="signIn()">Sign In</button>
-        <button class="btn gray" onclick="signUp()">Create Account</button>
-      </div>
+    <h2 class="sec">Cloud Sync</h2>
+    <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
+    <div class="authbox" id="authAutomatic">
+      <p><b>No sign-in needed.</b> This device saves to its own private cloud automatically.</p>
+      <button class="btn gray" onclick="showRecovery()">Add another device / recovery</button>
+    </div>
+    <div class="authbox hidden" id="recoveryBox">
+      <p>Add an email to recover these records or open them on another device. No password is needed.</p>
+      <label>Email</label><input id="recoveryEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <button class="btn" onclick="linkRecoveryEmail()">Email me a secure link</button>
+      <button class="btn gray" onclick="sendExistingLink()">I already linked this email</button>
+      <button class="btn gray" onclick="hideRecovery()">Cancel</button>
       <div id="authMessage" class="r" style="margin-top:10px"></div>
     </div>
     <div class="authbox hidden" id="authSignedIn">
-      <p>Signed in as <b id="authUser"></b>. Changes sync automatically and stay cached on this device for offline use.</p>
+      <p id="accountNote">Private cloud active.</p>
       <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button>
-      <button class="btn gray" onclick="signOut()">Sign Out</button>
+      <button class="btn gray" onclick="showRecovery()">Add another device / recovery</button>
     </div>
     <div class="authbox hidden" id="conflictBox">
       <p class="danger"><b>Two devices changed the same data.</b> Nothing was overwritten. Choose which copy to keep.</p>
@@ -201,7 +217,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
     <button class="btn gray" onclick="resetAll()">🗑 Reset Everything</button>
 
-    <div class="hint"><b>Offline-ready:</b> records stay cached on this device and sync securely to your account when connected. Sign in on another phone, tablet, or computer to see the same data.</div>
+    <div class="hint"><b>Offline-ready:</b> records stay cached here and sync to a private cloud automatically. Add a recovery email only when you want another device or account recovery.</div>
   </div>
 </section>
 
@@ -212,6 +228,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
   <button data-tab="eggs" onclick="showTab('eggs')"><span class="ic">🥚</span>Eggs</button>
   <button data-tab="hatch" onclick="showTab('hatch')"><span class="ic">🐣</span>Hatch</button>
   <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">🌾</span>Supplies</button>
+  <button data-tab="finance" onclick="showTab('finance')"><span class="ic">💵</span>Finance</button>
   <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>More</button>
 </nav>
 
@@ -222,7 +239,7 @@ const CACHE_PREFIX = 'coopTrackerV2:';
 const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
 const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdWFoemN2ZmRobmZ0d21sdnJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTIzNzIsImV4cCI6MjEwMzg4ODM3Mn0.6rksBqxsn51ARofrxt48p7QaBMngU2VGzrc9UXxcUTc';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
-const SUPPLIES = [ ['fsl','🌾 FSL'], ['water','💧 Water 3x'], ['grit','🪨 Grit'], ['calcium','🐚 Calcium'] ];
+const SUPPLIES = [ ['fsl','🌾 FSL'], ['water','💧 Big Water'], ['bigFood','🍽️ Big Food'], ['grit','🪨 Grit'], ['calcium','🐚 Calcium'] ];
 const FACTS = [
   "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
   "A hen's earlobe color usually predicts her egg color: red lobes, brown eggs; white lobes, white eggs.",
@@ -238,8 +255,8 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], supplies:{}, hideHsHint:false, financeLink:'', updated:0 }; }
-function cleanState(x){ const y=Object.assign(def(), x||{}); delete y.syncUrl; return y; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], supplies:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
 let storageOK = true, syncTimer = null, currentUser = null, rowVersion = null, dirty = false, conflictCloud = null, realtimeChannel = null;
@@ -258,27 +275,32 @@ function saveLocal(){
 }
 function save(){ S.updated=Date.now(); dirty=true; saveLocal(); schedulePush(); }
 function setSync(t){ const a=document.getElementById('syncStatus'); if(a)a.textContent=t; const b=document.getElementById('syncTag'); if(b)b.textContent=t||''; }
-function authMsg(t,bad=false){ const e=document.getElementById('authMessage'); e.textContent=t||''; e.classList.toggle('danger',bad); }
+function authMsg(t,bad=false){ const e=document.getElementById('authMessage'); if(!e)return; e.textContent=t||''; e.classList.toggle('danger',bad); }
+function isAnonymous(){ return currentUser?.is_anonymous===true || currentUser?.app_metadata?.provider==='anonymous'; }
 function showAuth(){
-  document.getElementById('authSignedOut').classList.toggle('hidden',!!currentUser);
-  document.getElementById('authSignedIn').classList.toggle('hidden',!currentUser);
-  document.getElementById('authUser').textContent=currentUser?.email||'';
+  const ready=!!currentUser;
+  document.getElementById('authAutomatic').classList.toggle('hidden',!ready);
+  document.getElementById('authSignedIn').classList.toggle('hidden',!ready);
+  if(ready) document.getElementById('accountNote').textContent=isAnonymous()?'Private cloud active on this device.':'Private cloud active · recovery email linked.';
 }
-async function signUp(){
-  const email=document.getElementById('authEmail').value.trim(), password=document.getElementById('authPassword').value;
-  if(!email||password.length<6){ authMsg('Enter an email and a password of at least 6 characters.',true); return; }
-  authMsg('Creating account…');
-  const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
-  if(error){ authMsg(error.message,true); return; }
-  authMsg(data.session?'Account created. Syncing…':'Check your email, confirm the account, then return here to sign in.');
+function showRecovery(){ document.getElementById('recoveryBox').classList.remove('hidden'); document.getElementById('recoveryEmail').focus(); }
+function hideRecovery(){ document.getElementById('recoveryBox').classList.add('hidden'); authMsg(''); }
+function recoveryEmail(){ return document.getElementById('recoveryEmail').value.trim(); }
+async function linkRecoveryEmail(){
+  const email=recoveryEmail(); if(!email){authMsg('Enter your email.',true);return;}
+  authMsg('Sending secure link…');
+  const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname});
+  if(error){authMsg(error.message,true);return;}
+  authMsg('Check your email and open the secure link on this device.');
 }
-async function signIn(){
-  const email=document.getElementById('authEmail').value.trim(), password=document.getElementById('authPassword').value;
-  if(!email||!password){ authMsg('Enter your email and password.',true); return; }
-  authMsg('Signing in…'); const {error}=await db.auth.signInWithPassword({email,password}); if(error) authMsg(error.message,true);
+async function sendExistingLink(){
+  const email=recoveryEmail(); if(!email){authMsg('Enter your linked email.',true);return;}
+  authMsg('Sending secure link…');
+  const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:false}});
+  if(error){authMsg(error.message,true);return;}
+  authMsg('Check your email and open the secure link on this device.');
 }
-async function signOut(){ await db.auth.signOut(); }
-function schedulePush(){ if(!currentUser){ setSync('Saved on this device — sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
+function schedulePush(){ if(!currentUser){ setSync('Starting private cloud…'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
 async function loadCloud(){
   if(!currentUser)return; setSync('☁️ Syncing…');
   const local=loadKey(CACHE_PREFIX+currentUser.id); if(local) S=local;
@@ -329,9 +351,17 @@ async function handleSession(session){
   if(next?.id===currentUser?.id)return;
   currentUser=next; showAuth();
   if(currentUser){ subscribeRealtime(); await loadCloud(); }
-  else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||def(); renderAll(); setSync('Saved on this device — sign in to sync'); }
+  else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||def(); renderAll(); setSync('Starting private cloud…'); }
 }
-async function initCloud(){ const {data}=await db.auth.getSession(); await handleSession(data.session); db.auth.onAuthStateChange((_e,session)=>setTimeout(()=>handleSession(session),0)); }
+async function initCloud(){
+  db.auth.onAuthStateChange((_e,session)=>setTimeout(()=>handleSession(session),0));
+  const {data}=await db.auth.getSession();
+  if(data.session){ await handleSession(data.session); return; }
+  setSync('Starting private cloud…');
+  const {data:anon,error}=await db.auth.signInAnonymously();
+  if(error){ setSync('⚠️ Cloud setup needed — records safe on device'); authMsg(error.message,true); return; }
+  await handleSession(anon.session);
+}
 
 function isStandalone(){ return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
 
@@ -462,17 +492,25 @@ function renderMore(){
   document.getElementById('rooV').textContent=S.roosters;
   document.getElementById('storeStatus').textContent = storageOK ? '✔ Working' : '⚠️ Blocked';
   document.getElementById('openAs').textContent = isStandalone() ? 'Installed app ✔' : 'Browser tab';
-  const fl = document.getElementById('finLink');
-  if(document.activeElement !== fl) fl.value = S.financeLink || '';
-  document.getElementById('finOpen').innerHTML = S.financeLink
-    ? '<a class="btn" style="text-decoration:none;text-align:center" href="'+esc(S.financeLink)+'" target="_blank" rel="noopener">📂 Open Finance Folder</a>'
-    : '';
   const last=S.feed.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
   document.getElementById('feedLast').textContent = last
     ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
     : '—';
   document.getElementById('feedList').innerHTML = S.feed.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5)
     .map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
+}
+
+/* ---------- finance ---------- */
+function money(v){ return Number.parseFloat(v)||0; }
+function setFinance(k,v){ S.finance[k]=v; save(); renderFinance(); }
+function renderFinance(){
+  const f=S.finance;
+  const total=money(f.lastAmount)+money(f.tbd1)+money(f.tbd2)+money(f.tbd3);
+  document.getElementById('financeTotal').textContent=total.toLocaleString('en-US',{style:'currency',currency:'USD'});
+  const fields={financeLastAmount:'lastAmount',financeLastLink:'lastLink',financeTbd1:'tbd1',financeTbd2:'tbd2',financeTbd3:'tbd3'};
+  Object.entries(fields).forEach(([id,k])=>{ const e=document.getElementById(id); if(document.activeElement!==e)e.value=f[k]||''; });
+  document.getElementById('financeLastOpen').innerHTML=f.lastLink
+    ? '<a class="btn gray" style="text-decoration:none;text-align:center" href="'+esc(f.lastLink)+'" target="_blank" rel="noopener">🔗 Open purchase link</a>' : '';
 }
 
 /* ---------- home ---------- */
@@ -521,15 +559,12 @@ function resetAll(){
 }
 
 /* ---------- init ---------- */
-function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderSupplies(); renderMore(); }
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderSupplies(); renderFinance(); renderMore(); }
 document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('eggDirect').addEventListener('change', e=>{
   const v = Math.max(0, parseInt(e.target.value,10)||0);
   S.eggs[selDate] = v; save(); renderEggs(); renderHome();
-});
-document.getElementById('finLink').addEventListener('change', e=>{
-  S.financeLink = e.target.value.trim(); save(); renderMore();
 });
 testStorage();
 newFact();
