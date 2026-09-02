@@ -184,22 +184,21 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 
     <h2 class="sec">Cloud Sync</h2>
     <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
-    <div class="authbox" id="authAutomatic">
-      <p><b>No sign-in needed.</b> This device saves to its own private cloud automatically.</p>
-      <button class="btn gray" onclick="showRecovery()">Add another device / recovery</button>
-    </div>
-    <div class="authbox hidden" id="recoveryBox">
-      <p>Add an email to recover these records or open them on another device. No password is needed.</p>
-      <label>Email</label><input id="recoveryEmail" type="email" autocomplete="email" placeholder="you@example.com">
-      <button class="btn" onclick="linkRecoveryEmail()">Email me a secure link</button>
-      <button class="btn gray" onclick="sendExistingLink()">I already linked this email</button>
-      <button class="btn gray" onclick="hideRecovery()">Cancel</button>
+    <div class="authbox" id="authSignedOut">
+      <p><b>One email. All your devices.</b> Enter the same email on each device and use the code from your inbox. No password.</p>
+      <label>Email</label><input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
+      <button class="btn" onclick="sendLoginCode()">Email me a code</button>
+      <div id="codeStep" class="hidden">
+        <label>6-digit code</label><input id="accountCode" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456">
+        <button class="btn" onclick="confirmLoginCode()">Confirm & sync</button>
+        <button class="btn gray" onclick="sendLoginCode()">Send a new code</button>
+      </div>
       <div id="authMessage" class="r" style="margin-top:10px"></div>
     </div>
     <div class="authbox hidden" id="authSignedIn">
-      <p id="accountNote">Private cloud active.</p>
+      <p><b id="accountNote">Signed in.</b><br>Your records stay with this email and sync on every signed-in device.</p>
       <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button>
-      <button class="btn gray" onclick="showRecovery()">Add another device / recovery</button>
+      <button class="btn gray" onclick="signOutAccount()">Use a different email</button>
     </div>
     <div class="authbox hidden" id="conflictBox">
       <p class="danger"><b>Two devices changed the same data.</b> Nothing was overwritten. Choose which copy to keep.</p>
@@ -217,7 +216,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
     <button class="btn gray" onclick="resetAll()">🗑 Reset Everything</button>
 
-    <div class="hint"><b>Offline-ready:</b> records stay cached here and sync to a private cloud automatically. Add a recovery email only when you want another device or account recovery.</div>
+    <div class="hint"><b>Offline-ready:</b> records stay cached on this device. Sign in with the same email on another device and your cloud copy appears automatically.</div>
   </div>
 </section>
 
@@ -276,31 +275,56 @@ function saveLocal(){
 function save(){ S.updated=Date.now(); dirty=true; saveLocal(); schedulePush(); }
 function setSync(t){ const a=document.getElementById('syncStatus'); if(a)a.textContent=t; const b=document.getElementById('syncTag'); if(b)b.textContent=t||''; }
 function authMsg(t,bad=false){ const e=document.getElementById('authMessage'); if(!e)return; e.textContent=t||''; e.classList.toggle('danger',bad); }
-function isAnonymous(){ return currentUser?.is_anonymous===true || currentUser?.app_metadata?.provider==='anonymous'; }
+function isAccountUser(u=currentUser){ return !!u && !u.is_anonymous && !!u.email; }
 function showAuth(){
-  const ready=!!currentUser;
-  document.getElementById('authAutomatic').classList.toggle('hidden',!ready);
-  document.getElementById('authSignedIn').classList.toggle('hidden',!ready);
-  if(ready) document.getElementById('accountNote').textContent=isAnonymous()?'Private cloud active on this device.':'Private cloud active · recovery email linked.';
+  const signedIn=isAccountUser();
+  document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
+  document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
+  if(signedIn) document.getElementById('accountNote').textContent='Signed in as '+currentUser.email;
 }
-function showRecovery(){ document.getElementById('recoveryBox').classList.remove('hidden'); document.getElementById('recoveryEmail').focus(); }
-function hideRecovery(){ document.getElementById('recoveryBox').classList.add('hidden'); authMsg(''); }
-function recoveryEmail(){ return document.getElementById('recoveryEmail').value.trim(); }
-async function linkRecoveryEmail(){
-  const email=recoveryEmail(); if(!email){authMsg('Enter your email.',true);return;}
-  authMsg('Sending secure link…');
-  const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname});
+function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
+function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
+let otpPurpose='signin';
+async function sendLoginCode(){
+  const email=accountEmail(); if(!email){authMsg('Enter your email.',true);return;}
+  authMsg('Sending code…');
+  if(currentUser?.is_anonymous){
+    otpPurpose='upgrade';
+    const {error}=await db.auth.updateUser({email});
+    if(error && /already|registered|exists/i.test(error.message||'')){
+      stashPendingMigration();
+      await db.auth.signOut({scope:'local'});
+      otpPurpose='signin';
+      const retry=await db.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+      if(retry.error){authMsg(retry.error.message,true);return;}
+    } else if(error){authMsg(error.message,true);return;}
+  } else {
+    otpPurpose='signin';
+    const {error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+    if(error){authMsg(error.message,true);return;}
+  }
+  document.getElementById('codeStep').classList.remove('hidden');
+  document.getElementById('accountCode').focus();
+  authMsg('Code sent. Check '+email+'.');
+}
+async function confirmLoginCode(){
+  const email=accountEmail(), token=document.getElementById('accountCode').value.trim();
+  if(!email||!/^[0-9]{6}$/.test(token)){authMsg('Enter the 6-digit code from your email.',true);return;}
+  authMsg('Signing in & loading your records…');
+  const type=otpPurpose==='upgrade'?'email_change':'email';
+  const {data,error}=await db.auth.verifyOtp({email,token,type});
   if(error){authMsg(error.message,true);return;}
-  authMsg('Check your email and open the secure link on this device.');
+  await handleSession(data.session);
+  authMsg('');
 }
-async function sendExistingLink(){
-  const email=recoveryEmail(); if(!email){authMsg('Enter your linked email.',true);return;}
-  authMsg('Sending secure link…');
-  const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:false}});
-  if(error){authMsg(error.message,true);return;}
-  authMsg('Check your email and open the secure link on this device.');
+async function signOutAccount(){
+  if(dirty) await pushCloud();
+  await db.auth.signOut();
+  currentUser=null; rowVersion=null;
+  document.getElementById('codeStep').classList.add('hidden');
+  showAuth(); setSync('Sign in to sync');
 }
-function schedulePush(){ if(!currentUser){ setSync('Starting private cloud…'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
+function schedulePush(){ if(!isAccountUser()){ setSync('Sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
 async function loadCloud(){
   if(!currentUser)return; setSync('☁️ Syncing…');
   const local=loadKey(CACHE_PREFIX+currentUser.id); if(local) S=local;
@@ -310,14 +334,17 @@ async function loadCloud(){
     const migration=cleanState(loadKey(LEGACY_KEY)||S); migration.updated=migration.updated||Date.now();
     const ins=await db.from('coop_state').insert({user_id:currentUser.id,data:migration,version:1}).select('data,version').single();
     if(ins.error){ setSync('⚠️ Could not start cloud sync'); return; }
-    S=cleanState(ins.data.data); rowVersion=ins.data.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Current records moved to cloud'); return;
+    S=cleanState(ins.data.data); rowVersion=ins.data.version; dirty=false; saveLocal(); try { localStorage.removeItem('coopPendingEmailMigration'); } catch(e){} renderAll(); setSync('✔ Current records moved to cloud'); return;
   }
   const cloudState=cleanState(data.data);
-  if(local && (local.updated||0) > (cloudState.updated||0)){
-    S=local; rowVersion=data.version; dirty=true; renderAll(); setSync('☁️ Uploading offline changes…'); await pushCloud();
+  const pending=localStorage.getItem('coopPendingEmailMigration')==='1' ? loadKey(LEGACY_KEY) : null;
+  const freshest=[local,pending].filter(Boolean).sort((a,b)=>(b.updated||0)-(a.updated||0))[0];
+  if(freshest && (freshest.updated||0) > (cloudState.updated||0)){
+    S=freshest; rowVersion=data.version; dirty=true; renderAll(); setSync('☁️ Uploading newer records from this device…'); await pushCloud();
   } else {
     S=cloudState; rowVersion=data.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Up to date');
   }
+  try { localStorage.removeItem('coopPendingEmailMigration'); } catch(e){}
 }
 async function pushCloud(force=false){
   if(!currentUser||rowVersion===null)return; setSync('☁️ Syncing…'); const next=rowVersion+1;
@@ -348,19 +375,17 @@ function subscribeRealtime(){
 }
 async function handleSession(session){
   const next=session?.user||null;
-  if(next?.id===currentUser?.id)return;
+  const same=next?.id===currentUser?.id && next?.email===currentUser?.email;
   currentUser=next; showAuth();
-  if(currentUser){ subscribeRealtime(); await loadCloud(); }
-  else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||def(); renderAll(); setSync('Starting private cloud…'); }
+  if(same)return;
+  if(isAccountUser()){ subscribeRealtime(); await loadCloud(); }
+  else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||S||def(); renderAll(); setSync('Sign in to sync'); }
 }
 async function initCloud(){
   db.auth.onAuthStateChange((_e,session)=>setTimeout(()=>handleSession(session),0));
   const {data}=await db.auth.getSession();
-  if(data.session){ await handleSession(data.session); return; }
-  setSync('Starting private cloud…');
-  const {data:anon,error}=await db.auth.signInAnonymously();
-  if(error){ setSync('⚠️ Cloud setup needed — records safe on device'); authMsg(error.message,true); return; }
-  await handleSession(anon.session);
+  if(data.session?.user){ await handleSession(data.session); return; }
+  currentUser=null; showAuth(); renderAll(); setSync('Sign in to sync');
 }
 
 function isStandalone(){ return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
