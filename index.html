@@ -143,31 +143,31 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
       <div class="workflow"><h2 class="sec">Dispatch Tracking</h2>
         <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
         <label>Dispatched date</label><input id="birdDate" type="date">
-        <label>Note (optional)</label><input id="birdNote" placeholder="Optional note">
-        <label>Destination (optional) ex: 😀 😁 🙂 😊 😚</label><input id="birdDestination" list="destinationCodes" placeholder="Choose or enter an emoji"><datalist id="destinationCodes"><option value="😀"><option value="😁"><option value="🙂"><option value="😊"><option value="😚"></datalist>
+        <label>Note</label><input id="birdNote" placeholder="Optional">
+        <label>Destination</label><input id="birdDestination" list="destinationCodes" placeholder="Optional · 😀 😁 🙂 😊 😚"><datalist id="destinationCodes"><option value="😀"><option value="😁"><option value="🙂"><option value="😊"><option value="😚"></datalist>
         <button class="btn" onclick="addDispatch()">☠️ Add Dispatch Bird</button>
         <div class="stats3"><div class="statmini"><b id="d7">0</b>Prior Week</div><div class="statmini"><b id="d30">0</b>Prior Month</div><div class="statmini"><b id="dAll">0</b>Cumulative</div></div>
         <div id="dispatchList"></div>
       </div>
       <details class="archive"><summary>Archive</summary>
         <div class="workflow"><h2 class="sec">Hatch Tracking</h2><div id="hatchList"></div>
-          <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
+          <label>Name</label><input id="hName" placeholder="Optional">
           <label>Date eggs set</label><input id="hDate" type="date">
           <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
-          <label>Surviving chicks (H+7 days)</label><input id="hSurvivors" type="number" min="0" placeholder="Optional">
+          <label>Total hatched (H+7 days)</label><input id="hSurvivors" type="number" min="0" placeholder="Number">
           <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
         </div>
         <div class="workflow"><h2 class="sec">Pre-Layer Tracking</h2>
           <div class="stats3"><div class="statmini"><b id="chickCount">0</b>Chicks</div><div class="statmini"><b id="pulletCount">0</b>Pullets</div><div class="statmini"><b id="readyCount">0</b>Pullets - unconfirmed laying</div></div>
           <label>Chick hatch date</label><input id="cohortDate" type="date">
           <label>Number of chicks</label><input id="cohortCount" type="number" min="1" placeholder="1">
-          <label>Name / note (optional)</label><input id="cohortNote" placeholder="e.g. Spring hatch">
+          <label>Name / note</label><input id="cohortNote" placeholder="Optional">
           <button class="btn" onclick="addCohort()">🐥 Add Chicks</button><div id="cohortList"></div>
           <h2 class="sec">Rearing Ages</h2>
           <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
           <label>Flag pullet as unconfirmed laying at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
         </div>
-        <div class="workflow"><h2 class="sec">🚜 Chicken Tractor</h2><label># Chickens inside</label><input id="tractorCount" type="number" min="0"><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note (optional)</label><input id="tractorNote" placeholder="Optional note"><button class="btn" onclick="addTractorLog()">Add Chicken Tractor</button><div id="tractorList"></div></div>
+        <div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" placeholder="Number"><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">Add Meat Bird Record</button><div id="tractorList"></div></div>
       </details>
     </details>
   </div>
@@ -196,8 +196,8 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     
     <div class="hatchcard"><h3>🌾 Feed Fill-Up</h3><div class="meta">Last fill: <span id="feedLast">—</span></div>
       <label>Date</label><input id="fDate" type="date">
-      <label>Pounds (optional)</label><input id="fLbs" type="number" min="0" placeholder="50">
-      <label>Note (optional)</label><input id="fNote" placeholder="Brand, type…">
+      <label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional">
+      <label>Note</label><input id="fNote" placeholder="Optional · brand, type…">
       <button class="btn" onclick="addFeed()">🌾 Add Feed Fill-Up</button><div id="feedList"></div></div>
     <div id="supplyList"></div>
   </div>
@@ -503,11 +503,11 @@ function addHatch(){
 }
 function doneHatch(id){
   const h=S.hatches.find(x=>x.id===id); if(!h) return;
-  const n=prompt('How many chicks hatched? (optional)');
+  const n=prompt('How many chicks hatched?');
   h.hatched = n===null||n==='' ? null : parseInt(n);
   h.done = true; save(); renderHatch(); renderHome();
 }
-function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Surviving chicks at H+7 days',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0); save(); renderHatch(); }
+function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Total hatched at H+7 days',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0); save(); renderHatch(); }
 function delHatch(id){
   if(!confirm('Delete this hatch run?')) return;
   S.hatches = S.hatches.filter(x=>x.id!==id); save(); renderHatch(); renderHome();
@@ -529,7 +529,7 @@ function renderHatch(){
        + '<div class="meta">Set '+short(x.set)+' · '+x.count+' eggs · candle '+short(addDays(x.set,7))+' · lockdown '+short(addDays(x.set,18))+' · hatch '+short(addDays(x.set,21))+'</div>'
        + '<div class="bar"><div style="width:'+pct+'%"></div></div>'
        + '<div class="status">'+status+'</div>'
-       + '<div class="status">Surviving chicks (H+7 days): '+(x.survivors7==null?'Not recorded':x.survivors7)+'</div>'
+       + '<div class="status">Total hatched (H+7 days): '+(x.survivors7==null?'Not recorded':x.survivors7)+'</div>'
        + '<div class="actions"><button class="btn small gray" onclick="setSurvivors('+x.id+')">Edit H+7 Survivors</button>'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">✔ Done</button>')
        + '<button class="btn small gray" onclick="delHatch('+x.id+')">Delete</button></div></div>';
   });
@@ -539,14 +539,14 @@ function renderHatch(){
 /* ---------- chicken tractor ---------- */
 function addTractorLog(){ const count=Math.max(0,parseInt(document.getElementById('tractorCount').value,10)||0), created=document.getElementById('tractorCreated').value||today(), moved=document.getElementById('tractorMoved').value||created, note=document.getElementById('tractorNote').value.trim(); S.tractorLogs.push({id:Date.now(),count,created,moved,note}); document.getElementById('tractorCount').value=''; document.getElementById('tractorNote').value=''; save(); renderTractor(); }
 function delTractorLog(id){ S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); save(); renderTractor(); }
-function renderTractor(){ const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No chicken tractors yet.</span></div>'; }
+function renderTractor(){ const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No meat bird records yet.</span></div>'; }
 
 /* ---------- supplies ---------- */
 function addSupply(k){ const d=document.getElementById('sd-'+k).value||today(), note=document.getElementById('sn-'+k).value.trim(); S.supplyEntries[k].push({id:Date.now()+k,date:d,note}); S.supplies[k]=d; save(); renderSupplies(); }
 function delSupply(k,id){ S.supplyEntries[k]=S.supplyEntries[k].filter(x=>String(x.id)!==String(id)); S.supplies[k]=S.supplyEntries[k].slice().sort((a,b)=>a.date<b.date?1:-1)[0]?.date||null; save(); renderSupplies(); }
 function renderSupplies(){
   document.getElementById('supplyList').innerHTML=SUPPLIES.map(([k,label])=>{ const entries=S.supplyEntries[k]||[], latest=entries.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
-    const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional note"><button class="btn small" onclick="addSupply('${k}')">✔ Add Refill</button>`;
+    const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional"><button class="btn small" onclick="addSupply('${k}')">✔ Add Refill</button>`;
     const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,8).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
     return `<div class="hatchcard"><h3>${label}</h3><div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${history}</div>`; }).join('');
 }
@@ -627,7 +627,7 @@ document.getElementById('factCard').onclick = newFact;
 document.getElementById('hsHint').onclick = function(){ S.hideHsHint = true; save(); renderHome(); };
 
 /* ---------- export & reset ---------- */
-function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Chicken Tractor',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' · '+x.note:'')])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
+function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Meat Bird Tracking',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' · '+x.note:'')])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
 function downloadBlob(name,type,text){ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0); }
 function exportData(format){ const rows=exportRows(), base='coop-tracker-'+today(); if(format==='xlsx'){ if(typeof XLSX==='undefined'){alert('Spreadsheet exporter is still loading. Try again.');return;} const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Coop Records');XLSX.writeFile(wb,base+'.xlsx');return; } if(format==='txt'){ downloadBlob(base+'.txt','text/plain',rows.map(r=>r.join(' | ')).join('\n'));return; } const groups={};rows.slice(1).forEach(r=>(groups[r[0]]??=[]).push(r));let md='# Coop Tracker Export\n\nGenerated '+today()+'\n';Object.entries(groups).forEach(([k,v])=>{md+='\n## '+k[0].toUpperCase()+k.slice(1)+'\n\n| Date | Item | Value | Notes |\n|---|---|---|---|\n'+v.map(r=>'| '+r.slice(1).map(x=>String(x).replace(/\|/g,'\\|')).join(' | ')+' |').join('\n')+'\n'});downloadBlob(base+'.md','text/markdown',md); }
 function exportCSV(){ exportData('xlsx'); }
