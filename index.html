@@ -155,21 +155,21 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
         <div class="workflow"><h2 class="sec">Hatch Tracking</h2><div id="hatchList"></div>
           <label>Name</label><input id="hName" placeholder="Optional">
           <label>Date eggs set</label><input id="hDate" type="date">
-          <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
-          <label>Total hatched (H+7 days)</label><input id="hSurvivors" type="number" min="0" placeholder="Number">
+          <label>Number of eggs</label><input id="hCount" type="number" min="1" data-random-placeholder>
+          <label>Hatch + 7 days survivors</label><input id="hSurvivors" type="number" min="0" data-random-placeholder>
           <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
         </div>
         <div class="workflow"><h2 class="sec">Pre-Layer Tracking</h2>
           <div class="stats3"><div class="statmini"><b id="chickCount">0</b>Chicks</div><div class="statmini"><b id="pulletCount">0</b>Pullets</div><div class="statmini"><b id="readyCount">0</b>Pullets - unconfirmed laying</div></div>
           <label>Chick hatch date</label><input id="cohortDate" type="date">
-          <label>Number of chicks</label><input id="cohortCount" type="number" min="1" placeholder="1">
+          <label>Number of chicks</label><input id="cohortCount" type="number" min="1" data-random-placeholder>
           <label>Name / note</label><input id="cohortNote" placeholder="Optional">
           <button class="btn" onclick="addCohort()">🐥 Add Chicks</button><div id="cohortList"></div>
           <h2 class="sec">Rearing Ages</h2>
           <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
           <label>Flag pullet as unconfirmed laying at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
         </div>
-        <div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" placeholder="Number"><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">Add Meat Bird Record</button><div id="tractorList"></div></div>
+        <div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">Add Meat Bird Record</button><div id="tractorList"></div></div>
       </details>
     </details>
   </div>
@@ -338,10 +338,12 @@ function requireAdmin(){ if(isAdmin())return true; alert('Admin access is requir
 function renderRestore(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY)||''; const note=document.getElementById('restoreNote'),btn=document.getElementById('restoreBtn'); if(!note||!btn)return; note.textContent=email?'Remembered on this device: '+email:'No remembered email on this device yet.'; btn.disabled=!localStorage.getItem(DEVICE_SECRET_KEY); }
 async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){authMsg('This device is not registered yet. Use an email sign-in link.',true);return;} authMsg('Restoring this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action:'restore',device_id:deviceId(),secret})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Could not restore this device',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device restored. Syncing…'); }
 
+function randomizeNumericPlaceholders(){document.querySelectorAll('[data-random-placeholder]').forEach(x=>x.placeholder=String(1+Math.floor(Math.random()*10)));}
 function showAuth(){
   const signedIn=isAccountUser();
   document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
   document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
+  randomizeNumericPlaceholders();
   if(signedIn){ const admin=isAdmin(); document.getElementById('accountNote').textContent='Signed in as '+currentUser.email+' · '+(admin?'Admin':'Limited'); document.body.dataset.role=admin?'admin':'limited'; document.getElementById('adminSessions').classList.toggle('hidden',!admin); document.getElementById('qrWrap').classList.toggle('hidden',!admin); document.querySelectorAll('.adminOnly').forEach(x=>x.classList.toggle('hidden',!admin)); setTimeout(renderAccountQR,0); }
 }
 function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
@@ -491,7 +493,7 @@ function doneHatch(id){
   h.hatched = n===null||n==='' ? null : parseInt(n);
   h.done = true; save(); renderHatch(); renderHome();
 }
-function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Total hatched at H+7 days',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0); save(); renderHatch(); }
+function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Hatch + 7 days survivors',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0); save(); renderHatch(); }
 function delHatch(id){ if(!requireAdmin())return;
   if(!confirm('Delete this hatch run?')) return;
   S.hatches = S.hatches.filter(x=>x.id!==id); save(); renderHatch(); renderHome();
@@ -513,7 +515,7 @@ function renderHatch(){
        + '<div class="meta">Set '+short(x.set)+' · '+x.count+' eggs · candle '+short(addDays(x.set,7))+' · lockdown '+short(addDays(x.set,18))+' · hatch '+short(addDays(x.set,21))+'</div>'
        + '<div class="bar"><div style="width:'+pct+'%"></div></div>'
        + '<div class="status">'+status+'</div>'
-       + '<div class="status">Total hatched (H+7 days): '+(x.survivors7==null?'Not recorded':x.survivors7)+'</div>'
+       + '<div class="status">Hatch + 7 days survivors: '+(x.survivors7==null?'Not recorded':x.survivors7)+'</div>'
        + '<div class="actions"><button class="btn small gray" onclick="setSurvivors('+x.id+')">Edit H+7 Survivors</button>'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">✔ Done</button>')
        + '<button class="btn small gray adminAction" onclick="delHatch('+x.id+')">Delete</button></div></div>';
   });
@@ -634,6 +636,7 @@ document.getElementById('cohortDate').value=today();
 document.getElementById('tractorCreated').value=today();
 document.getElementById('tractorMoved').value=today();
 renderRestore();
+randomizeNumericPlaceholders();
 prefillAccount();
 redeemPair();
 document.getElementById('eggDirect').addEventListener('change', e=>{
