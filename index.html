@@ -6,6 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#faf5ec">
+<meta name="description" content="Track eggs, flock, hatch runs, feed, and coop supplies across all your devices.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>Coop Tracker</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -67,6 +71,13 @@
                    color:#8a7a63; }
   #tabbar button .ic { display:block; font-size:22px; margin-bottom:2px; }
   #tabbar button.active { color:#e07a2f; font-weight:700; }
+  .authbox { background:#fff; border-radius:16px; padding:14px; margin-top:8px; box-shadow:0 1px 4px rgba(60,40,10,.08); }
+  .authbox p { margin:0 0 8px; color:#8a7a63; font-size:13px; line-height:1.4; }
+  .auth-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+  .auth-actions .btn { margin-top:0; }
+  .hidden { display:none !important; }
+  .danger { color:#8a1f1f; }
+  @media (min-width:760px) { main, header { max-width:920px; margin-left:auto; margin-right:auto; } }
 </style>
 </head>
 <body>
@@ -79,9 +90,9 @@
 </header>
 
 <div class="warn" id="warnBox"></div>
-<div class="hint" id="hsHint" style="display:none">📲 <b>You're in a Safari tab.</b> Data saved here is kept
-separate from the home-screen app. Tap <b>Share → Add to Home Screen</b> and always open from the icon —
-otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
+<div class="hint" id="hsHint" style="display:none">📲 <b>Install Coop Tracker for quick access.</b>
+Use your browser’s Share or menu button, then choose <b>Add to Home Screen</b> or <b>Install app</b>.
+Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</div>
 
 <main>
 
@@ -157,14 +168,30 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <input id="finLink" type="url" placeholder="https://drive.google.com/… or dropbox.com/…">
     <div id="finOpen" style="margin-top:8px"></div>
 
-    <h2 class="sec">Cloud Sync</h2>
-    <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
-    <button class="btn gray" onclick="copySyncLink()">🔗 Copy Sync Link — add another device</button>
-    <button class="btn gray" onclick="ensureSync()">🔄 Sync Now / Retry</button>
-    <div class="hint"><b>Sync turns on by itself</b> — nothing to install. To add a phone, iPad, or
-    computer: tap <b>Copy Sync Link</b>, send that link to the device (text or email), and open it there.
-    From then on, the newest edit anywhere wins everywhere. If status says blocked, turn off any
-    ad/content blocker for this site or try a different network, then tap Retry.</div>
+    <h2 class="sec">Account & Cloud Sync</h2>
+    <div class="row"><span>Status</span><span class="r" id="syncStatus">Checking…</span></div>
+    <div class="authbox" id="authSignedOut">
+      <p>Sign in with the same account on every device. Your current device records will move to your account the first time you sign in.</p>
+      <label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <label>Password</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="Password">
+      <div class="auth-actions">
+        <button class="btn" onclick="signIn()">Sign In</button>
+        <button class="btn gray" onclick="signUp()">Create Account</button>
+      </div>
+      <div id="authMessage" class="r" style="margin-top:10px"></div>
+    </div>
+    <div class="authbox hidden" id="authSignedIn">
+      <p>Signed in as <b id="authUser"></b>. Changes sync automatically and stay cached on this device for offline use.</p>
+      <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button>
+      <button class="btn gray" onclick="signOut()">Sign Out</button>
+    </div>
+    <div class="authbox hidden" id="conflictBox">
+      <p class="danger"><b>Two devices changed the same data.</b> Nothing was overwritten. Choose which copy to keep.</p>
+      <div class="auth-actions">
+        <button class="btn gray" onclick="resolveConflict('cloud')">Use Cloud Copy</button>
+        <button class="btn" onclick="resolveConflict('local')">Keep This Device</button>
+      </div>
+    </div>
 
     <h2 class="sec">Storage</h2>
     <div class="row"><span>Save status</span><span class="r" id="storeStatus">—</span></div>
@@ -174,8 +201,7 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
     <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
     <button class="btn gray" onclick="resetAll()">🗑 Reset Everything</button>
 
-    <div class="hint"><b>Your records save on this device</b> and sync through a free cloud slot.
-    Keep <b>Private Browsing off</b> and open from the <b>home-screen icon</b> for best reliability.</div>
+    <div class="hint"><b>Offline-ready:</b> records stay cached on this device and sync securely to your account when connected. Sign in on another phone, tablet, or computer to see the same data.</div>
   </div>
 </section>
 
@@ -189,15 +215,13 @@ otherwise it looks like your records "disappear." (Tap to dismiss.)</div>
   <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>More</button>
 </nav>
 
+<script src="supabase.js"></script>
 <script>
-const KEY = 'coopTrackerV1';
-/* two independent free sync providers — app tries A, falls back to B */
-const PROVIDERS = [
-  { create:'https://api.jsonstorage.net/v1/json',
-    make: j => j && j.uri },
-  { create:'https://jsonbin-zeta.vercel.app/api/bins',
-    make: j => (j && (j.url || j.uri)) || (j && j.id ? 'https://jsonbin-zeta.vercel.app/api/bins/'+j.id : null) }
-];
+const LEGACY_KEY = 'coopTrackerV1';
+const CACHE_PREFIX = 'coopTrackerV2:';
+const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
+const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdWFoemN2ZmRobmZ0d21sdnJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTIzNzIsImV4cCI6MjEwMzg4ODM3Mn0.6rksBqxsn51ARofrxt48p7QaBMngU2VGzrc9UXxcUTc';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
 const SUPPLIES = [ ['fsl','🌾 FSL'], ['water','💧 Water 3x'], ['grit','🪨 Grit'], ['calcium','🐚 Calcium'] ];
 const FACTS = [
   "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
@@ -214,115 +238,100 @@ const FACTS = [
   "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp."
 ];
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], supplies:{}, hideHsHint:false, syncUrl:'', financeLink:'', updated:0 }; }
-function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); return s ? Object.assign(def(), s) : def(); } catch(e){ return def(); } }
-let S = load();
-let storageOK = true;
-let syncTimer = null;
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], tasks:[], feed:[], supplies:{}, hideHsHint:false, financeLink:'', updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); delete y.syncUrl; return y; }
+function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
+let S = loadKey(LEGACY_KEY) || def();
+let storageOK = true, syncTimer = null, currentUser = null, rowVersion = null, dirty = false, conflictCloud = null, realtimeChannel = null;
 
+function cacheKey(){ return currentUser ? CACHE_PREFIX + currentUser.id : LEGACY_KEY; }
 function testStorage(){
-  try {
-    localStorage.setItem('__ct','1');
-    storageOK = (localStorage.getItem('__ct')==='1');
-    localStorage.removeItem('__ct');
-  } catch(e){ storageOK = false; }
-  const w = document.getElementById('warnBox');
-  if(!storageOK){
-    w.style.display = 'block';
-    w.innerHTML = "<b>⚠️ Can't save on this browser.</b> Turn off Private Browsing (dark address bar) and make sure Settings → Safari → Block All Cookies is off, then reload.";
-  } else {
-    w.style.display = 'none';
-  }
-  const ss = document.getElementById('storeStatus');
-  if(ss) ss.textContent = storageOK ? '✔ Working' : '⚠️ Blocked';
+  try { localStorage.setItem('__ct','1'); storageOK=localStorage.getItem('__ct')==='1'; localStorage.removeItem('__ct'); }
+  catch(e){ storageOK=false; }
+  const w=document.getElementById('warnBox');
+  if(!storageOK){ w.style.display='block'; w.innerHTML='<b>⚠️ Local cache is blocked.</b> Turn off Private Browsing and allow site storage, then reload.'; }
+  else w.style.display='none';
 }
-
 function saveLocal(){
-  try {
-    localStorage.setItem(KEY, JSON.stringify(S));
-    const d = new Date();
-    const tag = document.getElementById('saveTag');
-    if(tag) tag.textContent = '💾 Saved ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  } catch(e){ storageOK = false; testStorage(); }
+  try { localStorage.setItem(cacheKey(), JSON.stringify(cleanState(S))); const t=document.getElementById('saveTag'); if(t) t.textContent='💾 Saved '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+  catch(e){ storageOK=false; testStorage(); }
 }
-function save(){ S.updated = Date.now(); saveLocal(); cloudPush(); }
-
-/* ---------- cloud sync: zero setup, dual provider ---------- */
-function setSync(t){
-  const a = document.getElementById('syncStatus'); if(a) a.textContent = t;
-  const b = document.getElementById('syncTag'); if(b) b.textContent = t || '';
+function save(){ S.updated=Date.now(); dirty=true; saveLocal(); schedulePush(); }
+function setSync(t){ const a=document.getElementById('syncStatus'); if(a)a.textContent=t; const b=document.getElementById('syncTag'); if(b)b.textContent=t||''; }
+function authMsg(t,bad=false){ const e=document.getElementById('authMessage'); e.textContent=t||''; e.classList.toggle('danger',bad); }
+function showAuth(){
+  document.getElementById('authSignedOut').classList.toggle('hidden',!!currentUser);
+  document.getElementById('authSignedIn').classList.toggle('hidden',!currentUser);
+  document.getElementById('authUser').textContent=currentUser?.email||'';
 }
-async function ensureSync(){
-  const m = location.hash.match(/sync=([^&]+)/);
-  if(m){
-    S.syncUrl = decodeURIComponent(m[1]);
-    history.replaceState(null,'',location.pathname);
-    saveLocal();
-    setSync('☁️ Joining sync…');
-    cloudPull();
+async function signUp(){
+  const email=document.getElementById('authEmail').value.trim(), password=document.getElementById('authPassword').value;
+  if(!email||password.length<6){ authMsg('Enter an email and a password of at least 6 characters.',true); return; }
+  authMsg('Creating account…');
+  const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+  if(error){ authMsg(error.message,true); return; }
+  authMsg(data.session?'Account created. Syncing…':'Check your email, confirm the account, then return here to sign in.');
+}
+async function signIn(){
+  const email=document.getElementById('authEmail').value.trim(), password=document.getElementById('authPassword').value;
+  if(!email||!password){ authMsg('Enter your email and password.',true); return; }
+  authMsg('Signing in…'); const {error}=await db.auth.signInWithPassword({email,password}); if(error) authMsg(error.message,true);
+}
+async function signOut(){ await db.auth.signOut(); }
+function schedulePush(){ if(!currentUser){ setSync('Saved on this device — sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
+async function loadCloud(){
+  if(!currentUser)return; setSync('☁️ Syncing…');
+  const local=loadKey(CACHE_PREFIX+currentUser.id); if(local) S=local;
+  const {data,error}=await db.from('coop_state').select('data,version,updated_at').eq('user_id',currentUser.id).maybeSingle();
+  if(error){ setSync('⚠️ Offline — using device copy'); renderAll(); return; }
+  if(!data){
+    const migration=cleanState(loadKey(LEGACY_KEY)||S); migration.updated=migration.updated||Date.now();
+    const ins=await db.from('coop_state').insert({user_id:currentUser.id,data:migration,version:1}).select('data,version').single();
+    if(ins.error){ setSync('⚠️ Could not start cloud sync'); return; }
+    S=cleanState(ins.data.data); rowVersion=ins.data.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Current records moved to cloud'); return;
+  }
+  const cloudState=cleanState(data.data);
+  if(local && (local.updated||0) > (cloudState.updated||0)){
+    S=local; rowVersion=data.version; dirty=true; renderAll(); setSync('☁️ Uploading offline changes…'); await pushCloud();
+  } else {
+    S=cloudState; rowVersion=data.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Up to date');
+  }
+}
+async function pushCloud(force=false){
+  if(!currentUser||rowVersion===null)return; setSync('☁️ Syncing…'); const next=rowVersion+1;
+  let q=db.from('coop_state').update({data:cleanState(S),version:next}).eq('user_id',currentUser.id);
+  if(!force)q=q.eq('version',rowVersion);
+  const {data,error}=await q.select('data,version');
+  if(error){ setSync('⚠️ Offline — changes saved on device'); return; }
+  if(!data.length){
+    const latest=await db.from('coop_state').select('data,version').eq('user_id',currentUser.id).single();
+    if(!latest.error){ conflictCloud=latest.data; document.getElementById('conflictBox').classList.remove('hidden'); setSync('⚠️ Choose which copy to keep'); }
     return;
   }
-  if(S.syncUrl){ cloudPull(); return; }
-  setSync('☁️ Turning sync on…');
-  for(const p of PROVIDERS){
-    try {
-      const r = await fetch(p.create, { method:'POST',
-        headers:{ 'Content-Type':'application/json' }, body:'{}' });
-      if(!r.ok) continue;
-      const j = await r.json();
-      const uri = p.make(j);
-      if(uri){
-        S.syncUrl = uri;
-        saveLocal();
-        setSync('☁️ Sync on');
-        cloudPush();
-        return;
-      }
-    } catch(e){ /* try next provider */ }
-  }
-  setSync('⚠️ Sync blocked — see note below, then Retry');
+  rowVersion=data[0].version; dirty=false; setSync('☁️ Synced '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
 }
-function cloudPush(){
-  if(!S.syncUrl) return;
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(async ()=>{
-    try {
-      await fetch(S.syncUrl, { method:'PUT',
-        headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(S) });
-      setSync('☁️ Synced ' + new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
-    } catch(e){ setSync('⚠️ Offline — saved on device'); }
-  }, 800);
+async function syncNow(){ if(!currentUser)return; if(dirty)await pushCloud(); else await loadCloud(); }
+async function resolveConflict(which){
+  document.getElementById('conflictBox').classList.add('hidden');
+  if(which==='cloud'){ S=cleanState(conflictCloud.data); rowVersion=conflictCloud.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Cloud copy loaded'); }
+  else { rowVersion=conflictCloud.version; conflictCloud=null; dirty=true; await pushCloud(); }
 }
-async function cloudPull(){
-  if(!S.syncUrl){ ensureSync(); return; }
-  setSync('☁️ Syncing…');
-  try {
-    const r = await fetch(S.syncUrl + (S.syncUrl.includes('?')?'&':'?') + 't=' + Date.now());
-    const cloud = await r.json();
-    const cTs = (cloud && cloud.updated) || 0;
-    const lTs = S.updated || 0;
-    if(cTs > lTs){
-      S = Object.assign(def(), cloud);
-      saveLocal(); renderAll();
-      setSync('✔ Updated from cloud');
-    } else if(lTs > cTs){
-      setSync('✔ This device is newest');
-      cloudPush();
-    } else {
-      setSync('✔ Up to date');
-    }
-  } catch(e){ setSync('⚠️ Offline — using device copy'); }
+function subscribeRealtime(){
+  if(realtimeChannel)db.removeChannel(realtimeChannel);
+  realtimeChannel=db.channel('coop-state-'+currentUser.id).on('postgres_changes',{event:'UPDATE',schema:'public',table:'coop_state',filter:'user_id=eq.'+currentUser.id},payload=>{
+    const incoming=payload.new; if(incoming.version<=rowVersion)return;
+    if(dirty){ conflictCloud={data:incoming.data,version:incoming.version}; document.getElementById('conflictBox').classList.remove('hidden'); setSync('⚠️ Choose which copy to keep'); }
+    else { S=cleanState(incoming.data); rowVersion=incoming.version; saveLocal(); renderAll(); setSync('✔ Updated from another device'); }
+  }).subscribe();
 }
-function copySyncLink(){
-  if(!S.syncUrl){ setSync('⚠️ Sync not on yet — tap Sync Now / Retry'); return; }
-  const link = 'https://nocluckingway.github.io/coop/#sync=' + encodeURIComponent(S.syncUrl);
-  const done = ()=>setSync('✔ Link copied — send it to your other device');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(link).then(done).catch(()=>prompt('Copy this link:', link));
-  } else {
-    prompt('Copy this link:', link);
-  }
+async function handleSession(session){
+  const next=session?.user||null;
+  if(next?.id===currentUser?.id)return;
+  currentUser=next; showAuth();
+  if(currentUser){ subscribeRealtime(); await loadCloud(); }
+  else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||def(); renderAll(); setSync('Saved on this device — sign in to sync'); }
 }
+async function initCloud(){ const {data}=await db.auth.getSession(); await handleSession(data.session); db.auth.onAuthStateChange((_e,session)=>setTimeout(()=>handleSession(session),0)); }
 
 function isStandalone(){ return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
 
@@ -344,7 +353,7 @@ function tick(){
     curDay = t;
   }
   renderAll();
-  if(S.syncUrl) cloudPull(); else ensureSync();
+  if(currentUser) syncNow();
 }
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') tick(); });
 window.addEventListener('pageshow', tick);
@@ -452,7 +461,7 @@ function renderMore(){
   document.getElementById('henV').textContent=S.hens;
   document.getElementById('rooV').textContent=S.roosters;
   document.getElementById('storeStatus').textContent = storageOK ? '✔ Working' : '⚠️ Blocked';
-  document.getElementById('openAs').textContent = isStandalone() ? 'Home-screen app ✔' : 'Safari tab — use the icon';
+  document.getElementById('openAs').textContent = isStandalone() ? 'Installed app ✔' : 'Browser tab';
   const fl = document.getElementById('finLink');
   if(document.activeElement !== fl) fl.value = S.financeLink || '';
   document.getElementById('finOpen').innerHTML = S.financeLink
@@ -507,7 +516,7 @@ function exportCSV(){
 }
 function resetAll(){
   if(confirm('Delete ALL data and start over? This cannot be undone.')){
-    localStorage.removeItem(KEY); S=def(); save(); renderAll();
+    localStorage.removeItem(cacheKey()); S=def(); save(); renderAll();
   }
 }
 
@@ -525,7 +534,8 @@ document.getElementById('finLink').addEventListener('change', e=>{
 testStorage();
 newFact();
 renderAll();
-ensureSync();
+initCloud();
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
 </script>
 </body>
 </html>
