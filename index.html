@@ -239,7 +239,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="authbox" id="authSignedOut">
       <p>Enter email below &amp; open sign in link to sync.</p>
       <label>Email</label><input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
-      <button class="btn" onclick="sendSignInLink()">Email me a sign-in link</button><button class="btn gray" onclick="signInWithPasskey()">Sign in with Admin Passkey</button>
+      <button class="btn" onclick="sendSignInLink()">Email me a sign-in link</button><button id="passkeySignInBtn" class="btn gray hidden" onclick="signInWithPasskey()">Sign in with Admin Passkey</button>
       <div id="authMessage" class="r" style="margin-top:10px"></div>
     </div>
     <div class="authbox hidden" id="authSignedIn">
@@ -362,6 +362,7 @@ function credentialJSON(c){return {id:c.id,rawId:bytesToB64u(c.rawId),type:c.typ
 async function publicPairAPI(action,extra={}){const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action,...extra})});const x=await r.json();return r.ok?x:{error:x.error||'Request failed'};}
 async function pairAPI(action,extra={}){ const {data:{session}}=await db.auth.getSession(); if(!session?.access_token)return {error:'No active session'}; const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action,device_id:deviceId(),secret:localStorage.getItem(DEVICE_SECRET_KEY)||'',admin_token:localStorage.getItem(ADMIN_TOKEN_KEY)||'',...extra})}); return await r.json(); }
 async function registerDevice(){ if(!isAccountUser())return; const x=await pairAPI('register',{device:deviceInfo()}); if(!x.error)await renderDevices(); }
+async function setupPasskeyDiscovery(){const btn=document.getElementById('passkeySignInBtn');if(!btn||!window.PublicKeyCredential)return;try{const [platform,conditional]=await Promise.all([PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),PublicKeyCredential.isConditionalMediationAvailable?.()||false]);btn.classList.toggle('hidden',!platform);if(conditional){const b=await publicPairAPI('passkey_auth_begin');if(!b.error){const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));navigator.credentials.get({publicKey:o,mediation:'conditional'}).then(async cred=>{if(!cred)return;const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo()});if(f.error)return;localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});}).catch(()=>{});}}}catch(e){btn.classList.add('hidden')}}
 async function signInWithPasskey(){if(!window.PublicKeyCredential){authMsg('Passkeys are not supported in this browser.',true);return;}try{authMsg('Waiting for passkey…');const b=await publicPairAPI('passkey_auth_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.get({publicKey:o});const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo()});if(f.error)throw new Error(f.error);localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);const v=await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});if(v.error)throw v.error;authMsg('Admin passkey verified. Syncing…');}catch(e){authMsg(e.name==='NotAllowedError'?'Passkey sign-in was canceled.':e.message,true)}}
 async function registerPasskey(){try{const b=await pairAPI('passkey_register_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.user.id=b64uToBytes(o.user.id);o.excludeCredentials=(o.excludeCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.create({publicKey:o});const f=await pairAPI('passkey_register_finish',{challenge,response:credentialJSON(cred),label:'iCloud Keychain passkey'});if(f.error)throw new Error(f.error);await renderPasskeys();alert('Admin passkey added.');}catch(e){alert(e.name==='NotAllowedError'?'Passkey setup was canceled.':e.message)}}
 async function renderPasskeys(){if(!isAdmin())return;const x=await pairAPI('passkey_list');const el=document.getElementById('passkeyList');if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load passkeys.</span></div>';return;}el.innerHTML=(x.passkeys||[]).map(p=>'<div class="row"><span><b>'+esc(p.label)+'</b><br><span class="r">Added '+new Date(p.created_at).toLocaleDateString()+(p.last_used_at?' · Last used '+new Date(p.last_used_at).toLocaleString():'')+'</span></span><button class="btn small gray" onclick="removePasskey(\''+p.credential_id+'\')">Remove</button></div>').join('')||'<div class="row"><span class="r">No passkeys enrolled.</span></div>';}
@@ -401,7 +402,7 @@ async function signOutAccount(){
   if(dirty) await pushCloud();
   await db.auth.signOut({scope:'local'});
   currentUser=null; rowVersion=null;
-  showAuth(); setSync('Sign in to sync');
+  showAuth(); setupPasskeyDiscovery(); setSync('Sign in to sync');
 }
 function schedulePush(){ if(!isAccountUser()){ setSync('Sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
 async function loadCloud(){
@@ -656,6 +657,7 @@ document.getElementById('tractorMoved').value=today();
 renderRestore();
 randomizeNumericPlaceholders();
 prefillAccount();
+setupPasskeyDiscovery();
 redeemPair();
 document.getElementById('eggDirect').addEventListener('change', e=>{
   const v = Math.max(0, parseInt(e.target.value,10)||0); if(v<(S.eggs[selDate]||0)&&!isAdmin()){alert('Limited accounts can add data but cannot remove it.');e.target.value=S.eggs[selDate]||0;return;}
