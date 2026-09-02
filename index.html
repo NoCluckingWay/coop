@@ -327,7 +327,7 @@ async function sendSignInLink(){
 }
 async function signOutAccount(){
   if(dirty) await pushCloud();
-  await db.auth.signOut();
+  await db.auth.signOut({scope:'local'});
   currentUser=null; rowVersion=null;
   showAuth(); setSync('Sign in to sync');
 }
@@ -366,7 +366,7 @@ async function pushCloud(force=false){
   }
   rowVersion=data[0].version; dirty=false; setSync('☁️ Synced '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
 }
-async function syncNow(){ if(!currentUser)return; if(dirty)await pushCloud(); else await loadCloud(); }
+async function syncNow(){ if(!currentUser)return; setSync('Checking session…'); const fresh=await db.auth.refreshSession(); if(fresh.error||!fresh.data.session){ setSync('⚠️ Sign-in expired'); authMsg('Your device session was invalidated. Use the sign-in link once more; future sign-outs now affect only this device.',true); document.getElementById('authSignedIn').classList.add('hidden'); document.getElementById('authSignedOut').classList.remove('hidden'); document.getElementById('accountEmail').value=currentUser.email||''; return; } currentUser=fresh.data.session.user; if(dirty)await pushCloud(); else await loadCloud(); setTimeout(renderAccountQR,0); }
 async function resolveConflict(which){
   document.getElementById('conflictBox').classList.add('hidden');
   if(which==='cloud'){ S=cleanState(conflictCloud.data); rowVersion=conflictCloud.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Cloud copy loaded'); }
