@@ -230,7 +230,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 <!-- MORE -->
 <section id="tab-more">
   <div class="wrap">
-    <h2 class="sec">My Flock</h2><div class="hint" id="roleNote"></div>
+    <h2 class="sec">My Flock</h2>
     <div class="row"><span>🐔 Hens</span><div class="stepper"><button class="adminAction" onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button class="adminAction" onclick="chgFlock('hens',1)">+</button></div></div>
     <div class="row"><span>🐓 Roosters</span><div class="stepper"><button class="adminAction" onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button class="adminAction" onclick="chgFlock('roosters',1)">+</button></div></div>
 
@@ -263,7 +263,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="authbox"><p id="restoreNote">Log Out ends this session but keeps this device remembered for one-tap restore. Forget This Device removes that access.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
     <button class="btn gray" onclick="signOutAccount()">Log Out - Keep Device Remembered</button>
     <button class="btn gray danger" onclick="forgetThisDevice()">Forget This Device</button>
-    <div class="authbox"><b>Testing control</b><p class="hint">Deletes every cloud and local Coop Tracker record, including all chicken counts.</p><button class="btn gray danger" onclick="resetAllTesting()">Reset All Data for Testing</button></div>
+    <div class="authbox"><p class="hint">Deletes every cloud and local Coop Tracker record, including all chicken counts.</p><button class="btn gray danger" onclick="resetAllTesting()">Reset All Data</button></div>
 
     <div class="hint adminOnlyBlock"><b>Offline-ready:</b> records stay cached on this device. Sign in with the same email on another device and your cloud copy appears automatically.</div>
     <div id="adminBottom" class="adminOnlyBlock">
@@ -576,7 +576,6 @@ function renderMore(){
     : '—';
   document.getElementById('feedList').innerHTML = S.feed.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
   const sl=S.scratch.slice().sort((a,b)=>a.date<b.date?1:-1); document.getElementById('scratchLast').textContent=sl[0]?short(sl[0].date)+' ('+daysBetween(sl[0].date,today())+' days ago)'+(sl[0].lbs?' · '+sl[0].lbs+' lbs':''):'—'; document.getElementById('scratchList').innerHTML=sl.slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
-  document.getElementById('roleNote').textContent='';
 }
 
 /* ---------- finance ---------- */
@@ -640,7 +639,7 @@ function exportData(format){ const rows=exportRows(), base='coop-tracker-'+today
 function exportCSV(){ exportData('xlsx'); }
 async function resetAllTesting(){
   if(!confirm('RESET ALL DATA? This deletes every cloud and local record, including chicken counts. The protected Admin backup is not deleted.'))return;
-  if(!confirm('Final confirmation: permanently reset Coop Tracker to zero for testing?'))return;
+  if(!confirm('Final confirmation: permanently reset Coop Tracker to zero?'))return;
   const x=await publicPairAPI('signed_out_reset',{confirm:'RESET ALL DATA'});if(x.error){alert(x.error);return;}
   Object.keys(localStorage).filter(k=>k===LEGACY_KEY||k.startsWith(CACHE_PREFIX)).forEach(k=>localStorage.removeItem(k));S=def();S.hens=0;S.roosters=0;rowVersion=x.version||null;dirty=false;renderAll();setSync('Reset complete');alert('All Coop Tracker data reset to zero.');
 }
