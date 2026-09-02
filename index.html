@@ -185,14 +185,9 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <h2 class="sec">Cloud Sync</h2>
     <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
     <div class="authbox" id="authSignedOut">
-      <p><b>One email. All your devices.</b> Enter the same email on each device and use the code from your inbox. No password.</p>
+      <p><b>One email. All your devices.</b> Enter the same email on each device and open the sign-in link from your inbox. No password.</p>
       <label>Email</label><input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
-      <button class="btn" onclick="sendLoginCode()">Email me a code</button>
-      <div id="codeStep" class="hidden">
-        <label>6-digit code</label><input id="accountCode" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456">
-        <button class="btn" onclick="confirmLoginCode()">Confirm & sync</button>
-        <button class="btn gray" onclick="sendLoginCode()">Send a new code</button>
-      </div>
+      <button class="btn" onclick="sendSignInLink()">Email me a sign-in link</button>
       <div id="authMessage" class="r" style="margin-top:10px"></div>
     </div>
     <div class="authbox hidden" id="authSignedIn">
@@ -284,44 +279,26 @@ function showAuth(){
 }
 function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
 function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
-let otpPurpose='signin';
-async function sendLoginCode(){
+async function sendSignInLink(){
   const email=accountEmail(); if(!email){authMsg('Enter your email.',true);return;}
-  authMsg('Sending code…');
+  authMsg('Sending sign-in link…');
   if(currentUser?.is_anonymous){
-    otpPurpose='upgrade';
-    const {error}=await db.auth.updateUser({email});
+    const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname});
     if(error && /already|registered|exists/i.test(error.message||'')){
-      stashPendingMigration();
-      await db.auth.signOut({scope:'local'});
-      otpPurpose='signin';
-      const retry=await db.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+      stashPendingMigration(); await db.auth.signOut({scope:'local'});
+      const retry=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:false}});
       if(retry.error){authMsg(retry.error.message,true);return;}
     } else if(error){authMsg(error.message,true);return;}
   } else {
-    otpPurpose='signin';
-    const {error}=await db.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+    const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
     if(error){authMsg(error.message,true);return;}
   }
-  document.getElementById('codeStep').classList.remove('hidden');
-  document.getElementById('accountCode').focus();
-  authMsg('Code sent. Check '+email+'.');
-}
-async function confirmLoginCode(){
-  const email=accountEmail(), token=document.getElementById('accountCode').value.trim();
-  if(!email||!/^[0-9]{6}$/.test(token)){authMsg('Enter the 6-digit code from your email.',true);return;}
-  authMsg('Signing in & loading your records…');
-  const type=otpPurpose==='upgrade'?'email_change':'email';
-  const {data,error}=await db.auth.verifyOtp({email,token,type});
-  if(error){authMsg(error.message,true);return;}
-  await handleSession(data.session);
-  authMsg('');
+  authMsg('Link sent. Open it on this device to sign in and sync.');
 }
 async function signOutAccount(){
   if(dirty) await pushCloud();
   await db.auth.signOut();
   currentUser=null; rowVersion=null;
-  document.getElementById('codeStep').classList.add('hidden');
   showAuth(); setSync('Sign in to sync');
 }
 function schedulePush(){ if(!isAccountUser()){ setSync('Sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
