@@ -256,7 +256,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div>
     <button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button>
     <h2 class="sec">App Restore</h2>
-    <div class="authbox"><p id="restoreNote">This device can remember the last email used here, unless its browser or app history is cleared.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">QR code not working? Sign in with remembered email</button></div>
+    <div class="authbox"><p id="restoreNote">This registered device can restore its own session unless you sign it out or clear its app/browser storage.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
     <button class="btn gray" onclick="signOutAccount()">Log Out</button>
     <button class="btn gray danger" onclick="resetAll()">Reset All Data</button>
 
@@ -281,6 +281,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 const LEGACY_KEY = 'coopTrackerV1';
 const CACHE_PREFIX = 'coopTrackerV2:';
 const DEVICE_KEY='coopDeviceId';
+const DEVICE_SECRET_KEY='coopDeviceSecret';
 const REMEMBERED_EMAIL_KEY='coopRememberedEmail';
 const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
 const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdWFoemN2ZmRobmZ0d21sdnJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTIzNzIsImV4cCI6MjEwMzg4ODM3Mn0.6rksBqxsn51ARofrxt48p7QaBMngU2VGzrc9UXxcUTc';
@@ -323,8 +324,8 @@ function save(){ S.updated=Date.now(); dirty=true; saveLocal(); schedulePush(); 
 function setSync(t){ const a=document.getElementById('syncStatus'); if(a)a.textContent=t; const b=document.getElementById('syncTag'); if(b)b.textContent=t||''; }
 function authMsg(t,bad=false){ const e=document.getElementById('authMessage'); if(!e)return; e.textContent=t||''; e.classList.toggle('danger',bad); }
 function isAccountUser(u=currentUser){ return !!u && !u.is_anonymous && !!u.email; }
-function renderRestore(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY)||''; const note=document.getElementById('restoreNote'),btn=document.getElementById('restoreBtn'); if(!note||!btn)return; note.textContent=email?'Remembered on this device: '+email:'No remembered email on this device yet.'; btn.disabled=!email; }
-async function restoreSignIn(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY); if(!email){authMsg('No remembered email on this device.',true);return;} document.getElementById('accountEmail').value=email; showTab('more'); await sendSignInLink(); }
+function renderRestore(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY)||''; const note=document.getElementById('restoreNote'),btn=document.getElementById('restoreBtn'); if(!note||!btn)return; note.textContent=email?'Remembered on this device: '+email:'No remembered email on this device yet.'; btn.disabled=!localStorage.getItem(DEVICE_SECRET_KEY); }
+async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){authMsg('This device is not registered yet. Use an email sign-in link.',true);return;} authMsg('Restoring this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action:'restore',device_id:deviceId(),secret})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Could not restore this device',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device restored. Syncing…'); }
 
 function showAuth(){
   const signedIn=isAccountUser();
@@ -334,7 +335,8 @@ function showAuth(){
 }
 function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
 function deviceId(){ let id=localStorage.getItem(DEVICE_KEY); if(!id){ const b=crypto.getRandomValues(new Uint8Array(16)); id=[...b].map(x=>x.toString(16).padStart(2,'0')).join(''); localStorage.setItem(DEVICE_KEY,id); } return id; }
-function deviceInfo(){ const ua=navigator.userAgent, browser=/CriOS|Chrome/.test(ua)?'Chrome':/FxiOS|Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Web browser', client_type=isStandalone()?'Installed App':'Browser', device=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'Device'; return {id:deviceId(),label:device+' · '+browser+' · '+client_type,client_type,browser}; }
+function deviceSecret(){ let secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){ const b=crypto.getRandomValues(new Uint8Array(32)); secret=[...b].map(x=>x.toString(16).padStart(2,'0')).join(''); localStorage.setItem(DEVICE_SECRET_KEY,secret); } return secret; }
+function deviceInfo(){ const ua=navigator.userAgent, browser=/CriOS|Chrome/.test(ua)?'Chrome':/FxiOS|Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Web browser', client_type=isStandalone()?'Installed App':'Browser', device=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'Device'; return {id:deviceId(),secret:deviceSecret(),label:device+' · '+browser+' · '+client_type,client_type,browser}; }
 async function pairAPI(action,extra={}){ const {data:{session}}=await db.auth.getSession(); if(!session?.access_token)return {error:'No active session'}; const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action,...extra})}); return await r.json(); }
 async function registerDevice(){ if(!isAccountUser())return; const x=await pairAPI('register',{device:deviceInfo()}); if(!x.error)await renderDevices(); }
 async function renameDevice(id,current){ const label=prompt('Device name',current); if(!label?.trim())return; const x=await pairAPI('rename',{device_id:id,label:label.trim()}); if(x.error)alert(x.error); else await renderDevices(); }
@@ -364,6 +366,7 @@ async function sendSignInLink(){
 }
 async function signOutAccount(){
   if(dirty) await pushCloud();
+  if(isAccountUser())await pairAPI('revoke',{device_id:deviceId()});
   await db.auth.signOut({scope:'local'});
   currentUser=null; rowVersion=null;
   showAuth(); setSync('Sign in to sync');
