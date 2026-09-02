@@ -128,8 +128,8 @@
 <section id="tab-home" class="active">
   <div class="fact" id="factCard"><b>DID YOU KNOW?</b><span id="factTxt"></span></div>
   <div class="cards">
-    <div class="card" role="button" onclick="goMyFlock()"><div class="big" id="cFlock">0</div><div class="label" id="cFlockLabel">Chickens</div><div class="note" id="cFlockNote"></div></div>
-    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cToday">0</div><div class="label">Eggs Today</div><div class="note" id="cRate"></div></div>
+    <div class="card" role="button" onclick="goMyFlock()"><div class="big" id="cFlock">0</div><div class="label" id="cFlockLabel">Chickens</div></div>
+    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cToday">0</div><div class="label">Eggs Today</div></div>
     <div class="card" role="button" onclick="goEggMonths()"><div class="big" id="cWeek">0</div><div class="label">Eggs This Week</div></div>
     <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cAvg">0</div><div class="label">Avg Eggs/Day · 7d</div></div>
   </div>
@@ -500,7 +500,7 @@ function renderEggs(){
   let h='';
   for(let i=0;i<7;i++){
     const d=addDays(today(),-i), v=S.eggs[d];
-    h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?'Today':i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('🥚 '+v):'—')+'</span></div>';
+    h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?('Today'+(S.hens?' <span class="note">· '+Math.round((Number(v)||0)/S.hens*100)+'% of hens</span>':'')):i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('🥚 '+v):'—')+'</span></div>';
   }
   document.getElementById('eggHist').innerHTML = h;
 }
@@ -637,10 +637,8 @@ function renderHome(){
   document.getElementById('hdrSub').textContent = short(today())+' · '+S.hens+' hens · '+S.roosters+' roosters';
   document.getElementById('cFlock').textContent=S.hens+S.roosters;
   document.getElementById('cFlockLabel').textContent='Chickens';
-  document.getElementById('cFlockNote').textContent=S.hens+' hens · '+S.roosters+' roosters';
   const t=S.eggs[today()]||0;
   document.getElementById('cToday').textContent=t;
-  document.getElementById('cRate').textContent = S.hens? Math.round(t/S.hens*100)+'% of hens today' : '';
   document.getElementById('cWeek').textContent=sumRange(7);
   document.getElementById('cMonth').textContent=Object.entries(S.eggs).filter(([d])=>d.slice(0,7)===today().slice(0,7)).reduce((n,[,v])=>n+(Number(v)||0),0);
   document.getElementById('cAvg').textContent=(sumRange(7)/7).toFixed(1);
