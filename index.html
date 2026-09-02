@@ -140,24 +140,24 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
         <div class="card"><div class="big" id="cTotalEggs">0</div><div class="label">Total Eggs</div></div>
       </div>
       <h2 class="sec">Eggs by Month</h2><div id="eggMonths"></div>
-      <div class="workflow"><h2 class="sec">☠️ Freezer Camp - Add Compost</h2>
+      <div class="workflow"><h2 class="sec">Dispatch Tracking</h2>
         <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
         <label>Dispatched date</label><input id="birdDate" type="date">
         <label>Note (optional)</label><input id="birdNote" placeholder="Optional note">
         <label>Destination (optional) ex: 😀 😁 🙂 😊 😚</label><input id="birdDestination" list="destinationCodes" placeholder="Choose or enter an emoji"><datalist id="destinationCodes"><option value="😀"><option value="😁"><option value="🙂"><option value="😊"><option value="😚"></datalist>
         <button class="btn" onclick="addDispatch()">☠️ Add Dispatch Bird</button>
-        <div class="stats3"><div class="statmini"><b id="d7">0</b>🕊️ last 7 days</div><div class="statmini"><b id="d30">0</b>☠️ last 30 days</div><div class="statmini"><b id="dAll">0</b>🍗 Total Dispatched</div></div>
+        <div class="stats3"><div class="statmini"><b id="d7">0</b>Prior Week</div><div class="statmini"><b id="d30">0</b>Prior Month</div><div class="statmini"><b id="dAll">0</b>Cumulative</div></div>
         <div id="dispatchList"></div>
       </div>
       <details class="archive"><summary>Archive</summary>
-        <div class="workflow"><h2 class="sec">🐣 New Chicks - Add Hatch Run</h2><div id="hatchList"></div>
+        <div class="workflow"><h2 class="sec">Hatch Tracking</h2><div id="hatchList"></div>
           <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
           <label>Date eggs set</label><input id="hDate" type="date">
           <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
           <label>Surviving chicks (H+7 days)</label><input id="hSurvivors" type="number" min="0" placeholder="Optional">
           <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
         </div>
-        <div class="workflow"><h2 class="sec">🐥 Tracking - Chicks & Pullets</h2>
+        <div class="workflow"><h2 class="sec">Pre-Layer Tracking</h2>
           <div class="stats3"><div class="statmini"><b id="chickCount">0</b>Chicks</div><div class="statmini"><b id="pulletCount">0</b>Pullets</div><div class="statmini"><b id="readyCount">0</b>Pullets - unconfirmed laying</div></div>
           <label>Chick hatch date</label><input id="cohortDate" type="date">
           <label>Number of chicks</label><input id="cohortCount" type="number" min="1" placeholder="1">
