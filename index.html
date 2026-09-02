@@ -118,8 +118,8 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <details class="nextgen" id="nextGen"><summary>Next-gen stats & flock details</summary>
       <div class="cards">
         <div class="card"><div class="big" id="cHatch">0</div><div class="label">Active Hatches</div><div class="note" id="cHatchNote"></div></div>
-        <div class="card"><div class="big" id="c30">0</div><div class="label">Eggs · Last 30 Days</div></div>
-        <div class="card"><div class="big" id="cTotalEggs">0</div><div class="label">Total Eggs Tracked</div></div>
+        <div class="card"><div class="big" id="c30">0</div><div class="label">Eggs Last Month</div><div class="note" id="c30Range"></div></div>
+        <div class="card"><div class="big" id="cTotalEggs">0</div><div class="label">Total Eggs</div></div>
       </div>
       <h2 class="sec">Eggs by Month</h2><div id="eggMonths"></div>
       <h2 class="sec">Hatch Runs</h2><div id="hatchList"></div>
@@ -209,7 +209,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <div class="authbox hidden" id="authSignedIn">
       <p><b id="accountNote">Signed in.</b><br>Your records stay with this email and sync on every signed-in device.</p>
       <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button>
-      <div id="qrWrap"><p style="margin-top:12px"><b>Add another device</b><br>Scan to open this account on another device, then tap the email link there.</p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
+      <div id="qrWrap"><p style="margin-top:12px"><b>Add another device</b><br>Scan within 5 minutes to sign in this account on another device. This QR works once.</p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
       <button class="btn gray" onclick="signOutAccount()">Use a different email</button>
     </div>
     <div class="authbox hidden" id="conflictBox">
@@ -295,8 +295,9 @@ function showAuth(){
   if(signedIn){ document.getElementById('accountNote').textContent='Signed in as '+currentUser.email; setTimeout(renderAccountQR,0); }
 }
 function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
-function renderAccountQR(){ const el=document.getElementById('accountQR'); if(!el||!currentUser?.email||typeof QRCode==='undefined')return; el.innerHTML=''; const u=location.origin+location.pathname+'?account='+encodeURIComponent(currentUser.email); new QRCode(el,{text:u,width:180,height:180}); }
+async function renderAccountQR(){ const el=document.getElementById('accountQR'); if(!el||!isAccountUser()||typeof QRCode==='undefined')return; el.innerHTML='Creating secure QR…'; const {data:{session}}=await db.auth.getSession(); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'create'})}); const x=await r.json(); if(!r.ok){el.textContent=x.error||'Could not create QR';return;} el.innerHTML=''; const u=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token); new QRCode(el,{text:u,width:180,height:180}); }
 function prefillAccount(){ const e=new URLSearchParams(location.search).get('account'); if(e)document.getElementById('accountEmail').value=e; }
+async function redeemPair(){ const token=new URLSearchParams(location.search).get('pair'); if(!token)return; history.replaceState({},'',location.pathname); authMsg('Securely pairing this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',token})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Pairing failed',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device paired. Syncing records…'); }
 function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
 async function sendSignInLink(){
   const email=accountEmail(); if(!email){authMsg('Enter your email.',true);return;}
@@ -542,7 +543,7 @@ function renderHome(){
   document.getElementById('cToday').textContent=t;
   document.getElementById('cRate').textContent = S.hens? Math.round(t/S.hens*100)+'% of hens today' : '';
   document.getElementById('cWeek').textContent=sumRange(7);
-  document.getElementById('c30').textContent=sumRange(30);
+  document.getElementById('c30').textContent=sumRange(30); document.getElementById('c30Range').textContent=short(addDays(today(),-29))+' – '+short(today());
   document.getElementById('cAvg').textContent=(sumRange(7)/7).toFixed(1);
   document.getElementById('cTotalEggs').textContent=Object.values(S.eggs).reduce((a,b)=>a+(Number(b)||0),0);
   const months={}; Object.entries(S.eggs).forEach(([d,v])=>months[d.slice(0,7)]=(months[d.slice(0,7)]||0)+(Number(v)||0)); document.getElementById('eggMonths').innerHTML=Object.keys(months).sort().reverse().map(m=>'<div class="row"><span>'+new Date(m+'-01T12:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})+'</span><b>'+months[m]+'</b></div>').join('')||'<div class="row"><span class="r">No eggs logged yet.</span></div>';
@@ -586,6 +587,7 @@ document.getElementById('hDate').value=today();
 document.getElementById('fDate').value=today();
 document.getElementById('birdDate').value=today();
 prefillAccount();
+redeemPair();
 document.getElementById('eggDirect').addEventListener('change', e=>{
   const v = Math.max(0, parseInt(e.target.value,10)||0);
   S.eggs[selDate] = v; save(); renderEggs(); renderHome();
