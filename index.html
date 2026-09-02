@@ -87,7 +87,7 @@
   .statmini { background:#fff7ec; border-radius:12px; padding:10px; text-align:center; }
   .statmini b { display:block; font-size:22px; }
   .qr { width:180px; height:180px; margin:10px auto; display:grid; place-items:center; overflow:hidden; color:#8d7a62; background:#f4eee4; border-radius:12px; }
-  body[data-role="limited"] .adminAction { display:none!important; }
+  body[data-role="limited"] .adminAction,body[data-role="limited"] .adminOnlyBlock { display:none!important; }
   .qr canvas,.qr img { display:block; width:180px!important; height:180px!important; }
   .workflow { margin:18px 0; padding:16px; border:2px solid #eadbc5; border-radius:16px; background:#fffaf2; }
   .workflow h2.sec { margin-top:0; color:#6b4a26; }
@@ -231,8 +231,8 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 <section id="tab-more">
   <div class="wrap">
     <h2 class="sec">My Flock</h2><div class="hint" id="roleNote"></div>
-    <div class="row"><span>🐔 Hens</span><div class="stepper adminOnly"><button onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button onclick="chgFlock('hens',1)">+</button></div></div>
-    <div class="row"><span>🐓 Roosters</span><div class="stepper adminOnly"><button onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button onclick="chgFlock('roosters',1)">+</button></div></div>
+    <div class="row"><span>🐔 Hens</span><div class="stepper"><button class="adminAction" onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button class="adminAction" onclick="chgFlock('hens',1)">+</button></div></div>
+    <div class="row"><span>🐓 Roosters</span><div class="stepper"><button class="adminAction" onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button class="adminAction" onclick="chgFlock('roosters',1)">+</button></div></div>
 
     <h2 class="sec">Cloud Sync</h2>
     <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
@@ -244,8 +244,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     </div>
     <div class="authbox hidden" id="authSignedIn">
       <p><b id="accountNote">Signed in.</b><br>Your records stay with this email and sync on every signed-in device.</p>
-      <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button><div id="trustedControls" class="hidden"><button id="trustDeviceBtn" class="btn gray" onclick="trustThisDevice()">Trust This Device as Admin</button><button id="untrustDeviceBtn" class="btn gray danger hidden" onclick="untrustThisDevice()">Remove Trusted Admin from This Device</button><button class="btn gray danger" onclick="revokeOtherDevices()">Sign Out All Other Devices</button></div><div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div></div>
-      <div id="qrWrap"><p style="margin-top:12px"><b>Add another device</b><br>Scan within 5 minutes to sign in this account on another device. This QR works once.</p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
+      <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button>
       <button class="btn gray" onclick="signOutAccount()">Use a different email</button>
     </div>
     <div class="authbox hidden" id="conflictBox">
@@ -256,17 +255,22 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
       </div>
     </div>
 
-    <h2 class="sec">Download Your Data</h2>
+    <div class="adminOnlyBlock"><h2 class="sec">Download Your Data</h2>
     <div class="hint" style="margin:8px 0">Downloads create a copy of your records. TXT is plain readable text, MD keeps headings for notes apps, and XLSX opens as a spreadsheet. Downloading does not change or remove anything from the site.</div>
     <div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div>
-    <button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button>
+    <button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button></div>
     <h2 class="sec">App Restore</h2>
     <div class="authbox"><p id="restoreNote">Log Out ends this session but keeps this device remembered for one-tap restore. Forget This Device removes that access.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
     <button class="btn gray" onclick="signOutAccount()">Log Out - Keep Device Remembered</button>
     <button class="btn gray danger" onclick="forgetThisDevice()">Forget This Device</button>
     <button class="btn gray danger adminAction" onclick="resetAll()">Reset All Data</button>
 
-    <div class="hint"><b>Offline-ready:</b> records stay cached on this device. Sign in with the same email on another device and your cloud copy appears automatically.</div>
+    <div class="hint adminOnlyBlock"><b>Offline-ready:</b> records stay cached on this device. Sign in with the same email on another device and your cloud copy appears automatically.</div>
+    <div id="adminBottom" class="adminOnlyBlock">
+      <div id="qrWrap"><p style="margin-top:12px"><b>Add another device</b><br>Scan within 5 minutes to sign in this account on another device. This QR works once.</p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
+      <div id="trustedControls"><button id="trustDeviceBtn" class="btn gray" onclick="trustThisDevice()">Trust This Device as Admin</button><button id="untrustDeviceBtn" class="btn gray danger hidden" onclick="untrustThisDevice()">Remove Trusted Admin from This Device</button><button class="btn gray danger" onclick="revokeOtherDevices()">Sign Out All Other Devices</button></div>
+      <div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div></div>
+    </div>
   </div>
 </section>
 
