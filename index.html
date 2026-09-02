@@ -95,6 +95,10 @@
   .month-block summary:before { content:"›"; color:#8a7a63; font-size:20px; margin-right:7px; transform:rotate(0deg); }
   .month-block[open] summary:before { transform:rotate(90deg); }
   .month-block summary span { flex:1; }
+  details.archive { margin:18px 0; border-top:2px solid #d9c4a4; padding-top:4px; }
+  details.archive > summary { list-style:none; cursor:pointer; font-size:18px; font-weight:800; padding:14px 2px; }
+  details.archive > summary:before { content:"›"; margin-right:8px; color:#8a7a63; }
+  details.archive[open] > summary:before { content:"⌄"; }
   .month-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; padding:8px 10px 12px; border-top:1px solid #efe7d8; }
   .dow { text-align:center; font-size:10px; color:#a7957c; padding:3px 0; }
   .calday { min-height:46px; border-radius:8px; background:#fff7ec; padding:4px; text-align:center; }
@@ -136,30 +140,34 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
         <div class="card"><div class="big" id="cTotalEggs">0</div><div class="label">Total Eggs</div></div>
       </div>
       <h2 class="sec">Eggs by Month</h2><div id="eggMonths"></div>
-      <div class="workflow"><h2 class="sec">🐣 Hatch Runs</h2><div id="hatchList"></div>
-      <h2 class="sec">Add Hatch Run</h2>
-      <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
-      <label>Date eggs set</label><input id="hDate" type="date">
-      <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
-      <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button></div>
-      <div class="workflow"><h2 class="sec">☠️ Dispatch Birds</h2>
-      <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
-      <label>Dispatched date</label><input id="birdDate" type="date">
-      <label>Note (optional)</label><input id="birdNote" placeholder="Optional note">
-      <button class="btn" onclick="addDispatch()">☠️ Add Dispatch Bird</button>
-      <div class="stats3"><div class="statmini"><b id="d7">0</b>🕊️ last 7 days</div><div class="statmini"><b id="d30">0</b>☠️ last 30 days</div><div class="statmini"><b id="dAll">0</b>🍗 Total Dispatched</div></div>
-      <div id="dispatchList"></div></div>
-      <div class="workflow"><h2 class="sec">🐥 Chick & Pullet Rearing</h2>
-        <div class="stats3"><div class="statmini"><b id="chickCount">0</b>Chicks</div><div class="statmini"><b id="pulletCount">0</b>Pullets</div><div class="statmini"><b id="readyCount">0</b>Pullets - unconfirmed laying</div></div>
-        <label>Chick hatch date</label><input id="cohortDate" type="date">
-        <label>Number of chicks</label><input id="cohortCount" type="number" min="1" placeholder="1">
-        <label>Name / note (optional)</label><input id="cohortNote" placeholder="e.g. Spring hatch">
-        <button class="btn" onclick="addCohort()">🐥 Add Chicks</button>
-        <div id="cohortList"></div>
-        <h2 class="sec">Rearing Ages</h2>
-        <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
-        <label>Flag pullet as unconfirmed laying at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
+      <div class="workflow"><h2 class="sec">☠️ Freezer Camp - Add Compost</h2>
+        <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
+        <label>Dispatched date</label><input id="birdDate" type="date">
+        <label>Note (optional)</label><input id="birdNote" placeholder="Optional note">
+        <label>Destination (optional) ex: 😀 😁 🙂 😊 😚</label><input id="birdDestination" list="destinationCodes" placeholder="Choose or enter an emoji"><datalist id="destinationCodes"><option value="😀"><option value="😁"><option value="🙂"><option value="😊"><option value="😚"></datalist>
+        <button class="btn" onclick="addDispatch()">☠️ Add Dispatch Bird</button>
+        <div class="stats3"><div class="statmini"><b id="d7">0</b>🕊️ last 7 days</div><div class="statmini"><b id="d30">0</b>☠️ last 30 days</div><div class="statmini"><b id="dAll">0</b>🍗 Total Dispatched</div></div>
+        <div id="dispatchList"></div>
       </div>
+      <details class="archive"><summary>Archive</summary>
+        <div class="workflow"><h2 class="sec">🐣 New Chicks - Add Hatch Run</h2><div id="hatchList"></div>
+          <label>Name (optional)</label><input id="hName" placeholder="e.g. Spring batch">
+          <label>Date eggs set</label><input id="hDate" type="date">
+          <label>Number of eggs</label><input id="hCount" type="number" min="1" placeholder="12">
+          <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
+        </div>
+        <div class="workflow"><h2 class="sec">🐥 Tracking - Chicks & Pullets</h2>
+          <div class="stats3"><div class="statmini"><b id="chickCount">0</b>Chicks</div><div class="statmini"><b id="pulletCount">0</b>Pullets</div><div class="statmini"><b id="readyCount">0</b>Pullets - unconfirmed laying</div></div>
+          <label>Chick hatch date</label><input id="cohortDate" type="date">
+          <label>Number of chicks</label><input id="cohortCount" type="number" min="1" placeholder="1">
+          <label>Name / note (optional)</label><input id="cohortNote" placeholder="e.g. Spring hatch">
+          <button class="btn" onclick="addCohort()">🐥 Add Chicks</button><div id="cohortList"></div>
+          <h2 class="sec">Rearing Ages</h2>
+          <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
+          <label>Flag pullet as unconfirmed laying at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
+        </div>
+        <div class="workflow"><h2 class="sec">🚜 Chicken Tractor</h2><div class="meta">Setup details to be added.</div></div>
+      </details>
     </details>
   </div>
 </section>
@@ -177,7 +185,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <h2 class="sec">Last 7 Days</h2>
     <div id="eggHist"></div>
     <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div>
-    <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
+    
   </div>
 </section>
 
@@ -223,7 +231,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
     <h2 class="sec">Cloud Sync</h2>
     <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
     <div class="authbox" id="authSignedOut">
-      <p><b>One email. All your devices.</b> Enter the same email on each device and open the sign-in link from your inbox. No password.</p>
+      <p>Enter email below &amp; open sign in link to sync.</p>
       <label>Email</label><input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
       <button class="btn" onclick="sendSignInLink()">Email me a sign-in link</button>
       <div id="authMessage" class="r" style="margin-top:10px"></div>
@@ -242,13 +250,13 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
       </div>
     </div>
 
-    <h2 class="sec">Storage</h2>
-    <div class="row"><span>Save status</span><span class="r" id="storeStatus">—</span></div>
-    <div class="row"><span>Opened as</span><span class="r" id="openAs">—</span></div>
-
-    <h2 class="sec">Data</h2>
-    <button class="btn gray" onclick="exportCSV()">⬇️ Export All Data (CSV)</button>
-    <button class="btn gray" onclick="resetAll()">🗑 Reset Everything</button>
+    <h2 class="sec">Download Your Data</h2>
+    <div class="hint" style="margin:8px 0">Downloads create a copy of your records. TXT is plain readable text, MD keeps headings for notes apps, and XLSX opens as a spreadsheet. Downloading does not change or remove anything from the site.</div>
+    <div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div>
+    <button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button>
+    <h2 class="sec">App Restore</h2>
+    <button class="btn gray" onclick="signOutAccount()">Log Out</button>
+    <button class="btn gray danger" onclick="resetAll()">Reset All Data</button>
 
     <div class="hint"><b>Offline-ready:</b> records stay cached on this device. Sign in with the same email on another device and your cloud copy appears automatically.</div>
   </div>
@@ -266,6 +274,7 @@ Your signed-in data stays in sync whichever way you open it. (Tap to dismiss.)</
 
 <script src="supabase.js"></script>
 <script src="qrcode.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
 const LEGACY_KEY = 'coopTrackerV1';
 const CACHE_PREFIX = 'coopTrackerV2:';
@@ -527,8 +536,6 @@ function addFeed(){
 function renderMore(){
   document.getElementById('henV').textContent=S.hens;
   document.getElementById('rooV').textContent=S.roosters;
-  document.getElementById('storeStatus').textContent = storageOK ? '✔ Working' : '⚠️ Blocked';
-  document.getElementById('openAs').textContent = isStandalone() ? 'Installed app ✔' : 'Browser tab';
   const last=S.feed.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
   document.getElementById('feedLast').textContent = last
     ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
@@ -559,9 +566,9 @@ function setRearingAge(k,v){ S.rearing[k]=Math.max(1,parseInt(v,10)||def().reari
 function renderCohorts(){ const totals={chick:0,pullet:0,ready:0}; S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count); document.getElementById('chickCount').textContent=totals.chick; document.getElementById('pulletCount').textContent=totals.pullet; document.getElementById('readyCount').textContent=totals.ready; document.getElementById('chickWeeks').value=S.rearing.chickWeeks; document.getElementById('henWeeks').value=S.rearing.henWeeks; document.getElementById('cohortList').innerHTML=S.cohorts.slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{ const st=cohortStage(x), w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)), next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Review laying '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation'; return '<div class="hatchcard"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):st==='pullet'?'pullet'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s')+' - unconfirmed laying')+'</h3><div class="meta">Hatched '+short(x.hatchDate)+' · '+w+' weeks old'+(x.note?' · '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray" onclick="delCohort('+x.id+')">Delete</button></div></div>'; }).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
 
 /* ---------- dispatch ---------- */
-function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(); if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; save(); renderDispatch(); }
+function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(), destination=document.getElementById('birdDestination').value.trim(), codes={'😀':'code1','😁':'code2','🙂':'code3','😊':'code4','😚':'code5'}; if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note,destination,destinationCode:codes[destination]||''}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; document.getElementById('birdDestination').value=''; save(); renderDispatch(); }
 function delDispatch(id){ if(!confirm('Delete this dispatch record?'))return; S.dispatches=S.dispatches.filter(x=>x.id!==id); save(); renderDispatch(); }
-function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>☠️ <b>'+esc(x.name)+'</b> · '+short(x.date)+(x.note?' · '+esc(x.note):'')+'</span><button class="btn small gray" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
+function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>☠️ <b>'+esc(x.name)+'</b> · '+short(x.date)+(x.note?' · '+esc(x.note):'')+(x.destination?' · '+esc(x.destination):'')+'</span><button class="btn small gray" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
 
 /* ---------- home ---------- */
 function monthCalendar(m,total){ const [y,mo]=m.split('-').map(Number), days=new Date(y,mo,0).getDate(), offset=new Date(y,mo-1,1).getDay(); const pad=n=>String(n).padStart(2,'0'), label=pad(mo)+'/01 - '+pad(mo)+'/'+pad(days)+'/'+y; let cells=['S','M','T','W','T','F','S'].map(x=>'<div class="dow">'+x+'</div>').join(''); for(let i=0;i<offset;i++)cells+='<div class="calday blank"></div>'; for(let d=1;d<=days;d++){ const key=y+'-'+pad(mo)+'-'+pad(d), has=Object.prototype.hasOwnProperty.call(S.eggs,key), eggs=has?(Number(S.eggs[key])||0):''; cells+='<div class="calday"><span class="daynum">'+d+'</span><span class="eggnum">'+eggs+'</span></div>'; } return '<details class="month-block"><summary><span>'+label+'</span><b>'+total+' eggs</b></summary><div class="month-cal">'+cells+'</div></details>'; }
@@ -592,22 +599,10 @@ document.getElementById('factCard').onclick = newFact;
 document.getElementById('hsHint').onclick = function(){ S.hideHsHint = true; save(); renderHome(); };
 
 /* ---------- export & reset ---------- */
-function exportCSV(){
-  const rows=[['section','date','item','value','notes']];
-  rows.push(['flock',today(),'hens',S.hens,'']);
-  rows.push(['flock',today(),'roosters',S.roosters,'']);
-  Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],'']));
-  SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||''])));
-  S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched',x.note||'']));
-  S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active']));
-  if(S.tasks && S.tasks.length) S.tasks.forEach(t=>rows.push(['task',t.created,t.text,t.done?'done':'open','']));
-  S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||'']));
-  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='coop-tracker-'+today()+'.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-}
+function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); return rows; }
+function downloadBlob(name,type,text){ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0); }
+function exportData(format){ const rows=exportRows(), base='coop-tracker-'+today(); if(format==='xlsx'){ if(typeof XLSX==='undefined'){alert('Spreadsheet exporter is still loading. Try again.');return;} const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Coop Records');XLSX.writeFile(wb,base+'.xlsx');return; } if(format==='txt'){ downloadBlob(base+'.txt','text/plain',rows.map(r=>r.join(' | ')).join('\n'));return; } const groups={};rows.slice(1).forEach(r=>(groups[r[0]]??=[]).push(r));let md='# Coop Tracker Export\n\nGenerated '+today()+'\n';Object.entries(groups).forEach(([k,v])=>{md+='\n## '+k[0].toUpperCase()+k.slice(1)+'\n\n| Date | Item | Value | Notes |\n|---|---|---|---|\n'+v.map(r=>'| '+r.slice(1).map(x=>String(x).replace(/\|/g,'\\|')).join(' | ')+' |').join('\n')+'\n'});downloadBlob(base+'.md','text/markdown',md); }
+function exportCSV(){ exportData('xlsx'); }
 function resetAll(){
   if(confirm('Delete ALL data and start over? This cannot be undone.')){
     localStorage.removeItem(cacheKey()); S=def(); save(); renderAll();
