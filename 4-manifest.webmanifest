@@ -1,0 +1,11 @@
+{
+  "name": "Coop Tracker",
+  "short_name": "Coop",
+  "description": "Track eggs, flock, hatch runs, feed, and coop supplies.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf5ec",
+  "theme_color": "#e07a2f",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
