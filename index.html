@@ -272,7 +272,7 @@
       <div id="adminPlus"><h2 class="sec">Admin+</h2><button id="untrustDeviceBtn" class="btn gray danger hidden" onclick="untrustThisDevice()">Remove Trusted Admin+ from This Device</button><div id="passkeyManager"><h3>Passkeys</h3><button class="btn gray" onclick="registerPasskey()">Add Admin+ Passkey</button><div id="passkeyList"></div></div><div id="adminMagicLink"><h3>Magic Link</h3><button class="btn gray" onclick="generateAdminLink()">Create</button><div id="adminMagicResult" class="hidden"><input id="adminMagicText" readonly><button class="btn gray" onclick="copyAdminLink()">Copy Link</button><div id="adminMagicStatus" class="hint"></div></div></div></div>
       <div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div></div>
     </div>
-    <div id="factArchive"><h2 class="sec">Did you know? Archive <span class="status">Premium · On</span></h2><button class="btn" style="font-size:20px" onclick="randomArchiveFact()">🐣🐓Random🐔🐥</button><div id="randomFactResult"></div><button class="btn gray" onclick="openFactArchive()">View All</button><div id="factTopics" class="auth-actions"></div></div>
+    <div id="factArchive"><h2 class="sec">Did you know? Archive</h2><button class="btn" style="font-size:20px" onclick="randomArchiveFact()">🐣🐓Random🐔🐥</button><div id="randomFactResult"></div><button class="btn gray" onclick="openFactArchive()">View All</button><div id="factTopics" class="auth-actions"></div></div>
     <div class="adminOnlyBlock" id="downloadData"><h2 class="sec">Download Your Data</h2><div class="hint" style="margin:8px 0">Downloads create a copy of your records. TXT is plain readable text, MD keeps headings for notes apps, and XLSX opens as a spreadsheet.</div><div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div><button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button></div>
   </div>
 </section>
@@ -1693,4 +1693,4 @@ setInterval(checkDevice,60000);
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
 </script>
 </body>
-                                                                     </html>
+                                                                </html>
