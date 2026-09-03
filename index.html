@@ -261,7 +261,7 @@
       </div>
     </div>
     <div id="backupRestore"><h2 class="sec">Backup &amp; Restore</h2>
-      <div id="qrWrap" class="hidden"><p><b>Scan below to sign on another device using this account</b><br><span class="r">This QR works once and expires in 5 minutes.</span></p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
+      <div id="qrWrap" class="hidden"><p id="qrIntro"><b>Scan below to sign on another device using this account</b></p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
       <div class="authbox"><p id="restoreNote">Log Out ends this session but keeps this device remembered for one-tap restore. Forget This Device removes that access.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
       <button class="btn gray" onclick="signOutAccount()">Log Out</button>
       <button class="btn gray danger" onclick="forgetThisDevice()">Forget This Device</button>
@@ -1537,7 +1537,7 @@ function showAuth(){
   document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
   document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
   randomizeNumericPlaceholders();
-  if(signedIn){ const admin=isAdmin(); document.getElementById('accountNote').textContent='Signed in as '+currentUser.email; document.body.dataset.role=admin?'admin':'limited'; document.getElementById('trustedControls').classList.toggle('hidden',!admin); document.getElementById('trustDeviceBtn').classList.toggle('hidden',trustedExists||trustedDevice); document.getElementById('untrustDeviceBtn').classList.toggle('hidden',!trustedDevice); document.getElementById('adminSessions').classList.toggle('hidden',!admin); document.getElementById('qrWrap').classList.toggle('hidden',!signedIn); document.querySelectorAll('.adminOnly').forEach(x=>x.classList.toggle('hidden',!admin)); setTimeout(renderAccountQR,0); if(admin)setTimeout(renderPasskeys,0); }
+  if(signedIn){ const admin=isAdmin(); document.getElementById('accountNote').textContent='Signed in as '+currentUser.email; document.body.dataset.role=admin?'admin':'limited'; document.getElementById('trustedControls').classList.toggle('hidden',!admin); document.getElementById('trustDeviceBtn').classList.toggle('hidden',trustedExists||trustedDevice); document.getElementById('untrustDeviceBtn').classList.toggle('hidden',!trustedDevice); document.getElementById('adminSessions').classList.toggle('hidden',!admin); document.getElementById('qrWrap').classList.toggle('hidden',!signedIn); document.getElementById('qrIntro').classList.toggle('hidden',admin); document.querySelectorAll('.adminOnly').forEach(x=>x.classList.toggle('hidden',!admin)); setTimeout(renderAccountQR,0); if(admin)setTimeout(renderPasskeys,0); }
 }
 function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
 function deviceId(){ let id=localStorage.getItem(DEVICE_KEY); if(!id){ const b=crypto.getRandomValues(new Uint8Array(16)); id=[...b].map(x=>x.toString(16).padStart(2,'0')).join(''); localStorage.setItem(DEVICE_KEY,id); } return id; }
@@ -1890,4 +1890,4 @@ setInterval(checkDevice,60000);
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
 </script>
 </body>
-</html>
+ </html>
