@@ -246,7 +246,7 @@
       <p>Enter email below &amp; open sign in link to sync.</p>
       <label>Email</label><input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
       <button id="passkeySignInBtn" class="btn hidden" onclick="signInWithPasskey()">Sign in with Face ID / Passkey</button><div id="passkeyHelp" class="hint hidden">If Face ID or your passkey is unavailable, use the email link below for Admin access.</div><button class="btn gray" onclick="sendSignInLink()">Email me a sign-in link</button>
-      <div id="authMessage" class="r" style="margin-top:10px"></div>
+      <div id="authMessage" class="r" style="margin-top:10px"></div><label id="rememberPairWrap" class="hidden"><input id="rememberPair" type="checkbox" checked> Remember me on this device</label>
     </div>
     <div class="authbox hidden" id="authSignedIn">
       <p><b id="accountNote">Signed in.</b><br>Your records stay with this email and sync on every signed-in device.</p>
@@ -266,13 +266,13 @@
       <button class="btn gray" onclick="signOutAccount()">Log Out</button>
       <button class="btn gray danger" onclick="forgetThisDevice()">Forget This Device</button>
       <div class="reset-block" style="margin:22px 0;padding:18px 0;border-top:2px solid #ead7b7;border-bottom:2px solid #ead7b7"><button class="btn gray danger" onclick="resetAllTesting()">Reset All Data</button></div>
-      <div id="trustedControls"><button id="trustDeviceBtn" class="btn gray" onclick="trustThisDevice()">Trust This Device as Admin+</button><button id="untrustDeviceBtn" class="btn gray danger hidden" onclick="untrustThisDevice()">Remove Trusted Admin+ from This Device</button><button class="btn gray danger" onclick="revokeOtherDevices()">Sign Out All Other Devices</button></div>
+      <div id="trustedControls" class="hidden"><button id="trustDeviceBtn" class="btn gray" onclick="trustThisDevice()">Trust This Device as Admin+</button><button class="btn gray danger" onclick="revokeOtherDevices()">Sign Out All Other Devices</button></div>
     </div>
     <div id="adminBottom" class="adminOnlyBlock">
-      <div id="adminPlus"><h2 class="sec">Admin+</h2><div id="passkeyManager"><h3>Passkeys</h3><button class="btn gray" onclick="registerPasskey()">Add Admin+ Passkey</button><div id="passkeyList"></div></div><div id="adminMagicLink"><h3>Magic Link</h3><button class="btn gray" onclick="generateAdminLink()">Create</button><div id="adminMagicResult" class="hidden"><input id="adminMagicText" readonly><button class="btn gray" onclick="copyAdminLink()">Copy Link</button><div id="adminMagicStatus" class="hint"></div></div></div></div>
+      <div id="adminPlus"><h2 class="sec">Admin+</h2><button id="untrustDeviceBtn" class="btn gray danger hidden" onclick="untrustThisDevice()">Remove Trusted Admin+ from This Device</button><div id="passkeyManager"><h3>Passkeys</h3><button class="btn gray" onclick="registerPasskey()">Add Admin+ Passkey</button><div id="passkeyList"></div></div><div id="adminMagicLink"><h3>Magic Link</h3><button class="btn gray" onclick="generateAdminLink()">Create</button><div id="adminMagicResult" class="hidden"><input id="adminMagicText" readonly><button class="btn gray" onclick="copyAdminLink()">Copy Link</button><div id="adminMagicStatus" class="hint"></div></div></div></div>
       <div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div></div>
     </div>
-    <div id="factArchive"><h2 class="sec">Did you know? Archive <span class="status">Premium · On</span></h2><button class="btn" style="font-size:20px" onclick="randomArchiveFact()">🐣🐓Random🐔🐥</button><div id="randomFactResult"></div><button class="btn gray" onclick="openFactArchive()">View All</button><div id="factTopics" class="auth-actions"></div><button class="btn small gray" onclick="togglePremiumArchive()" id="premiumToggle">Turn Premium Archive Off</button></div>
+    <div id="factArchive"><h2 class="sec">Did you know? Archive <span class="status">Premium · On</span></h2><button class="btn" style="font-size:20px" onclick="randomArchiveFact()">🐣🐓Random🐔🐥</button><div id="randomFactResult"></div><button class="btn gray" onclick="openFactArchive()">View All</button><div id="factTopics" class="auth-actions"></div></div>
     <div class="adminOnlyBlock" id="downloadData"><h2 class="sec">Download Your Data</h2><div class="hint" style="margin:8px 0">Downloads create a copy of your records. TXT is plain readable text, MD keeps headings for notes apps, and XLSX opens as a spreadsheet.</div><div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div><button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button></div>
   </div>
 </section>
@@ -435,11 +435,6 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Chicken Lifecycle",
-    "tip": "Clean water should be available as soon as chicks enter the brooder.",
-    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks"
-  },
-  {
-    "category": "Chicken Lifecycle",
     "tip": "Chick starter is formulated with more protein than typical layer feed.",
     "source": "https://extension.msstate.edu/publications/hatching-quality-chicks"
   },
@@ -505,22 +500,12 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Animal Husbandry",
-    "tip": "Provide a complete feed matched to the flock’s age and purpose.",
-    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs"
-  },
-  {
-    "category": "Animal Husbandry",
     "tip": "Treat scratch grains as a supplement, not a substitute for balanced feed.",
     "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs"
   },
   {
     "category": "Animal Husbandry",
     "tip": "Keep feed dry and protected from rodents and wild birds.",
-    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs"
-  },
-  {
-    "category": "Animal Husbandry",
-    "tip": "Fresh, clean water is the most important daily nutrient for chickens.",
     "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs"
   },
   {
@@ -621,11 +606,6 @@ const FACT_ARCHIVE = [
   {
     "category": "Animal Husbandry",
     "tip": "Inspect feet, vents, eyes, nostrils, combs, and body condition during routine checks.",
-    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs"
-  },
-  {
-    "category": "Animal Husbandry",
-    "tip": "Count birds at lockup so a missing or trapped chicken is noticed quickly.",
     "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs"
   },
   {
@@ -736,16 +716,6 @@ const FACT_ARCHIVE = [
   {
     "category": "Pests & Diseases",
     "tip": "Rotate or rest outdoor areas when practical to reduce mud and parasite buildup.",
-    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks"
-  },
-  {
-    "category": "Pests & Diseases",
-    "tip": "Never add visibly sick birds to a healthy flock.",
-    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks"
-  },
-  {
-    "category": "Pests & Diseases",
-    "tip": "Keep a record of symptoms, deaths, treatments, and dates for veterinary diagnosis.",
     "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks"
   },
   {
@@ -880,11 +850,6 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Etc/All Other",
-    "tip": "Check local rules before keeping chickens because flock size and rooster limits vary.",
-    "source": "https://extension.psu.edu/raising-small-flock-poultry"
-  },
-  {
-    "category": "Etc/All Other",
     "tip": "Plan manure storage before building a coop; dry covered storage reduces odor and runoff.",
     "source": "https://extension.psu.edu/raising-small-flock-poultry"
   },
@@ -935,16 +900,6 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Etc/All Other",
-    "tip": "Keep emergency contacts for an avian veterinarian and local animal-health officials.",
-    "source": "https://extension.psu.edu/raising-small-flock-poultry"
-  },
-  {
-    "category": "Etc/All Other",
-    "tip": "A backup water supply matters because chickens can decline quickly without water.",
-    "source": "https://extension.psu.edu/raising-small-flock-poultry"
-  },
-  {
-    "category": "Etc/All Other",
     "tip": "Test backup heat sources safely before brooder season and avoid fire hazards.",
     "source": "https://extension.psu.edu/raising-small-flock-poultry"
   },
@@ -985,22 +940,7 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Etc/All Other",
-    "tip": "Rotate stored feed so the oldest safe bag is used first.",
-    "source": "https://extension.psu.edu/raising-small-flock-poultry"
-  },
-  {
-    "category": "Etc/All Other",
-    "tip": "Label medicines and cleaning products and store them away from feed.",
-    "source": "https://extension.psu.edu/raising-small-flock-poultry"
-  },
-  {
-    "category": "Etc/All Other",
     "tip": "Record daily egg totals because abrupt changes can reveal stress, illness, molt, or predator disturbance.",
-    "source": "https://extension.psu.edu/raising-small-flock-poultry"
-  },
-  {
-    "category": "Etc/All Other",
-    "tip": "Review flock records monthly to spot trends in feed use, mortality, and laying.",
     "source": "https://extension.psu.edu/raising-small-flock-poultry"
   },
   {
@@ -1120,11 +1060,6 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Safety, Sanitization & Hygiene",
-    "tip": "Keep a written cleaning schedule so drinkers, feeders, brooders, and coops are not overlooked.",
-    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html"
-  },
-  {
-    "category": "Safety, Sanitization & Hygiene",
     "tip": "Change clothes and shower after visiting another flock before handling your own birds.",
     "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html"
   },
@@ -1185,11 +1120,6 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Predation & Early Dispatch",
-    "tip": "Count birds every evening and investigate missing birds immediately.",
-    "source": "https://extension.umn.edu/small-scale-poultry/poultry-predators"
-  },
-  {
-    "category": "Predation & Early Dispatch",
     "tip": "Look for tracks, feathers, entry damage, and time of attack before changing defenses.",
     "source": "https://extension.umn.edu/small-scale-poultry/poultry-predators"
   },
@@ -1231,11 +1161,6 @@ const FACT_ARCHIVE = [
   {
     "category": "Predation & Early Dispatch",
     "tip": "Use clean, sharp, maintained equipment appropriate to the selected humane method.",
-    "source": "https://extension.umn.edu/small-scale-poultry/poultry-predators"
-  },
-  {
-    "category": "Predation & Early Dispatch",
-    "tip": "Handle birds calmly before dispatch to reduce fear, struggling, and injury.",
     "source": "https://extension.umn.edu/small-scale-poultry/poultry-predators"
   },
   {
@@ -1411,7 +1336,7 @@ async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_
 
 function randomizeNumericPlaceholders(){document.querySelectorAll('[data-random-placeholder]').forEach(x=>x.placeholder=String(1+Math.floor(Math.random()*10)));}
 function showAuth(){
-  const signedIn=isAccountUser(); if(!signedIn){supportMode=false;document.getElementById('supportBanner').classList.add('hidden');accountRole='limited';trustedDevice=false;document.body.dataset.role='limited';document.getElementById('qrWrap')?.classList.add('hidden');}
+  const signedIn=isAccountUser(); if(!signedIn){supportMode=false;document.getElementById('supportBanner').classList.add('hidden');accountRole='limited';trustedDevice=false;document.body.dataset.role='limited';document.getElementById('qrWrap')?.classList.add('hidden');document.getElementById('trustedControls')?.classList.add('hidden');}
   document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
   document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
   randomizeNumericPlaceholders();
@@ -1448,7 +1373,7 @@ async function renderAccountQR(){
  qrGeneration=(async()=>{const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('QR creation timed out. Tap Sync Now and try again.')),8000));try{const x=await Promise.race([pairAPI('create'),timeout]);if(x.error)throw new Error(x.error);if(!x.token)throw new Error('Secure QR service returned no pairing code.');el.innerHTML='';const u=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token);new QRCode(el,{text:u,width:180,height:180});}catch(e){el.textContent=e.message||'Could not create QR';}})().finally(()=>setTimeout(()=>{qrGeneration=null},1000));return qrGeneration;
 }
 function prefillAccount(){ const e=new URLSearchParams(location.search).get('account'); if(e)document.getElementById('accountEmail').value=e; }
-async function redeemPair(){ const token=new URLSearchParams(location.search).get('pair'); if(!token)return; history.replaceState({},'',location.pathname); authMsg('Securely pairing this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',token})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Pairing failed',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device paired. Syncing records…'); }
+async function redeemPair(){ const token=new URLSearchParams(location.search).get('pair'); if(!token)return;document.getElementById('rememberPairWrap').classList.remove('hidden');document.getElementById('rememberPair').checked=true;history.replaceState({},'',location.pathname);authMsg('Securely pairing this device…');const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',token})});const x=await r.json();if(!r.ok){authMsg(x.error||'Pairing failed',true);return;}const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type});if(v.error){authMsg(v.error.message,true);return;}currentUser=v.data.user;if(document.getElementById('rememberPair').checked){deviceSecret();await registerDevice();localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email||'');}document.getElementById('rememberPairWrap').classList.add('hidden');authMsg('Device paired and remembered. Syncing records…'); }
 function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
 async function sendSignInLink(){
   localStorage.removeItem(ADMIN_TOKEN_KEY); const email=accountEmail(); if(!email){authMsg('Enter your email.',true);return;}
@@ -1721,13 +1646,12 @@ function setEtc(k,v){ S.etc[k]=v; save(); }
 function renderEtc(){ const e=S.etc||def().etc; document.getElementById('etcFiller1').value=e.filler1||''; document.getElementById('etcFiller2').value=e.filler2||''; document.getElementById('etcFiller3').value=e.filler3||''; }
 
 /* ---------- facts ---------- */
-let selectedFactTopic='All',factTimer=null,factSeconds=60,premiumArchive=localStorage.getItem('coopPremiumArchive')!=='off';
-function renderFactTopics(){const el=document.getElementById('factTopics');if(!el)return;const topics=['All',...new Set(FACT_ARCHIVE.map(x=>x.category))];el.innerHTML=topics.map(t=>'<button class="btn small '+(selectedFactTopic===t?'':'gray')+'" onclick="selectFactTopic(\''+t.replace(/'/g,"\\'")+'\')">'+esc(t)+'</button>').join('');document.getElementById('factArchive').classList.toggle('hidden',!premiumArchive);}
+let selectedFactTopic='All',factTimer=null,factSeconds=60;localStorage.removeItem('coopPremiumArchive');
+function renderFactTopics(){const el=document.getElementById('factTopics');if(!el)return;const topics=['All',...new Set(FACT_ARCHIVE.map(x=>x.category))];el.innerHTML=topics.map(t=>'<button class="btn small '+(selectedFactTopic===t?'':'gray')+'" onclick="selectFactTopic(\''+t.replace(/'/g,"\\'")+'\')">'+esc(t)+'</button>').join('');document.getElementById('factArchive').classList.remove('hidden');}
 function selectFactTopic(topic){selectedFactTopic=topic;renderFactTopics();}
 function factSource(x){return '<a href="'+x.source+'" target="_blank" rel="noopener">Source / further reading</a>';}
 function randomArchiveFact(){const x=FACT_ARCHIVE[Math.floor(Math.random()*FACT_ARCHIVE.length)];document.getElementById('randomFactResult').innerHTML='<div class="row"><span><b>'+esc(x.category)+'</b><br>'+esc(x.tip)+'<br>'+factSource(x)+'</span></div>';}
 function openFactArchive(){const rows=FACT_ARCHIVE.filter(x=>selectedFactTopic==='All'||x.category===selectedFactTopic),w=window.open('','_blank');if(!w){alert('Allow pop-ups to view the archive.');return;}const html='<!doctype html><meta name="viewport" content="width=device-width"><title>Did You Know? Archive</title><style>body{font-family:system-ui;background:#fbf7ef;color:#403526;max-width:760px;margin:auto;padding:20px}.close{position:fixed;top:12px;right:12px;font-size:22px;border:0;border-radius:50%;width:42px;height:42px}.tip{background:white;padding:14px;margin:10px 0;border-radius:14px}a{color:#9a5a16}</style><button class="close" onclick="window.close()">×</button><h1>'+esc(selectedFactTopic==='All'?'Did You Know? Archive':selectedFactTopic)+'</h1>'+rows.map(x=>'<div class="tip"><b>'+esc(x.category)+'</b><br>'+esc(x.tip)+'<br><a href="'+x.source+'" target="_blank" rel="noopener">Source / further reading</a></div>').join('');w.document.write(html);w.document.close();}
-function togglePremiumArchive(){premiumArchive=!premiumArchive;localStorage.setItem('coopPremiumArchive',premiumArchive?'on':'off');document.getElementById('factArchive').classList.toggle('hidden',!premiumArchive);}
 function newFact(){const x=FACT_ARCHIVE[Math.floor(Math.random()*FACT_ARCHIVE.length)];document.getElementById('factTxt').textContent=x.tip;factSeconds=60;document.getElementById('factCountdown').textContent='';clearInterval(factTimer);factTimer=setInterval(()=>{factSeconds--;document.getElementById('factCountdown').textContent=factSeconds<=5?factSeconds+'s':'';if(factSeconds<=0)newFact();},1000);}
 
 document.getElementById('factCard').onclick = newFact;
@@ -1769,4 +1693,4 @@ setInterval(checkDevice,60000);
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
 </script>
 </body>
- </html>
+                                                                     </html>
