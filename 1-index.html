@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#faf5ec">
+<meta name="description" content="Track eggs, flock, hatch runs, feed, and coop supplies across all your devices.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Coop Tracker</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+         background:#faf5ec; color:#3a2e1f; padding-bottom:90px; }
+  header { padding:18px 16px 6px; }
+  header h1 { margin:0; font-size:24px; }
+  header .sub { color:#8a7a63; font-size:13px; margin-top:2px; }
+  #saveTag, #syncTag { color:#b3a48c; font-size:11px; margin-top:3px; min-height:14px; }
+  main section { display:none; }
+  main section.active { display:block; }
+  .wrap { padding:12px 16px; }
+  .warn { background:#fde8e8; border:1px solid #f0b4b4; color:#8a1f1f; border-radius:16px;
+          padding:14px; margin:12px 16px 0; font-size:14px; display:none; }
+  .hint { background:#eef4ff; border:1px solid #cfdefc; border-radius:16px; padding:14px;
+          margin:12px 16px 0; font-size:14px; color:#2f4a7a; }
+  .fact { background:#fff3df; border:1px solid #f0dcbb; border-radius:16px; padding:14px;
+          margin:12px 16px 0; font-size:14px; }
+  .fact b { display:block; font-size:11px; letter-spacing:1px; color:#b07a2e; margin-bottom:4px; }
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px 16px; }
+  .card { background:#fff; border-radius:16px; padding:14px; box-shadow:0 1px 4px rgba(60,40,10,.08); }
+  .card .big { font-size:32px; font-weight:700; line-height:1.1; }
+  .card .label { color:#8a7a63; font-size:13px; margin-top:2px; }
+  .card .note { color:#b07a2e; font-size:12px; margin-top:4px; }
+  .avg-range { color:#8a7a63!important; font-size:10px!important; white-space:nowrap; letter-spacing:-.25px; }
+  .egg-rate { display:block; color:#8a7a63; font-size:11px; margin-top:2px; }
+  .btn { display:block; width:100%; border:0; border-radius:12px; padding:13px; font-size:16px;
+         font-weight:600; background:#e07a2f; color:#fff; margin-top:10px; }
+  .btn.gray { background:#efe7d8; color:#3a2e1f; }
+  .btn.small { width:auto; padding:8px 14px; font-size:14px; margin-top:0; }
+  .counter { display:flex; align-items:center; justify-content:center; gap:18px; margin:14px 0; }
+  .counter button { width:60px; height:60px; border-radius:50%; border:0; font-size:28px;
+                    background:#e07a2f; color:#fff; flex:none; }
+  .numin { width:96px; font-size:40px; font-weight:700; text-align:center; padding:8px;
+           border:2px solid #e07a2f; border-radius:16px; background:#fff; color:#3a2e1f;
+           margin-top:0; }
+  input, select { width:100%; padding:12px; font-size:16px; border:1px solid #ddd2bd;
+                  border-radius:12px; background:#fff; margin-top:6px; }
+  label { font-size:13px; color:#8a7a63; display:block; margin-top:12px; }
+  .row { display:flex; align-items:center; justify-content:space-between; background:#fff;
+         border-radius:12px; padding:12px 14px; margin-top:8px; box-shadow:0 1px 3px rgba(60,40,10,.06); }
+  .row .r { color:#8a7a63; font-size:14px; }
+  .row.sel { outline:2px solid #e07a2f; }
+  .bar { height:8px; background:#efe7d8; border-radius:4px; margin-top:8px; overflow:hidden; }
+  .bar > div { height:100%; background:#e07a2f; border-radius:4px; }
+  .hatchcard { background:#fff; border-radius:16px; padding:14px; margin-top:12px;
+               box-shadow:0 1px 4px rgba(60,40,10,.08); }
+  .hatchcard h3 { margin:0 0 2px; font-size:16px; }
+  .hatchcard .meta { color:#8a7a63; font-size:13px; }
+  .hatchcard .status { margin-top:8px; font-size:14px; font-weight:600; color:#b07a2e; }
+  .hatchcard .actions { display:flex; gap:8px; margin-top:10px; }
+  .stepper { display:flex; align-items:center; gap:16px; }
+  .stepper button { width:44px; height:44px; border-radius:50%; border:0; font-size:22px;
+                    background:#efe7d8; color:#3a2e1f; }
+  .stepper .v { font-size:24px; font-weight:700; min-width:44px; text-align:center; }
+  h2.sec { font-size:15px; margin:20px 0 4px; color:#8a7a63; text-transform:uppercase;
+           letter-spacing:1px; }
+  #tabbar { position:fixed; bottom:0; left:0; right:0; display:flex; background:#fff;
+            border-top:1px solid #e8dfcf; padding-bottom:env(safe-area-inset-bottom); }
+  #tabbar button { flex:1; border:0; background:none; padding:8px 0 10px; font-size:11px;
+                   color:#8a7a63; }
+  #tabbar button .ic { display:block; font-size:22px; margin-bottom:2px; }
+  #tabbar button.active { color:#e07a2f; font-weight:700; }
+  .authbox { background:#fff; border-radius:16px; padding:14px; margin-top:8px; box-shadow:0 1px 4px rgba(60,40,10,.08); }
+  .authbox p { margin:0 0 8px; color:#8a7a63; font-size:13px; line-height:1.4; }
+  .auth-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+  .auth-actions .btn { margin-top:0; }
+  .hidden { display:none !important; }
+  .danger { color:#8a1f1f; }
+  @media (min-width:760px) { main, header { max-width:920px; margin-left:auto; margin-right:auto; } }
+  details.nextgen { margin:12px 0; background:#fff; border-radius:16px; padding:0 14px; box-shadow:0 1px 4px rgba(60,40,10,.08); }
+  details.nextgen > summary { cursor:pointer; list-style:none; padding:15px 0; font-weight:700; color:#5b4933; }
+  details.nextgen > summary::-webkit-details-marker { display:none; }
+  details.nextgen > summary:after { content:"⌄"; float:right; font-size:20px; }
+  details.nextgen[open] > summary:after { content:"⌃"; }
+  .stats3 { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0 14px; }
+  .statmini { background:#fff7ec; border-radius:12px; padding:10px; text-align:center; }
+  .statmini b { display:block; font-size:22px; }
+  .qr { width:180px; height:180px; margin:10px auto; display:grid; place-items:center; overflow:hidden; color:#8d7a62; background:#f4eee4; border-radius:12px; }
+  body[data-role="limited"] .adminAction,body[data-role="limited"] .adminOnlyBlock { display:none!important; }
+  .qr canvas,.qr img { display:block; width:180px!important; height:180px!important; }
+  .workflow { margin:18px 0; padding:16px; border:2px solid #eadbc5; border-radius:16px; background:#fffaf2; }
+  .workflow h2.sec { margin-top:0; color:#6b4a26; }
+  .history { margin-top:12px; } .history summary { color:#2f281f; font-weight:700; cursor:pointer; }
+  .reset-block { margin-top:28px; padding-top:20px; border-top:2px solid #eadbc5; }
+  .session-card { margin:10px 0; } .session-card .status { display:inline-block; margin-left:8px; padding:2px 7px; font-size:11px; } .session-card .actions { margin-top:10px; display:flex; gap:8px; }
+  .month-block { background:#fff; border-radius:12px; margin-top:8px; box-shadow:0 1px 3px rgba(60,40,10,.06); overflow:hidden; }
+  .month-block summary { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; cursor:pointer; font-weight:600; list-style:none; }
+  .month-block summary::-webkit-details-marker { display:none; }
+  .month-block summary:before { content:"›"; color:#8a7a63; font-size:20px; margin-right:7px; transform:rotate(0deg); }
+  .month-block[open] summary:before { transform:rotate(90deg); }
+  .month-block summary span { flex:1; }
+  details.archive { margin:18px 0; border-top:2px solid #d9c4a4; padding-top:4px; }
+  details.archive > summary { list-style:none; cursor:pointer; font-size:18px; font-weight:800; padding:14px 2px; }
+  details.archive > summary:before { content:"›"; margin-right:8px; color:#8a7a63; }
+  details.archive[open] > summary:before { content:"⌄"; }
+  .month-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; padding:8px 10px 12px; border-top:1px solid #efe7d8; }
+  .dow { text-align:center; font-size:10px; color:#a7957c; padding:3px 0; }
+  .calday { min-height:46px; border-radius:8px; background:#fff7ec; padding:4px; text-align:center; }
+  .calday.blank { background:transparent; }
+  .daynum { display:block; text-align:right; font-size:9px; color:#b3a48c; line-height:1; }
+  .eggnum { display:block; font-size:22px; font-weight:700; color:#3a2e1f; line-height:1.35; }
+
+  #callsArchive .r { color:#8a7a63; font-size:13px; }
+  .callsOverlay { position:fixed; inset:0; z-index:50; background:#faf5ec; display:flex; flex-direction:column; }
+  .callsHead { background:#faf5ec; padding:12px 16px 8px; border-bottom:1px solid #e8dfcf; }
+  .callsHeadRow { display:flex; align-items:center; gap:10px; }
+  .callsHeadRow h2 { margin:0; font-size:18px; flex:1; }
+  .callsClose { border:0; background:#efe7d8; color:#3a2e1f; border-radius:50%; width:40px; height:40px; font-size:22px; font-weight:800; flex:none; }
+  .chips { display:flex; gap:6px; overflow-x:auto; padding:10px 0 4px; }
+  .chip { white-space:nowrap; border:0; background:#eee4d3; color:#403526; padding:8px 11px; border-radius:12px; font-size:13px; }
+  .chip.on { background:#eb7826; color:#fff; font-weight:700; }
+  .callsBody { overflow-y:auto; padding:4px 16px 30px; flex:1; }
+  .callcard { background:#fff; border-radius:16px; padding:14px; margin-top:12px; box-shadow:0 1px 4px rgba(60,40,10,.08); user-select:none; }
+  .callcard h3 { margin:0 0 2px; font-size:16px; }
+  .callcard .meta { color:#8a7a63; font-size:13px; }
+  .callcard .desc { font-size:14px; margin-top:6px; }
+  .callcard .noaudio { color:#b07a2e; font-size:12px; margin-top:6px; }
+  .callcard .actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .quizBody { max-width:560px; margin:0 auto; width:100%; }
+  .quizBig { font-size:60px; text-align:center; margin:26px 0 6px; }
+  .quizScore { text-align:center; color:#8a7a63; font-size:13px; margin-bottom:14px; }
+  .quizFeedback { margin-top:12px; font-size:15px; font-weight:600; text-align:center; min-height:22px; }
+</style>
+</head>
+<body>
+
+<div id="supportBanner" class="hidden" style="position:sticky;top:0;z-index:9;background:#8b271f;color:#fff;text-align:center;padding:7px;font-weight:800">SUPPORT MODE · ANOTHER ACCOUNT</div>
+<header>
+  <h1>🐔 Coop Tracker</h1>
+  <div class="sub" id="hdrSub"></div>
+  <div id="saveTag"></div>
+  <div id="syncTag"></div>
+</header>
+
+<div class="warn" id="warnBox"></div>
+<main>
+
+<!-- HOME -->
+<section id="tab-home" class="active">
+  <div class="fact" id="factCard"><b>DID YOU KNOW?</b><span id="factTxt"></span><span id="factCountdown" style="display:block;margin-top:5px;color:#a38f73;font-size:11px;min-height:13px"></span></div>
+  <div class="cards">
+    <div class="card" role="button" onclick="goMyFlock()"><div class="big" id="cFlock">0</div><div class="label" id="cFlockLabel">🐓 total</div></div>
+    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cToday">0</div><div class="label">🍳 today</div></div>
+    <div class="card" role="button" onclick="editCounterEggs()"><div class="big" id="cWeek">0</div><div class="label">counter eggs (unwashed)</div></div>
+    <div class="card" role="button" onclick="goFridgeEggs()"><div class="big" id="cFridge">0</div><div class="label">fridge eggs (washed)</div><div class="note" id="cFridgeDozens"></div></div>
+  </div>
+  <div class="wrap"><details class="nextgen" id="nextGen"><summary>More</summary>
+      <div id="myFlockHome"><h2 class="sec">My Flock</h2><div class="row"><span>🐔 Hens</span><div class="stepper"><button class="adminAction" onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button class="adminAction" onclick="chgFlock('hens',1)">+</button></div></div><div class="row"><span>🐓 Roosters</span><div class="stepper"><button class="adminAction" onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button class="adminAction" onclick="chgFlock('roosters',1)">+</button></div></div></div>
+      <div class="cards" id="moreActiveCards">
+        <div class="card" id="cMonthCard"><div class="big" id="cMonth">0</div><div class="label">🍳 month to-date</div></div>
+        <div class="card" id="cTotalEggsCard"><div class="big" id="cTotalEggs">0</div><div class="label">🍳 total year</div><div class="note avg-range" id="cTotalEggsRange"></div></div>
+        <div class="card" id="cCartonsCard"><div class="big" id="cCartons">0</div><div class="label">total cartons available</div></div>
+        <div class="card" id="cCartonSpaceCard"><div class="big" id="cCartonSpace">0</div><div class="label">total carton space remaining</div></div>
+        <div class="card moreOptionalCounter" id="cIncubatingCard"><div class="big" id="cIncubating">0</div><div class="label">🥚 total incubating</div></div>
+        <div class="card" id="cChicksCard"><div class="big" id="cChicks">0</div><div class="label">🐣 chicks (0w-8w old)</div></div>
+        <div class="card" id="cPulletsCard"><div class="big" id="cPullets">0</div><div class="label">🐥 pullets (8w-18w old)</div></div>
+        <div class="card moreOptionalCounter" id="cMeatCard"><div class="big" id="cMeat">0</div><div class="label">🍗 harvestable 7+ week old</div></div>
+        <div class="card moreOptionalCounter" id="cTractorCard"><div class="big" id="cTractor">0</div><div class="label">🐓 tractor &lt;7 weeks old</div></div>
+        <div class="card moreOptionalCounter" id="cQuarantineCard"><div class="big" id="cQuarantine">0</div><div class="label">🤒 diseased/backup coop</div></div>
+      </div>
+      <details class="nextgen" id="hiddenMore"><summary>Hidden</summary><div class="cards" id="moreHiddenCards"><div class="card" id="cHarvestedCard"><div class="big" id="cHarvested">0</div><div class="label">🪦 total harvested</div></div></div></details>
+      <details class="nextgen" id="eggCartonsSection"><summary>Egg Cartons</summary><div class="workflow"><div class="stats3"><div class="statmini"><b id="cartonSpace">0</b>Space Remaining</div><div class="statmini"><b id="cartonReady">0</b>Fridge Eggs</div><div class="statmini"><b id="cartonReadyDozens">0</b>Dozen ready/washed</div></div><label>Regular (12 pack, cardboard)</label><input id="cartonRegular" type="number" min="0" onchange="setCarton('regular',this.value)"><label>Large (18 pack, cardboard)</label><input id="cartonLarge" type="number" min="0" onchange="setCarton('large',this.value)"><label>Plastic (all sizes)</label><input id="cartonPlastic" type="number" min="0" onchange="setCarton('plastic',this.value)"><div class="note">Plastic cartons are tracked as backups and excluded from Space Remaining.</div><label id="fridgeEggsField">Fridge Eggs</label><input id="cartonReadyInput" type="number" min="0" onchange="setCarton('ready',this.value)"><h2 class="sec">Carton Calendar</h2><div id="cartonMonths"></div></div></details>
+      <details class="nextgen" id="chickHatchesSection"><summary>Hatches</summary><div class="workflow"><h2 class="sec">Hatch Tracking</h2><div id="hatchList"></div>
+          <label>Name</label><input id="hName" placeholder="Optional">
+          <label>Date eggs set</label><input id="hDate" type="date">
+          <label>Number of eggs</label><input id="hCount" type="number" min="1" data-random-placeholder>
+          <label>Hatch + 7 days survivors</label><input id="hSurvivors" type="number" min="0" data-random-placeholder>
+          <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
+          <h2 class="sec">Pre-Layer Tracking</h2>
+          <div class="stats3" style="grid-template-columns:1fr 1fr"><div class="statmini"><b id="chickCount">0</b>Chicks<div class="note">1 day to 8 weeks</div></div><div class="statmini"><b id="pulletCount">0</b>Pullets<div class="note">8 weeks to 18 weeks</div></div></div>
+          <label>Acquisition date</label><input id="cohortDate" type="date">
+          <label>Number of chicks</label><input id="cohortCount" type="number" min="1" data-random-placeholder>
+          <label>Relevant details</label><input id="cohortNote" placeholder="Optional">
+          <div class="actions"><button class="btn" onclick="addCohort('hatched')">🐣 Add Hatched</button><button class="btn gray" onclick="addCohort('acquired')">🐥 Add Non-Hatched</button></div><div id="cohortList"></div>
+          <h2 class="sec">Rearing Ages</h2>
+          <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
+          <label>Pullet becomes a hen at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
+        </div>
+</details>
+      <details class="nextgen" id="chickenTractorSection"><summary>Tractor</summary><div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><div class="stats3" style="grid-template-columns:1fr 1fr"><div class="statmini"><b id="meatBirdCount">0</b>Meat birds 7+ weeks old</div><div class="statmini"><b id="tractorYoungCount">0</b>Tractor &lt;7 weeks old</div></div><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">🍗 Add Meat Bird</button><div id="tractorList"></div></div></details>
+      <details class="nextgen hidden" id="quarantineSection"><summary>🤒 Diseased / Backup Coop</summary><div class="workflow"><h2 class="sec">Quarantine Tracker</h2><label>Name/leg band</label><input id="qName"><label>Date quarantined</label><input id="qQuarantined" type="date"><label>Note</label><input id="qNote"><button class="btn" onclick="addQuarantine()">🤒 Add Quarantined Bird</button><div id="quarantineList"></div></div></details>
+      <details class="nextgen" id="dispatchSection"><summary>Dispatch</summary><div class="workflow"><h2 class="sec">Dispatch Tracking</h2>
+        <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
+        <label>Dispatched date</label><input id="birdDate" type="date">
+        <label>Note</label><input id="birdNote" placeholder="Optional">
+        <label>Destination</label><input id="birdDestination" list="destinationCodes" placeholder="Optional · 😀 😁 🙂 😊 😚"><datalist id="destinationCodes"><option value="😀"><option value="😁"><option value="🙂"><option value="😊"><option value="😚"></datalist>
+        <button class="btn" onclick="addDispatch()">☠️ Add Dispatch Bird</button>
+        <div class="stats3"><div class="statmini"><b id="d7">0</b>Prior Week</div><div class="statmini"><b id="d30">0</b>Prior Month</div><div class="statmini"><b id="dAll">0</b>Cumulative</div></div>
+        <div id="dispatchList"></div></div></details>
+    </details>
+    <details class="nextgen" id="etcSection"><summary>etc</summary>
+      <div class="workflow"><h2 class="sec">Before and After</h2><label>Filler 1</label><input id="etcFiller1" placeholder="optional" onchange="setEtc('filler1',this.value)"></div>
+      <div class="workflow"><h2 class="sec">Social Media</h2><label>Filler 2</label><input id="etcFiller2" placeholder="optional" onchange="setEtc('filler2',this.value)"></div>
+      <div class="workflow"><h2 class="sec">Ideas/TDL</h2><label>Filler 3</label><input id="etcFiller3" placeholder="optional" onchange="setEtc('filler3',this.value)"></div>
+    </details>
+  </div>
+</section>
+
+<!-- EGGS -->
+<section id="tab-eggs">
+  <div class="wrap">
+    <h2 class="sec" id="eggDateLbl">Today</h2>
+    <div class="counter">
+      <button onclick="chgEgg(-1)">−</button>
+      <input class="numin" type="number" id="eggDirect" inputmode="numeric" min="0" value="0">
+      <button onclick="chgEgg(1)">+</button>
+    </div>
+    <div style="text-align:center;color:#8a7a63;font-size:13px">Tap +/− or type the number. Saves automatically.</div>
+    <h2 class="sec">Last 7 Days</h2>
+    <div id="eggHist"></div>
+    <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div><div class="cards" id="eggStats"><div class="card"><div class="big" id="eAvg3">0</div><div class="label">Prior 3d Avg</div><div class="note avg-range" id="eAvg3Range"></div></div><div class="card"><div class="big" id="cAvg">0</div><div class="label">Prior 7d Avg</div><div class="note avg-range" id="cAvgRange"></div></div><div class="card"><div class="big" id="eAvg1m">0</div><div class="label">Prior 1m Avg</div><div class="note avg-range" id="eAvg1mRange"></div></div><div class="card"><div class="big" id="cAvg30">0</div><div class="label">Prior 3m Avg</div><div class="note avg-range" id="cAvg30Range"></div></div><div class="card"><div class="big" id="eMonthDiff">0</div><div class="label">Month Difference</div><div class="note avg-range" id="eMonthDiffRange"></div></div></div>
+    
+      <details class="nextgen" id="eggMonthsSection"><summary>Eggs by Month</summary><button class="btn small adminAction" onclick="addEggMonth()">+ Add Month</button><div id="eggMonths"></div></details>
+  </div>
+</section>
+
+<!-- SUPPLIES -->
+<section id="tab-tasks">
+  <div class="wrap">
+    
+    <div id="supplyList"></div>
+    <details class="archive" id="inventory"><summary>Inventory</summary>
+      <div class="hatchcard"><h3>🌾 Feed</h3><div class="meta">Last fill: <span id="feedLast">—</span></div>
+        <label>Date</label><input id="fDate" type="date"><label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="fNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addFeed()">Add Feed</button><details class="history"><summary>History</summary><div id="feedList"></div></details></div>
+      <div class="hatchcard"><h3>🌾 Scratch</h3><div class="meta">Last fill: <span id="scratchLast">—</span></div>
+        <label>Date</label><input id="scratchDate" type="date"><label>Pounds</label><input id="scratchLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="scratchNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addScratch()">Add Scratch</button><details class="history"><summary>History</summary><div id="scratchList"></div></details></div>
+      <div id="inventorySupplyList"></div>
+    </details>
+  </div>
+</section>
+
+<!-- FINANCE -->
+<section id="tab-finance">
+  <div class="wrap">
+    <h2 class="sec">Finance</h2>
+    <div class="card" style="margin-top:8px"><div class="big" id="financeTotal">$0.00</div><div class="label">Tracked total</div><div class="note">Updates as amounts change</div></div>
+
+    <div class="hatchcard">
+      <h3>Last related purchase</h3>
+      <label>Amount</label><input id="financeLastAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('lastAmount',this.value)">
+      <label>Receipt or product link</label><input id="financeLastLink" type="url" placeholder="https://…" onchange="setFinance('lastLink',this.value)">
+      <div id="financeLastOpen" style="margin-top:8px"></div>
+    </div>
+
+    <div class="hatchcard"><h3>Future category 1</h3><div class="meta">Name and details TBD</div><label>Amount</label><input id="financeTbd1" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('tbd1',this.value)"></div>
+    <div class="hatchcard"><h3>Future category 2</h3><div class="meta">Name and details TBD</div><label>Amount</label><input id="financeTbd2" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('tbd2',this.value)"></div>
+    <div class="hatchcard"><h3>Future category 3</h3><div class="meta">Name and details TBD</div><label>Amount</label><input id="financeTbd3" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('tbd3',this.value)"></div>
+  </div>
+</section>
+
+<!-- MORE -->
+<section id="tab-more">
+  <div class="wrap">
+
+    <h2 class="sec">Cloud Sync</h2>
+    <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
+    <div class="authbox" id="authSignedOut">
+      <p>Enter email below &amp; open sign in link to sync.</p>
+      <label>Email</label><input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
+      <button id="passkeySignInBtn" class="btn hidden" onclick="signInWithPasskey()">Sign in with Face ID / Passkey</button><div id="passkeyHelp" class="hint hidden">If Face ID or your passkey is unavailable, use the email link below for Admin access.</div><button class="btn gray" onclick="sendSignInLink()">Email me a sign-in link</button>
+      <div id="authMessage" class="r" style="margin-top:10px"></div><label id="rememberPairWrap" class="hidden"><input id="rememberPair" type="checkbox" checked> Remember me on this device</label>
+    </div>
+    <div class="authbox hidden" id="authSignedIn">
+      <p><b id="accountNote">Signed in.</b><br>Your records stay with this email and sync on every signed-in device.</p>
+      <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button>
+      <button class="btn gray" onclick="signOutAccount()">Use a different email</button>
+    </div>
+    <div class="authbox hidden" id="conflictBox">
+      <p class="danger"><b>Two devices changed the same data.</b> Nothing was overwritten. Choose which copy to keep.</p>
+      <div class="auth-actions">
+        <button class="btn gray" onclick="resolveConflict('cloud')">Use Cloud Copy</button>
+        <button class="btn" onclick="resolveConflict('local')">Keep This Device</button>
+      </div>
+    </div>
+    <div id="backupRestore"><h2 class="sec">Backup &amp; Restore</h2>
+      <div id="qrWrap" class="hidden"><p id="qrIntro"><b>Scan below to sign on another device using this account</b></p><div id="accountQR" class="qr" aria-label="QR code to open Coop Tracker on another device"></div></div>
+      <div class="authbox" id="restoreBox"><p id="restoreNote">Log Out ends this session but keeps this device remembered for one-tap restore. Forget This Device removes that access.</p><button class="btn gray" id="restoreBtn" onclick="restoreSignIn()">Restore sign-in on this device</button></div>
+      <div class="authbox backup-actions"><button class="btn gray" onclick="signOutAccount()">Log Out</button><button class="btn gray danger" onclick="forgetThisDevice()">Forget This Device</button><button class="btn gray danger" onclick="resetAllTesting()">Reset All Data</button><div id="trustedControls" class="hidden"><button id="trustDeviceBtn" class="btn gray" onclick="trustThisDevice()">Trust This Device as Admin+</button><button class="btn gray danger" onclick="revokeOtherDevices()">Sign Out All Other Devices</button></div></div>
+    </div>
+    <div id="adminBottom" class="adminOnlyBlock">
+      <div id="adminPlus"><h2 class="sec">Admin+</h2><button id="untrustDeviceBtn" class="btn gray danger hidden" onclick="untrustThisDevice()">Remove Trusted Admin+ from This Device</button><div id="passkeyManager"><button class="btn gray" onclick="registerPasskey()">Add Admin+ Passkey</button><div id="passkeyList"></div></div><div id="adminMagicLink"><button class="btn gray" onclick="generateAdminLink()">Generate Magic Link</button><div id="adminMagicResult" class="hidden"><input id="adminMagicText" readonly><button class="btn gray" onclick="copyAdminLink()">Copy Link</button><div id="adminMagicStatus" class="hint"></div></div></div></div>
+      <div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div></div>
+    </div>
+    <div id="factArchive"><h2 class="sec">Did you know? Archive</h2><button class="btn" style="font-size:20px" onclick="randomArchiveFact()">🐣🐓Random🐔🐥</button><div id="randomFactResult"></div><button class="btn gray" onclick="openFactArchive()">View All</button><div id="factTopics" class="auth-actions"></div></div>
+    <div id="callsArchive"><h2 class="sec">Chicken Calls</h2><button class="btn" style="font-size:20px" onclick="openCallsQuiz()">🐔🔊 Guess the Call</button><div class="r" id="callsSummary" style="margin-top:8px"></div><button class="btn gray" onclick="openCalls()">View All</button><div id="callsTopics" class="auth-actions"></div></div>
+    <div class="adminOnlyBlock" id="downloadData"><h2 class="sec">Download Your Data</h2><div class="hint" style="margin:8px 0">Downloads create a copy of your records. TXT is plain readable text, MD keeps headings for notes apps, and XLSX opens as a spreadsheet.</div><div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div><button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button></div>
+  </div>
+</section>
+
+</main>
+
+<!-- CHICKEN CALLS -->
+<div id="callsOverlay" class="callsOverlay hidden">
+  <div class="callsHead">
+    <div class="callsHeadRow"><h2>🐔 Chicken Calls</h2><button class="callsClose" aria-label="Close" onclick="closeCalls()">×</button></div>
+    <input id="callsSearch" placeholder="Search calls…" oninput="renderCallsList()" style="margin-top:10px">
+    <div id="callsChips" class="chips"></div>
+  </div>
+  <div class="callsBody">
+    <div id="callsList"></div>
+    <button class="btn" id="callsAddBtn" onclick="toggleCallForm()">➕ Add a Call</button>
+    <div id="callForm" class="hatchcard hidden">
+      <h3 id="callFormTitle">Add a Call</h3>
+      <label>Recording</label><input id="callFile" type="file" accept="audio/*" onchange="callFilePicked()">
+      <div class="meta" id="callFileMeta" style="margin-top:4px"></div>
+      <label>Title</label><input id="callTitle">
+      <label>Category</label><select id="callCategory"></select>
+      <label>Emotion</label><input id="callEmotion" placeholder="e.g. excited, alarmed">
+      <label>Duration</label><input id="callDuration" placeholder="0:00">
+      <label>Description</label><input id="callDesc" placeholder="What does it sound like? When do they make it?">
+      <button class="btn" onclick="saveCall()">Save Call</button>
+      <button class="btn gray" onclick="toggleCallForm(true)">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- GUESS THE CALL -->
+<div id="quizOverlay" class="callsOverlay hidden">
+  <div class="callsHead">
+    <div class="callsHeadRow"><h2>🐔🔊 Guess the Call</h2><button class="callsClose" aria-label="Close" onclick="closeQuiz()">×</button></div>
+  </div>
+  <div class="callsBody"><div class="quizBody">
+    <div class="quizBig">🔊</div>
+    <div class="quizScore" id="quizScore"></div>
+    <button class="btn" id="quizPlayBtn" onclick="quizReplay()">▶ Play the call</button>
+    <div id="quizChoices"></div>
+    <div class="quizFeedback" id="quizFeedback"></div>
+    <button class="btn hidden" id="quizNextBtn" onclick="quizNext()">Next Call</button>
+  </div></div>
+</div>
+
+<nav id="tabbar">
+  <button data-tab="home" class="active" onclick="showTab('home')"><span class="ic">🏠</span>Home</button>
+  <button data-tab="eggs" onclick="showTab('eggs')"><span class="ic">🥚</span>Eggs</button>
+  <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">🌾</span>Supplies</button>
+  <button data-tab="finance" onclick="showTab('finance')"><span class="ic">💵</span>Finance</button>
+  <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>Settings</button>
+</nav>
+
+<script src="supabase.js"></script>
+<script src="qrcode.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script>
+const LEGACY_KEY = 'coopTrackerV1';
+const CACHE_PREFIX = 'coopTrackerV2:';
+const DEVICE_KEY='coopDeviceId';
+const DEVICE_SECRET_KEY='coopDeviceSecret';
+const REMEMBERED_EMAIL_KEY='coopRememberedEmail';
+const ADMIN_TOKEN_KEY='coopPasskeyAdminToken';
+let supportMode=false;
+const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
+const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdWFoemN2ZmRobmZ0d21sdnJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTIzNzIsImV4cCI6MjEwMzg4ODM3Mn0.6rksBqxsn51ARofrxt48p7QaBMngU2VGzrc9UXxcUTc';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
+const SUPPLIES = [ ['water','💧 Big Water'], ['bigFood','🍽️ Big Food'], ['calcium','🐚 Calcium'], ['grit','🪨 Grit'] ];
+const INVENTORY_SUPPLIES = [ ['fsl','🌾 FSL'] ];
+const ALL_SUPPLIES=[...SUPPLIES,...INVENTORY_SUPPLIES];
+const ADMIN_EMAIL='aerauwolf15@gmail.com';
+const FACT_ARCHIVE = [
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
+    "existing": true,
+    "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
+    "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "A hen's earlobe color usually predicts her egg color: red lobes, brown eggs; white lobes, white eggs.",
+    "existing": true,
+    "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
+    "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Hens lay best with 14–16 hours of light. Short winter days are why production drops.",
+    "existing": true,
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "An egg takes about 24–26 hours to form, so hens rarely lay more than one per day.",
+    "existing": true,
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Chicks can absorb the yolk sac just before hatching — that's how they ship day-old chicks with no food.",
+    "existing": true,
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Stop turning eggs at day 18 ('lockdown') so chicks can position themselves to hatch.",
+    "existing": true,
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "A rooster isn't needed for eggs — only for fertile eggs.",
+    "existing": true,
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Candling at day 7–10 lets you spot clear (infertile) eggs before they spoil.",
+    "existing": true,
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Humidity matters at hatch: aim ~45–55% early, then 65%+ for lockdown.",
+    "existing": true,
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Hens have a 'pecking order' — literally. New birds get ranked by squabbles.",
+    "existing": true,
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "The average hen eats about 1/4 lb of feed per day.",
+    "existing": true,
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Eggs have a natural 'bloom' coating; unwashed eggs keep weeks longer at room temp.",
+    "existing": true,
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Embryonic development starts only after a fertile egg is warmed to incubation temperature.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Store hatching eggs cool, not refrigerated, before setting them.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Set clean, normal-shaped eggs for the best hatch results.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Turning during early incubation keeps the embryo from sticking to shell membranes.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Chicken eggs normally hatch around day 21, though strain and temperature can shift timing.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Stop turning chicken eggs around day 18 so chicks can position for hatch.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "A chick pips internally into the air cell before breaking the outer shell.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/laying-and-reproduction-in-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Laying and Reproduction"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Hatching can take many hours after the first external pip; avoid opening the incubator unnecessarily.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Newly hatched chicks can remain in the incubator until dry and fluffy.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Brooder temperature should be reduced gradually as chicks feather out.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Chicks crowding under heat are cold; chicks avoiding it may be too hot.",
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Chick starter is formulated with more protein than typical layer feed.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Pullets are young female chickens that have not begun laying.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Comb and wattle growth often becomes more noticeable as a pullet nears laying age.",
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Many laying breeds begin around 18 to 24 weeks, but genetics and season matter.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "The first eggs from a pullet are often smaller than her later eggs.",
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "A hen ovulates a new yolk shortly after laying when her cycle is active.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/laying-and-reproduction-in-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Laying and Reproduction"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Egg formation generally takes a little over a day, so laying time often shifts later.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/laying-and-reproduction-in-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Laying and Reproduction"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Day length strongly influences reproductive maturity and laying cycles.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Molting replaces worn feathers and commonly reduces or pauses egg production.",
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Adult hens often molt in late summer or fall as days shorten.",
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "A chicken is most vulnerable to chilling before it is fully feathered.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Growth rate differs greatly between egg, dual-purpose, and meat breeds.",
+    "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
+    "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
+  },
+  {
+    "category": "Chicken Lifecycle",
+    "tip": "Keep age records because feeding, heat, and housing needs change quickly during the first weeks.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Treat scratch grains as a supplement, not a substitute for balanced feed.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Keep feed dry and protected from rodents and wild birds.",
+    "source": "https://extension.umn.edu/small-scale-poultry/common-concerns-backyard-or-urban-poultry-keeping",
+    "sourceName": "UMN Extension - Backyard Poultry Concerns"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Water intake rises sharply in hot weather, so check drinkers more often.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/preventing-heat-stress-in-poultry",
+    "sourceName": "UMN Extension - Preventing Heat Stress in Poultry"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Place enough feeders and drinkers to prevent timid birds from being crowded out.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Grit helps chickens grind whole grains and fibrous foods in the gizzard.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Laying hens need an available calcium source for strong shells.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Do not feed high-calcium layer ration to young chicks unless a veterinarian directs it.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Dry bedding helps control ammonia and foot problems.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "If you can smell ammonia at bird level, ventilation or litter management needs attention.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Ventilation should remove moisture without creating a cold draft on roosting birds.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Roosts should be wide enough for birds to balance comfortably.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Provide about one nest box for every four to five hens to reduce competition.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Collect eggs often to limit breakage, dirt, and egg eating.",
+    "source": "https://extension.umn.edu/small-farms/safety-tips-handling-farm-fresh-eggs",
+    "sourceName": "UMN Extension - Handling Farm-Fresh Eggs Safely"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Shade and moving air are essential heat-stress protections.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/preventing-heat-stress-in-poultry",
+    "sourceName": "UMN Extension - Preventing Heat Stress in Poultry"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Panting with wings held away from the body is a warning sign of heat stress.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/preventing-heat-stress-in-poultry",
+    "sourceName": "UMN Extension - Preventing Heat Stress in Poultry"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "During extreme heat, offer cool water and minimize handling during the hottest hours.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/preventing-heat-stress-in-poultry",
+    "sourceName": "UMN Extension - Preventing Heat Stress in Poultry"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Protect combs and toes from frostbite by keeping the coop dry and well ventilated.",
+    "source": "https://poultry.extension.org/articles/poultry-health/frostbite-in-chickens/",
+    "sourceName": "Poultry Extension - Frostbite in Chickens"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "A quarantine area should have separate equipment and be cared for after the healthy flock.",
+    "source": "https://extension.umn.edu/poultry-health/poultry-biosecurity-basics",
+    "sourceName": "UMN Extension - Poultry Biosecurity Basics"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Quarantine new birds before mixing them with the established flock.",
+    "source": "https://extension.umn.edu/poultry-health/poultry-biosecurity-basics",
+    "sourceName": "UMN Extension - Poultry Biosecurity Basics"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Introduce birds with visual separation first when possible to reduce fighting.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Give birds enough space and enrichment to reduce feather pecking.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Animal Husbandry",
+    "tip": "Inspect feet, vents, eyes, nostrils, combs, and body condition during routine checks.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Isolate a sick bird promptly while you investigate the cause.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Sudden deaths, severe respiratory signs, or a sharp egg drop warrant a veterinarian and animal-health report.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Limit visitors and dedicated footwear reduce the chance of carrying disease into the coop.",
+    "source": "https://extension.umn.edu/poultry-health/poultry-biosecurity-basics",
+    "sourceName": "UMN Extension - Poultry Biosecurity Basics"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Clean and disinfect equipment before sharing it between flocks.",
+    "source": "https://extension.umn.edu/poultry-health/poultry-biosecurity-basics",
+    "sourceName": "UMN Extension - Poultry Biosecurity Basics"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Wild birds can carry poultry pathogens, so keep them away from feed and water.",
+    "source": "https://extension.umn.edu/poultry-health/poultry-biosecurity-basics",
+    "sourceName": "UMN Extension - Poultry Biosecurity Basics"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Standing water and spilled feed attract wildlife and pests; clean them up promptly.",
+    "source": "https://extension.umn.edu/small-scale-poultry/common-concerns-backyard-or-urban-poultry-keeping",
+    "sourceName": "UMN Extension - Backyard Poultry Concerns"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Rodent-proof feed storage removes both food and nesting opportunities.",
+    "source": "https://extension.umn.edu/small-scale-poultry/common-concerns-backyard-or-urban-poultry-keeping",
+    "sourceName": "UMN Extension - Backyard Poultry Concerns"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Mice can pass through surprisingly small gaps, so seal openings around the coop.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Check birds at night for northern fowl mites because some mites feed after dark.",
+    "source": "https://www.merckvetmanual.com/poultry/arthropods-in-poultry/mites-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Mites of Poultry"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Pale combs, irritated skin, or dirty feathers near the vent can signal external parasites.",
+    "source": "https://www.merckvetmanual.com/poultry/arthropods-in-poultry/mites-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Mites of Poultry"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Scaly leg mites cause raised, crusty scales on legs and feet.",
+    "source": "https://www.merckvetmanual.com/poultry/arthropods-in-poultry/mites-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Mites of Poultry"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Do not use a pesticide on chickens unless its label specifically allows poultry use.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Follow every medication withdrawal time before eating eggs or meat.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Coccidiosis risk is highest in young birds exposed to contaminated litter.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Bloody droppings, weakness, or huddling in chicks needs prompt professional guidance.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Marek’s disease prevention is most effective when chicks are vaccinated at hatch.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Vaccination plans should match local disease risk and veterinary advice.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Infectious bronchitis can cause respiratory illness and misshapen or poor-quality eggs.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Bumblefoot is an infected foot lesion often linked with injury or poor surfaces.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Smooth roosts, dry litter, and prompt wound care help prevent foot infections.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Wet litter encourages flies and raises parasite and disease pressure.",
+    "source": "https://extension.umn.edu/small-scale-poultry/common-concerns-backyard-or-urban-poultry-keeping",
+    "sourceName": "UMN Extension - Backyard Poultry Concerns"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Rotate or rest outdoor areas when practical to reduce mud and parasite buildup.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Pests & Diseases",
+    "tip": "Wash hands after handling birds, eggs, litter, or coop equipment.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/diseases-of-small-poultry-flocks",
+    "sourceName": "University of Minnesota Extension - Diseases of Small Poultry Flocks"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chickens can recognize many individual flock mates and people.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A flock’s pecking order helps determine access to food, roosts, and nest boxes.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Hens use distinct calls for laying, alarm, contact, and food discovery.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Mother hens begin communicating with chicks before hatch through soft calls.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chicks can answer a broody hen from inside the egg.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A rooster may perform a food call and tidbitting display when he finds a treat.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chickens see color well and can detect ultraviolet wavelengths people cannot see.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Each eye can focus somewhat independently, helping chickens watch for food and predators.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chickens have a third eyelid called a nictitating membrane that protects the eye.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A chicken’s body temperature is higher than a human’s, generally around 105 to 107°F.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/management-of-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Management of Backyard Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Dust bathing helps chickens maintain feathers and discourage external parasites.",
+    "source": "https://www.merckvetmanual.com/poultry/arthropods-in-poultry/mites-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Mites of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Sunbathing with a wing and leg extended is normal relaxed behavior.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A broody hen may flatten herself, puff feathers, and growl when her nest is disturbed.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Eggshell color comes from breed genetics and does not determine nutrition.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/management-of-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Management of Backyard Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Blue eggshell pigment is deposited through the shell, while brown pigment is mainly on the surface.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/laying-and-reproduction-in-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Laying and Reproduction"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A hen can store sperm after mating and lay fertile eggs for days or weeks.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/management-of-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Management of Backyard Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Double-yolk eggs are more common in young hens with irregular ovulation cycles.",
+    "source": "https://www.merckvetmanual.com/poultry/disorders-of-the-reproductive-system-in-poultry/defective-or-abnormal-eggs-in-poultry",
+    "sourceName": "Merck Veterinary Manual - Abnormal Eggs in Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A blood spot usually comes from a tiny ruptured vessel during egg formation, not an embryo.",
+    "source": "https://www.merckvetmanual.com/poultry/disorders-of-the-reproductive-system-in-poultry/defective-or-abnormal-eggs-in-poultry",
+    "sourceName": "Merck Veterinary Manual - Abnormal Eggs in Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Shell-less eggs can occur when the shell gland cycle is disrupted.",
+    "source": "https://www.merckvetmanual.com/poultry/disorders-of-the-reproductive-system-in-poultry/defective-or-abnormal-eggs-in-poultry",
+    "sourceName": "Merck Veterinary Manual - Abnormal Eggs in Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "The chalazae are twisted protein cords that help center the yolk.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/laying-and-reproduction-in-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Laying and Reproduction"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "An egg’s air cell grows larger as moisture leaves through shell pores.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Fresh eggs tend to have firmer whites and more centered yolks.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/laying-and-reproduction-in-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Laying and Reproduction"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Roosters often scan for danger while hens forage.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "Chickens dream during REM sleep.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Fun Facts",
+    "tip": "A chicken’s gizzard uses grit and strong muscles to grind food without teeth.",
+    "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/management-of-backyard-poultry",
+    "sourceName": "Merck Veterinary Manual - Management of Backyard Poultry"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Plan manure storage before building a coop; dry covered storage reduces odor and runoff.",
+    "source": "https://extension.umn.edu/small-scale-poultry/common-concerns-backyard-or-urban-poultry-keeping",
+    "sourceName": "UMN Extension - Backyard Poultry Concerns"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Composted chicken manure can enrich soil, but fresh manure may burn plants and carry pathogens.",
+    "source": "https://extension.psu.edu/raising-small-flock-poultry",
+    "sourceName": "Penn State Extension - Raising Small Flock Poultry"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Wear a dust mask when cleaning a dry, dusty coop.",
+    "source": "https://extension.psu.edu/raising-small-flock-poultry",
+    "sourceName": "Penn State Extension - Raising Small Flock Poultry"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Moisten dusty surfaces lightly before cleaning to keep particles out of the air.",
+    "source": "https://extension.psu.edu/raising-small-flock-poultry",
+    "sourceName": "Penn State Extension - Raising Small Flock Poultry"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Do not wash eggs in cool water because contraction can draw contamination through shell pores.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "If washing eggs, use water warmer than the egg and follow local food-safety guidance.",
+    "source": "https://extension.psu.edu/raising-small-flock-poultry",
+    "sourceName": "Penn State Extension - Raising Small Flock Poultry"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Refrigerate washed eggs promptly.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Discard cracked eggs if contamination may have entered through the shell.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Cook eggs until whites and yolks are firm when serving higher-risk people.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/safe-temperature-chart",
+    "sourceName": "USDA FSIS - Safe Minimum Internal Temperatures"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Use a dedicated coop brush and boots rather than bringing household tools into litter.",
+    "source": "https://extension.psu.edu/raising-small-flock-poultry",
+    "sourceName": "Penn State Extension - Raising Small Flock Poultry"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Test backup heat sources safely before brooder season and avoid fire hazards.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Secure latches with two-step mechanisms because raccoons can open simple hooks.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Hardware cloth protects openings better than chicken wire against many predators.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Bury an apron of wire outward from the run to discourage digging predators.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Lock birds inside before dusk because many predators become active around sunset.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Motion cameras can help identify a predator before changing defenses.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Plantings around a run can provide shade, but verify every plant is safe for poultry.",
+    "source": "https://extension.psu.edu/raising-small-flock-poultry",
+    "sourceName": "Penn State Extension - Raising Small Flock Poultry"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Avoid moldy feed; some molds produce toxins that harm poultry.",
+    "source": "https://extension.psu.edu/raising-small-flock-poultry",
+    "sourceName": "Penn State Extension - Raising Small Flock Poultry"
+  },
+  {
+    "category": "Etc/All Other",
+    "tip": "Record daily egg totals because abrupt changes can reveal stress, illness, molt, or predator disturbance.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Wash hands with soap and water after touching poultry, their eggs, or anything in their environment.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Keep poultry and coop equipment outside the home, especially away from kitchens and food-preparation areas.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Children under five, adults over 65, and people with weakened immune systems face higher risk from poultry-associated germs.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Supervise children around poultry and make sure they wash their hands afterward.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Do not kiss or snuggle poultry or touch your face after handling them.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Use dedicated shoes or boots for the coop and leave them outside living areas.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Clean poultry equipment outdoors rather than in a kitchen sink.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Remove manure and wet litter regularly to limit ammonia, flies, and disease pressure.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Clean first and disinfect second; organic dirt can make disinfectants less effective.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Follow the disinfectant label for dilution, surface contact time, and poultry use.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Let cleaned housing and equipment dry fully when possible before birds return.",
+    "source": "https://extension.psu.edu/small-scale-poultry-housing",
+    "sourceName": "Penn State Extension - Small-Scale Poultry Housing"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Keep feed scoops, egg baskets, and cleaning tools separate from household items.",
+    "source": "https://extension.umn.edu/small-farms/safety-tips-handling-farm-fresh-eggs",
+    "sourceName": "UMN Extension - Handling Farm-Fresh Eggs Safely"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Collect eggs frequently and discard eggs that are badly cracked or heavily contaminated.",
+    "source": "https://extension.umn.edu/small-farms/safety-tips-handling-farm-fresh-eggs",
+    "sourceName": "UMN Extension - Handling Farm-Fresh Eggs Safely"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Refrigerate eggs promptly when local guidance or washing practices call for it.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Use water warmer than the egg if eggs must be washed, then dry and refrigerate them.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Never soak eggs because soaking can encourage contamination to move through shell pores.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
+    "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Cook poultry and eggs to safe internal temperatures; use a food thermometer rather than color alone.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/safe-temperature-chart",
+    "sourceName": "USDA FSIS - Safe Minimum Internal Temperatures"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Prevent raw poultry juices from contacting ready-to-eat foods.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/safe-temperature-chart",
+    "sourceName": "USDA FSIS - Safe Minimum Internal Temperatures"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Wash hands, knives, boards, and counters after preparing raw poultry.",
+    "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/safe-temperature-chart",
+    "sourceName": "USDA FSIS - Safe Minimum Internal Temperatures"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Avoid dry sweeping dusty manure; lightly dampen material or use dust control first.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Wear gloves and respiratory protection when cleaning heavy dust, mold, or accumulated droppings.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Keep dead birds away from feed, water, pets, wildlife, and the flock while arranging safe disposal.",
+    "source": "https://www.cdc.gov/healthy-pets/about/backyard-poultry.html",
+    "sourceName": "CDC - Backyard Poultry Safety Guidelines"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Control rodents because they contaminate feed and surfaces with urine and droppings.",
+    "source": "https://extension.umn.edu/small-scale-poultry/common-concerns-backyard-or-urban-poultry-keeping",
+    "sourceName": "UMN Extension - Backyard Poultry Concerns"
+  },
+  {
+    "category": "Safety, Sanitization & Hygiene",
+    "tip": "Change clothes and shower after visiting another flock before handling your own birds.",
+    "source": "https://extension.umn.edu/poultry-health/poultry-biosecurity-basics",
+    "sourceName": "UMN Extension - Poultry Biosecurity Basics"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Hardware cloth resists many predators better than standard chicken wire.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Use latches that require two motions because raccoons can open simple hooks.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Lock chickens into a secure coop before dusk, when many predators become active.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Check the entire run roofline because hawks and climbing predators exploit uncovered gaps.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Extend wire outward as an apron to deter animals that dig at fence edges.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Repair holes promptly; predators often return after finding one successful entry.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Keep brush and clutter away from the coop to reduce hiding places for predators.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Remove spilled feed because rodents can attract snakes and larger predators.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Motion cameras can identify whether the threat is aerial, climbing, digging, or reaching through wire.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Do not rely on a single deterrent such as lights or noise; physical exclusion is the foundation.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Provide overhead cover in open runs so chickens can hide from aerial predators.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Look for tracks, feathers, entry damage, and time of attack before changing defenses.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Secure young chicks especially well because small openings that stop adult birds may not protect chicks.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Keep brooders protected from household pets as well as wildlife.",
+    "source": "https://extension.umn.edu/agriculture/animals-and-livestock/poultry/raising-layer-chicks-and-pullets",
+    "sourceName": "UMN Extension - Raising Layer Chicks and Pullets"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "When a bird is badly injured, isolate it from flock pecking while assessing care.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Have a veterinarian and a humane dispatch plan before an emergency occurs.",
+    "source": "https://www.avma.org/resources-tools/avma-policies/avma-guidelines-euthanasia-animals",
+    "sourceName": "AVMA - Guidelines for Euthanasia of Animals"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Humane dispatch should produce immediate unconsciousness followed by death and must comply with local law.",
+    "source": "https://www.avma.org/resources-tools/avma-policies/avma-guidelines-euthanasia-animals",
+    "sourceName": "AVMA - Guidelines for Euthanasia of Animals"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Do not improvise a dispatch method during a crisis; learn and prepare an approved method beforehand.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Confirm death by checking for absence of rhythmic breathing, corneal reflex, and other signs recommended by veterinary guidance.",
+    "source": "https://www.avma.org/resources-tools/avma-policies/avma-guidelines-euthanasia-animals",
+    "sourceName": "AVMA - Guidelines for Euthanasia of Animals"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Use clean, sharp, maintained equipment appropriate to the selected humane method.",
+    "source": "https://www.avma.org/resources-tools/avma-policies/avma-guidelines-euthanasia-animals",
+    "sourceName": "AVMA - Guidelines for Euthanasia of Animals"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Keep written criteria for quality-of-life decisions so suffering is not prolonged by uncertainty.",
+    "source": "https://www.avma.org/resources-tools/avma-policies/avma-guidelines-euthanasia-animals",
+    "sourceName": "AVMA - Guidelines for Euthanasia of Animals"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Seek veterinary help for injuries that may be treatable rather than assuming dispatch is necessary.",
+    "source": "https://extension.umn.edu/small-scale-poultry/raising-chickens-eggs",
+    "sourceName": "University of Minnesota Extension - Raising Chickens for Eggs"
+  },
+  {
+    "category": "Predation & Early Dispatch",
+    "tip": "Dispose of carcasses according to local rules and in a way that does not attract predators or spread disease.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Domestic chickens descend primarily from the red junglefowl of South and Southeast Asia.",
+    "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
+    "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Chicken domestication happened over thousands of years and involved movement with human communities.",
+    "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
+    "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "A breed is a population selected for consistent inherited traits such as body type, comb, plumage, and production.",
+    "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
+    "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "A hybrid cross is not the same as a true-breeding breed because offspring may not reproduce the same traits.",
+    "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
+    "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Heritage chicken breeds retain historic traits and can support genetic diversity.",
+    "source": "https://livestockconservancy.org/heritage-breeds/conservation-priority-list/",
+    "sourceName": "The Livestock Conservancy - Conservation Priority List"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Breed choice should match climate, space, temperament, egg goals, and meat goals.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Mediterranean breeds are often active and productive layers with relatively large combs.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Heavy breeds generally need sturdy, lower roosts to reduce foot and leg injuries.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Large single combs are more vulnerable to frostbite than smaller comb types.",
+    "source": "https://poultry.extension.org/articles/poultry-health/frostbite-in-chickens/",
+    "sourceName": "Poultry Extension - Frostbite in Chickens"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Feathered feet can collect mud and ice, so they need extra inspection in wet or cold conditions.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Crested breeds may have restricted vision and can need protection from bullying and predators.",
+    "source": "https://extension.psu.edu/flock-talks-predator-control",
+    "sourceName": "Penn State Extension - Predator Control"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Silkie feather structure does not lock together like normal feathers, so Silkies are less weatherproof.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Bantams are small chickens; some are miniature versions of large breeds and others are true bantams.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Dual-purpose breeds were selected to provide both eggs and usable carcass weight.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Modern commercial layers are selected for high egg output and efficient feed conversion.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Modern meat strains grow very quickly and require careful feed, leg, heat, and ventilation management.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Eggshell color is inherited and does not indicate the egg’s nutritional value.",
+    "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
+    "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Comb type, skin color, shank color, and number of toes can be breed-identifying traits.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Autosexing breeds and sex-linked crosses allow chick sex to be distinguished by color or markings at hatch.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Broodiness varies by breed and strain because generations of selection can increase or reduce it.",
+    "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
+    "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Conservation breeding requires enough unrelated birds to limit loss of genetic diversity.",
+    "source": "https://livestockconservancy.org/heritage-breeds/conservation-priority-list/",
+    "sourceName": "The Livestock Conservancy - Conservation Priority List"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Written pedigrees and hatch records are important when maintaining a rare breed.",
+    "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
+    "sourceName": "Penn State Extension - Setting Up the Incubator"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "The American Poultry Association Standard of Perfection describes recognized breed varieties in the United States.",
+    "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
+    "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Landrace chickens developed through local adaptation rather than tightly standardized show selection.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  },
+  {
+    "category": "Breeds, Domestication & History",
+    "tip": "Keeping several breeds together is possible, but size and temperament differences affect flock compatibility.",
+    "source": "https://poultry.extension.org/articles/getting-started-with-small-and-backyard-poultry/selecting-birds-to-get-for-a-small-or-backyard-poultry-flock/selecting-a-chicken-breed-for-small-or-backyard-poultry-flocks/",
+    "sourceName": "Poultry Extension - Selecting a Chicken Breed"
+  }
+];
+const FACTS = FACT_ARCHIVE.map(x=>x.tip);
+
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], quarantine:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:24}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, etc:{filler1:'',filler2:'',filler3:''}, cartons:{regular:0,large:0,plastic:0,plasticCapacity:12,ready:0,log:{}}, counterEggs:null, calls:[], updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.etc=Object.assign(def().etc,(x&&x.etc)||{}); y.cartons=Object.assign(def().cartons,(x&&x.cartons)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); if(y.rearing.henWeeks===18)y.rearing.henWeeks=24; y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.quarantine=Array.isArray(y.quarantine)?y.quarantine:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.calls=Array.isArray(y.calls)?y.calls:[]; y.calls.forEach(c=>{if(typeof c.favorite!=="boolean")c.favorite=!!c.favorite;}); y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
+function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
+let S = loadKey(LEGACY_KEY) || def();
+let accountRole='limited',trustedDevice=false,trustedExists=false;
+let storageOK = true, syncTimer = null, currentUser = null, rowVersion = null, dirty = false, conflictCloud = null, realtimeChannel = null;
+
+function cacheKey(){ return currentUser ? CACHE_PREFIX + currentUser.id : LEGACY_KEY; }
+function testStorage(){
+  try { localStorage.setItem('__ct','1'); storageOK=localStorage.getItem('__ct')==='1'; localStorage.removeItem('__ct'); }
+  catch(e){ storageOK=false; }
+  const w=document.getElementById('warnBox');
+  if(!storageOK){ w.style.display='block'; w.innerHTML='<b>⚠️ Local cache is blocked.</b> Turn off Private Browsing and allow site storage, then reload.'; }
+  else w.style.display='none';
+}
+function saveLocal(){
+  try { localStorage.setItem(cacheKey(), JSON.stringify(cleanState(S))); const t=document.getElementById('saveTag'); if(t) t.textContent='💾 Saved '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+  catch(e){ storageOK=false; testStorage(); }
+}
+function save(){ S.updated=Date.now(); dirty=true; saveLocal(); schedulePush(); }
+function setSync(t){ const a=document.getElementById('syncStatus'); if(a)a.textContent=t; const b=document.getElementById('syncTag'); if(b)b.textContent=t||''; }
+function authMsg(t,bad=false){ const e=document.getElementById('authMessage'); if(!e)return; e.textContent=t||''; e.classList.toggle('danger',bad); }
+function isAccountUser(u=currentUser){ return !!u && !u.is_anonymous && !!u.email; }
+function isAdmin(){ return isAccountUser()&&accountRole==='admin'; }
+function requireAdmin(){ if(isAdmin())return true; alert('Admin+ access is required for that change.'); return false; }
+function renderRestore(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY)||''; const note=document.getElementById('restoreNote'),btn=document.getElementById('restoreBtn'); if(!note||!btn)return; note.textContent=email?'Remembered on this device: '+email:'No remembered email on this device yet.'; btn.disabled=!localStorage.getItem(DEVICE_SECRET_KEY); }
+async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){authMsg('This device is not registered yet. Use an email sign-in link.',true);return;} authMsg('Restoring this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action:'restore',device_id:deviceId(),secret})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Could not restore this device',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device restored. Syncing…'); }
+
+function randomizeNumericPlaceholders(){document.querySelectorAll('[data-random-placeholder]').forEach(x=>x.placeholder=String(1+Math.floor(Math.random()*10)));}
+function showAuth(){
+  const signedIn=isAccountUser(); if(!signedIn){supportMode=false;document.getElementById('supportBanner').classList.add('hidden');accountRole='limited';trustedDevice=false;document.body.dataset.role='limited';document.getElementById('qrWrap')?.classList.add('hidden');document.getElementById('trustedControls')?.classList.add('hidden');}
+  document.getElementById('authSignedOut').classList.toggle('hidden',signedIn);
+  document.getElementById('authSignedIn').classList.toggle('hidden',!signedIn);
+  randomizeNumericPlaceholders();
+  if(signedIn){ const admin=isAdmin(); document.getElementById('accountNote').textContent='Signed in as '+currentUser.email; document.body.dataset.role=admin?'admin':'limited'; document.getElementById('trustedControls').classList.toggle('hidden',!admin); document.getElementById('trustDeviceBtn').classList.toggle('hidden',trustedExists||trustedDevice); document.getElementById('untrustDeviceBtn').classList.toggle('hidden',!trustedDevice); document.getElementById('adminSessions').classList.toggle('hidden',!admin); document.getElementById('qrWrap').classList.toggle('hidden',!signedIn); document.getElementById('qrIntro').classList.toggle('hidden',admin); document.getElementById('restoreBox').classList.toggle('hidden',admin); document.querySelectorAll('.adminOnly').forEach(x=>x.classList.toggle('hidden',!admin)); setTimeout(renderAccountQR,0); if(admin)setTimeout(renderPasskeys,0); }
+}
+function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
+function deviceId(){ let id=localStorage.getItem(DEVICE_KEY); if(!id){ const b=crypto.getRandomValues(new Uint8Array(16)); id=[...b].map(x=>x.toString(16).padStart(2,'0')).join(''); localStorage.setItem(DEVICE_KEY,id); } return id; }
+function deviceSecret(){ let secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){ const b=crypto.getRandomValues(new Uint8Array(32)); secret=[...b].map(x=>x.toString(16).padStart(2,'0')).join(''); localStorage.setItem(DEVICE_SECRET_KEY,secret); } return secret; }
+function deviceInfo(){ const ua=navigator.userAgent, browser=/CriOS|Chrome/.test(ua)?'Chrome':/FxiOS|Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Web browser', client_type=isStandalone()?'Installed App':'Browser', device=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'Device'; return {id:deviceId(),secret:deviceSecret(),label:device+' · '+browser+' · '+client_type,client_type,browser}; }
+const b64uToBytes=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(s.length/4)*4,'=')),c=>c.charCodeAt(0));
+const bytesToB64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+function credentialJSON(c){return {id:c.id,rawId:bytesToB64u(c.rawId),type:c.type,authenticatorAttachment:c.authenticatorAttachment,response:{clientDataJSON:bytesToB64u(c.response.clientDataJSON),attestationObject:c.response.attestationObject?bytesToB64u(c.response.attestationObject):undefined,authenticatorData:c.response.authenticatorData?bytesToB64u(c.response.authenticatorData):undefined,signature:c.response.signature?bytesToB64u(c.response.signature):undefined,userHandle:c.response.userHandle?bytesToB64u(c.response.userHandle):null,transports:c.response.getTransports?c.response.getTransports():undefined},clientExtensionResults:c.getClientExtensionResults()};}
+async function publicPairAPI(action,extra={}){const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action,...extra})});const x=await r.json();return r.ok?x:{error:x.error||'Request failed'};}
+async function pairAPI(action,extra={}){ const {data:{session}}=await db.auth.getSession(); if(!session?.access_token)return {error:'No active session'}; const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action,device_id:deviceId(),secret:localStorage.getItem(DEVICE_SECRET_KEY)||'',admin_token:localStorage.getItem(ADMIN_TOKEN_KEY)||'',...extra})}); return await r.json(); }
+async function registerDevice(){ if(!isAccountUser())return; const x=await pairAPI('register',{device:deviceInfo()}); if(!x.error)await renderDevices(); }
+async function setupPasskeyDiscovery(){const btn=document.getElementById('passkeySignInBtn');if(!btn||!window.PublicKeyCredential)return;try{const [platform,conditional]=await Promise.all([PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),PublicKeyCredential.isConditionalMediationAvailable?.()||false]);btn.classList.toggle('hidden',!platform);document.getElementById('passkeyHelp').classList.toggle('hidden',!platform);if(conditional){const b=await publicPairAPI('passkey_auth_begin');if(!b.error){const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));navigator.credentials.get({publicKey:o,mediation:'conditional'}).then(async cred=>{if(!cred)return;const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo(),target_email:accountEmail()});if(f.error)return;localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);supportMode=!!f.support_mode;await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});}).catch(()=>{});}}}catch(e){btn.classList.add('hidden')}}
+async function signInWithPasskey(){if(!window.PublicKeyCredential){authMsg('Passkeys are not supported in this browser.',true);return;}try{authMsg('Waiting for passkey…');const b=await publicPairAPI('passkey_auth_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.get({publicKey:o});const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo(),target_email:accountEmail()});if(f.error)throw new Error(f.error);localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);supportMode=!!f.support_mode;const v=await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});if(v.error)throw v.error;authMsg('Admin+ passkey verified. Syncing…');}catch(e){authMsg(e.name==='NotAllowedError'?'Passkey unavailable or canceled. Use the email link below for Admin access.':e.message+' Use the email link below if needed.',true)}}
+async function registerPasskey(){try{const b=await pairAPI('passkey_register_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.user.id=b64uToBytes(o.user.id);o.excludeCredentials=(o.excludeCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.create({publicKey:o});const f=await pairAPI('passkey_register_finish',{challenge,response:credentialJSON(cred),label:'sean0donnell@icloud.com passkey'});if(f.error)throw new Error(f.error);await renderPasskeys();alert('Admin+ passkey added.');}catch(e){alert(e.name==='NotAllowedError'?'Passkey setup was canceled.':e.message)}}
+async function generateAdminLink(){ if(!confirm('Are you sure? Link expires after 2 minutes or when opened.'))return; const x=await pairAPI('create_admin_link'); const status=document.getElementById('adminMagicStatus'); if(x.error){status.textContent=x.error;document.getElementById('adminMagicResult').classList.remove('hidden');return;} const link=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token);document.getElementById('adminMagicText').value=link;document.getElementById('adminMagicResult').classList.remove('hidden');status.textContent='Expires '+new Date(x.expires_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' or after first use.'; }
+async function copyAdminLink(){ const input=document.getElementById('adminMagicText');try{await navigator.clipboard.writeText(input.value);}catch(e){input.focus();input.select();document.execCommand('copy');} }
+async function renderPasskeys(){if(!isAdmin())return;const x=await pairAPI('passkey_list');const el=document.getElementById('passkeyList');if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load passkeys.</span></div>';return;}el.innerHTML=(x.passkeys||[]).map(p=>'<div class="row"><span><b>'+esc(p.label)+'</b><br><span class="r">Added '+new Date(p.created_at).toLocaleDateString()+(p.last_used_at?' · Last used '+new Date(p.last_used_at).toLocaleString():'')+'</span></span><button class="btn small gray" onclick="removePasskey(\''+p.credential_id+'\')">Remove</button></div>').join('')||'<div class="row"><span class="r">No passkeys enrolled.</span></div>';}
+async function removePasskey(id){if(!confirm('Remove this Admin+ passkey?'))return;const x=await pairAPI('passkey_remove',{credential_id:id});if(x.error)alert(x.error);else await renderPasskeys();}
+async function trustThisDevice(){if(!confirm('Trust this device as Admin+ even after logging out and restoring?'))return;const x=await pairAPI('trust_device');if(x.error){alert(x.error);return;}trustedDevice=true;accountRole='admin';showAuth();await renderDevices();}
+async function untrustThisDevice(){if(!confirm('Remove trusted Admin+ recovery from this device? Another Admin+ device can then be enrolled.'))return;const x=await pairAPI('untrust_device');if(x.error){alert(x.error);return;}trustedDevice=false;trustedExists=false;accountRole=currentUser?.email?.toLowerCase()===ADMIN_EMAIL?'admin':'limited';showAuth();}
+async function revokeOtherDevices(){if(!confirm('Sign out every other device except trusted Admin devices?'))return;const x=await pairAPI('revoke_others');if(x.error){alert(x.error);return;}await renderDevices();}
+async function renameDevice(id,current){ const label=prompt('Device name',current); if(!label?.trim())return; const x=await pairAPI('rename',{device_id:id,label:label.trim()}); if(x.error)alert(x.error); else await renderDevices(); }
+async function renderDevices(){ const el=document.getElementById('deviceList'); if(!el||!isAdmin())return; const x=await pairAPI('list'); if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load sessions.</span></div>';return;} const active=(x.devices||[]).filter(d=>!d.revoked_at&&Date.now()-new Date(d.last_seen).getTime()<120000); el.innerHTML=active.map(d=>'<div class="hatchcard session-card"><div><b>'+esc(d.label)+(d.device_id===deviceId()?' · This device':'')+'</b>'+(d.trusted_admin?'<span class="status">Trusted Admin+</span>':'')+'</div><div class="meta">'+esc(d.client_type||'Device')+' · '+esc(d.browser||'Browser')+'</div><div class="meta">IP '+esc(d.last_ip||'Not recorded')+'<br>Last seen '+new Date(d.last_seen).toLocaleString()+(d.revoked_at?' · Signed out':'')+'</div><div class="actions">'+(d.revoked_at?'':'<button class="btn small gray" onclick="renameDevice(\''+d.device_id+'\',\''+esc(d.label).replace(/'/g,'&#39;')+'\')">Rename</button><button class="btn small gray" onclick="revokeDevice(\''+d.device_id+'\')">Sign Out</button>')+'</div></div>').join('')||'<div class="row"><span class="r">No active sessions.</span></div>'; }
+async function revokeDevice(id){ if(!confirm('Sign out this device?'))return; const x=await pairAPI('revoke',{device_id:id}); if(x.error){alert(x.error);return;} if(id===deviceId()){await signOutAccount();return;} await renderDevices(); }
+async function checkDevice(){ if(!isAccountUser())return; const x=await pairAPI('check',{device_id:deviceId()}); if(x.active===false){ await db.auth.signOut({scope:'local'}); currentUser=null; showAuth(); setSync('Signed out on another device'); } }
+
+let qrGeneration=null,qrOwner='';
+async function renderAccountQR(){
+ const el=document.getElementById('accountQR');if(!el||!isAccountUser()||typeof QRCode==='undefined')return;if(qrGeneration&&qrOwner===currentUser.id)return qrGeneration;qrOwner=currentUser.id;el.replaceChildren(Object.assign(document.createElement('span'),{textContent:'Creating secure QR…'}));
+ qrGeneration=(async()=>{const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('QR creation timed out. Tap Sync Now and try again.')),8000));try{const x=await Promise.race([pairAPI('create'),timeout]);if(x.error)throw new Error(x.error);if(!x.token)throw new Error('Secure QR service returned no pairing code.');el.innerHTML='';const u=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token);new QRCode(el,{text:u,width:180,height:180});}catch(e){el.textContent=e.message||'Could not create QR';}})().finally(()=>setTimeout(()=>{qrGeneration=null},1000));return qrGeneration;
+}
+function prefillAccount(){ const e=new URLSearchParams(location.search).get('account'); if(e)document.getElementById('accountEmail').value=e; }
+async function redeemPair(){ const token=new URLSearchParams(location.search).get('pair'); if(!token)return;document.getElementById('rememberPairWrap').classList.remove('hidden');document.getElementById('rememberPair').checked=true;history.replaceState({},'',location.pathname);authMsg('Securely pairing this device…');const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',token})});const x=await r.json();if(!r.ok){authMsg(x.error||'Pairing failed',true);return;}const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type});if(v.error){authMsg(v.error.message,true);return;}currentUser=v.data.user;if(document.getElementById('rememberPair').checked){deviceSecret();await registerDevice();localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email||'');}document.getElementById('rememberPairWrap').classList.add('hidden');authMsg('Device paired and remembered. Syncing records…'); }
+function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
+async function sendSignInLink(){
+  localStorage.removeItem(ADMIN_TOKEN_KEY); const email=accountEmail(); if(!email){authMsg('Enter your email.',true);return;}
+  localStorage.setItem(REMEMBERED_EMAIL_KEY,email); renderRestore(); authMsg('Sending sign-in link…');
+  if(currentUser?.is_anonymous){
+    const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname});
+    if(error && /already|registered|exists/i.test(error.message||'')){
+      stashPendingMigration(); await db.auth.signOut({scope:'local'});
+      const retry=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:false}});
+      if(retry.error){authMsg(retry.error.message,true);return;}
+    } else if(error){authMsg(error.message,true);return;}
+  } else {
+    const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
+    if(error){authMsg(error.message,true);return;}
+  }
+  authMsg('Link sent. Open it on this device to sign in and sync.');
+}
+async function forgetThisDevice(){ const dl=document.getElementById('deviceList');if(dl)dl.innerHTML=''; if(!confirm('Forget this device? You will need an email link or QR to sign in here again.'))return; if(isAccountUser())await pairAPI('forget',{device_id:deviceId()}); localStorage.removeItem(ADMIN_TOKEN_KEY); localStorage.removeItem(DEVICE_SECRET_KEY); localStorage.removeItem(REMEMBERED_EMAIL_KEY); await db.auth.signOut({scope:'local'}); currentUser=null; showAuth(); renderRestore(); setSync('Device forgotten'); }
+async function signOutAccount(){
+  const dl=document.getElementById('deviceList');if(dl)dl.innerHTML='';
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  if(dirty) await pushCloud();
+  await db.auth.signOut({scope:'local'});
+  currentUser=null; rowVersion=null;
+  showAuth(); authMsg(''); setupPasskeyDiscovery(); setSync('Sign in to sync');
+}
+function schedulePush(){ if(!isAccountUser()){ setSync('Sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
+async function loadCloud(){
+  if(!currentUser)return; setSync('☁️ Syncing…');
+  const x=await pairAPI('state_get'); if(x.error){setSync('⚠️ Offline — using device copy');renderAll();return;}
+  accountRole=x.role||'limited';supportMode=!!x.support_mode;document.getElementById('supportBanner').classList.toggle('hidden',!supportMode);showAuth(); const local=loadKey(CACHE_PREFIX+currentUser.id); if(local)S=local;
+  if(!x.data){ if(!isAdmin()){setSync('Waiting for admin to initialize records');renderAll();return;} rowVersion=0;dirty=true;await pushCloud();return; }
+  const cloudState=cleanState(x.data); S=cloudState;rowVersion=x.version;dirty=false;saveLocal();renderAll();setSync('✔ Up to date');
+}
+async function pushCloud(force=false){
+ if(!currentUser||rowVersion===null)return;setSync('☁️ Syncing…');const x=await pairAPI('state_update',{data:cleanState(S),version:rowVersion});
+ if(x.error){if(x.error==='version_conflict'){conflictCloud={data:x.data,version:x.version};document.getElementById('conflictBox').classList.remove('hidden');setSync('⚠️ Choose which copy to keep');}else{setSync('⚠️ '+x.error);if(!isAdmin())await loadCloud();}return;}
+ rowVersion=x.version;dirty=false;setSync('☁️ Synced '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
+}
+async function syncNow(){ if(!currentUser)return; setSync('Checking session…'); const fresh=await db.auth.refreshSession(); if(fresh.error||!fresh.data.session){ setSync('⚠️ Sign-in expired'); authMsg('Your device session was invalidated. Use the sign-in link once more; future sign-outs now affect only this device.',true); document.getElementById('authSignedIn').classList.add('hidden'); document.getElementById('authSignedOut').classList.remove('hidden'); document.getElementById('accountEmail').value=currentUser.email||''; return; } currentUser=fresh.data.session.user; if(dirty)await pushCloud(); else await loadCloud(); setTimeout(renderAccountQR,0); if(admin)setTimeout(renderPasskeys,0); }
+async function resolveConflict(which){
+  document.getElementById('conflictBox').classList.add('hidden');
+  if(which==='cloud'){ S=cleanState(conflictCloud.data); rowVersion=conflictCloud.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Cloud copy loaded'); }
+  else { rowVersion=conflictCloud.version; conflictCloud=null; dirty=true; await pushCloud(); }
+}
+function subscribeRealtime(){}
+async function handleSession(session){
+  const next=session?.user||null;
+  const same=next?.id===currentUser?.id && next?.email===currentUser?.email;
+  currentUser=next; if(isAccountUser()){localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email);const r=await pairAPI('role');accountRole=r.role||'limited';trustedDevice=!!r.trusted_device;trustedExists=!!r.trusted_exists;} showAuth(); renderRestore();
+  if(same)return;
+  if(isAccountUser()){ subscribeRealtime(); await loadCloud(); await registerDevice(); }
+  else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||S||def(); authMsg(''); renderAll(); setSync('Sign in to sync'); }
+}
+async function initCloud(){
+  db.auth.onAuthStateChange((_e,session)=>setTimeout(()=>handleSession(session),0));
+  const {data}=await db.auth.getSession();
+  if(data.session?.user){ await handleSession(data.session); return; }
+  currentUser=null; showAuth(); renderAll(); setSync('Sign in to sync');
+}
+
+function isStandalone(){ return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
+
+function dstr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function today(){ return dstr(new Date()); }
+function addDays(ds,n){ const d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+n); return dstr(d); }
+function short(ds){ const d=new Date(ds+'T12:00:00'); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function daysBetween(a,b){ return Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00'))/86400000); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+let selDate = today();
+let curDay = today();
+
+/* roll over to a new day if the app was left open overnight */
+function tick(){
+  const t = today();
+  if(t !== curDay){
+    if(selDate === curDay) selDate = t;
+    curDay = t;
+  }
+  renderAll();
+  if(currentUser) syncNow();
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') tick(); });
+window.addEventListener('pageshow', tick);
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('active', s.id==='tab-'+t));
+  document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  window.scrollTo(0,0);
+}
+
+/* ---------- eggs ---------- */
+function chgEgg(n){
+  if(n<0&&!isAdmin()){alert('Admin accounts can add data, but Admin+ is required to remove it.');return;}
+  const v = Math.max(0, (S.eggs[selDate]||0) + n);
+  S.eggs[selDate] = v; save(); renderEggs(); renderHome();
+}
+function pickDate(d){ selDate = d; renderEggs(); }
+function sumRange(days){ let t=0; for(let i=0;i<days;i++){ t += S.eggs[addDays(today(),-i)]||0; } return t; }
+function sumMonth(){ const p=today().slice(0,7); let t=0; for(const k in S.eggs){ if(k.startsWith(p)) t+=S.eggs[k]; } return t; }
+
+function shiftMonths(ds,n){const d=new Date(ds+'T12:00:00'),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+n);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));return dstr(d);}
+function rangeText(start,end,shortYear=false){const a=new Date(start+'T12:00:00'),b=new Date(end+'T12:00:00'),cross=a.getFullYear()!==b.getFullYear(),opts={month:'numeric',day:'numeric',...(cross?{year:'numeric'}:{})};if(shortYear&&cross)opts.year='2-digit';const f=new Intl.DateTimeFormat('en-US',opts);return '('+f.format(a)+'-'+f.format(b)+')';}
+function avgBetween(start,end){const days=daysBetween(start,end)+1;let n=0;for(let i=0;i<days;i++)n+=Number(S.eggs[addDays(start,i)]||0);return n/days;}
+function renderEggs(){
+  const isToday = selDate===today();
+  document.getElementById('eggDateLbl').textContent = isToday ? 'Today — '+short(selDate) : 'Editing '+short(selDate);
+  const ed = document.getElementById('eggDirect');
+  if(document.activeElement !== ed) ed.value = S.eggs[selDate]||0;
+  let h='';
+  for(let i=0;i<7;i++){
+    const d=addDays(today(),-i), v=S.eggs[d];
+    h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?('Today'+(S.hens?' <span class="egg-rate">'+Math.round((Number(v)||0)/S.hens*100)+'% of hens</span>':'')):i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('🥚 '+v):'—')+'</span></div>';
+  }
+  document.getElementById('eggHist').innerHTML = h;
+  const end=today(),s3=addDays(end,-2),s1=shiftMonths(end,-1),cur7Start=addDays(end,-6),prev7End=shiftMonths(end,-1),prev7Start=addDays(prev7End,-6),curAvg=avgBetween(s1,end),monthDiff=avgBetween(cur7Start,end)-avgBetween(prev7Start,prev7End);document.getElementById('eAvg3').textContent=avgBetween(s3,end).toFixed(1);document.getElementById('eAvg3Range').textContent=rangeText(s3,end,true);document.getElementById('eAvg1m').textContent=curAvg.toFixed(1);document.getElementById('eAvg1mRange').textContent=rangeText(s1,end,true);document.getElementById('eMonthDiff').textContent=(monthDiff>0?'+':'')+monthDiff.toFixed(1);document.getElementById('eMonthDiffRange').textContent='vs '+rangeText(prev7Start,prev7End,true);
+}
+
+/* ---------- hatch ---------- */
+function addHatch(){
+  const name=document.getElementById('hName').value.trim();
+  const set=document.getElementById('hDate').value || today();
+  const count=parseInt(document.getElementById('hCount').value)||0;
+  const rawSurvivors=document.getElementById('hSurvivors').value, survivors7=rawSurvivors===''?null:Math.max(0,parseInt(rawSurvivors,10)||0);
+  if(count<1){ alert('How many eggs?'); return; }
+  const hatch={id:Date.now(),name,set,count,done:false,hatched:null,survivors7};S.hatches.push(hatch);syncHatchCohort(hatch);
+  document.getElementById('hName').value=''; document.getElementById('hCount').value=''; document.getElementById('hSurvivors').value='';
+  save(); renderHatch(); renderHome();
+}
+function editHatch(id){const h=S.hatches.find(x=>x.id===id);if(!h)return;const name=prompt('Name',h.name||''),set=prompt('Date eggs set (YYYY-MM-DD)',h.set),count=parseInt(prompt('Number of eggs',h.count),10);if(!Number.isFinite(count)||count<1||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(set||''))return;h.name=name||'';h.set=set;h.count=count;syncHatchCohort(h);save();renderHatch();renderCohorts();renderHome();}
+function doneHatch(id){
+  const h=S.hatches.find(x=>x.id===id); if(!h) return;
+  const n=prompt('How many chicks hatched?');
+  h.hatched = n===null||n==='' ? null : parseInt(n);
+  h.done = true; save(); renderHatch(); renderHome();
+}
+function syncHatchCohort(h){const id='hatch-'+h.id,i=S.cohorts.findIndex(x=>String(x.id)===id);if(h.survivors7==null){if(i>=0)S.cohorts.splice(i,1);return;}const x={id,hatchDate:addDays(h.set,21),count:h.survivors7,note:h.name||'Hatch run'};if(i>=0)S.cohorts[i]=x;else S.cohorts.push(x);}
+function setSurvivors(id){ const h=S.hatches.find(x=>x.id===id); if(!h)return; const n=prompt('Hatch + 7 days survivors',h.survivors7??''); if(n===null)return; h.survivors7=n===''?null:Math.max(0,parseInt(n,10)||0);syncHatchCohort(h);save();renderHatch();renderCohorts();renderHome(); }
+function delHatch(id){ if(!requireAdmin())return;
+  if(!confirm('Delete this hatch run?')) return;
+  S.hatches=S.hatches.filter(x=>x.id!==id);S.cohorts=S.cohorts.filter(x=>String(x.id)!=='hatch-'+id);save();renderHatch();renderCohorts();renderHome();
+}
+function renderHatch(){
+  const list=document.getElementById('hatchList');
+  if(!S.hatches.length){ list.innerHTML='<div class="row"><span class="r">No hatch runs yet.</span></div>'; return; }
+  let h='';
+  S.hatches.slice().sort((a,b)=>a.set<b.set?-1:1).forEach(x=>{
+    const day=daysBetween(x.set, today());
+    const pct=Math.max(0,Math.min(100, Math.round(day/21*100)));
+    let status;
+    if(x.done){ status='✔ Complete'+(x.hatched!=null?(' — '+x.hatched+' of '+x.count+' hatched'):''); }
+    else if(day<7){ status='Day '+day+' of 21 — candle on '+short(addDays(x.set,7)); }
+    else if(day<18){ status='Day '+day+' of 21 — lockdown on '+short(addDays(x.set,18)); }
+    else if(day<=21){ status='Day '+day+' of 21 — hatch day '+short(addDays(x.set,21))+'! 🐥'; }
+    else { status='Day '+day+' — past hatch window'; }
+    h += '<div class="hatchcard"><h3>'+esc(x.name||'Hatch Run')+'</h3>'
+       + '<div class="meta">Set '+short(x.set)+' · '+x.count+' eggs · candle '+short(addDays(x.set,7))+' · lockdown '+short(addDays(x.set,18))+' · hatch '+short(addDays(x.set,21))+'</div>'
+       + '<div class="bar"><div style="width:'+pct+'%"></div></div>'
+       + '<div class="status">'+status+'</div>'
+       + '<div class="status">Hatch + 7 days survivors: '+(x.survivors7==null?'Not recorded':x.survivors7)+'</div>'
+       + '<div class="actions"><button class="btn small gray" onclick="setSurvivors('+x.id+')">Edit H+7 Survivors</button>'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">✔ Done</button>')
+       + '<button class="btn small gray adminAction" onclick="delHatch('+x.id+')">Delete</button></div></div>';
+  });
+  list.innerHTML=h;
+}
+
+/* ---------- chicken tractor ---------- */
+function addTractorLog(){ const count=Math.max(0,parseInt(document.getElementById('tractorCount').value,10)||0), created=document.getElementById('tractorCreated').value||today(), moved=document.getElementById('tractorMoved').value||created, note=document.getElementById('tractorNote').value.trim(); S.tractorLogs.push({id:Date.now(),count,created,moved,note}); document.getElementById('tractorCount').value=''; document.getElementById('tractorNote').value=''; save();renderTractor();renderHome(); }
+function editTractorLog(id){const x=S.tractorLogs.find(x=>x.id===id);if(!x)return;const n=parseInt(prompt('Number of meat birds',x.count),10),created=prompt('Date created (YYYY-MM-DD)',x.created||x.date||today()),moved=prompt('Last moved (YYYY-MM-DD)',x.moved||x.date||created),note=prompt('Relevant details',x.note||'');if(!Number.isFinite(n)||n<0||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(created||'')||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(moved||''))return;x.count=n;x.created=created;x.moved=moved;x.note=note||'';save();renderTractor();renderHome();}
+function delTractorLog(id){ S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); save();renderTractor();renderHome(); }
+let holdRemoveTimer=null;
+function startHoldRemove(kind,id){clearTimeout(holdRemoveTimer);holdRemoveTimer=setTimeout(()=>{holdRemoveTimer=null;kind==='tractor'?delTractorLog(id):kind==='quarantine'?delQuarantine(id):delCohort(id);},700);}
+function cancelHoldRemove(){clearTimeout(holdRemoveTimer);holdRemoveTimer=null;}
+function renderTractor(){const mc=meatBirdTotal();document.getElementById('meatBirdCount').textContent=mc;document.getElementById('tractorYoungCount').textContent=tractorYoungTotal(); const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard" onpointerdown="startHoldRemove(\'tractor\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><div class="actions"><button class="btn small gray" onclick="editTractorLog('+x.id+')">Edit</button><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div></div>').join('')||'<div class="row"><span class="r">No meat bird records yet.</span></div>'; }
+
+/* ---------- diseased / backup coop (quarantine) ---------- */
+function addQuarantinePrompt(){
+  const name=prompt('Name/leg band');if(name===null)return;
+  const q=prompt('Date quarantined (YYYY-MM-DD)',today());if(q===null)return;
+  const note=prompt('Note');if(note===null)return;
+  if(!name.trim()||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(q||'')||!note.trim()){alert('All fields are required: Name/leg band, Date quarantined, Note.');return;}
+  S.quarantine.push({id:Date.now(),name:name.trim(),quarantined:q,reintroduced:'',note:note.trim()});
+  save();renderQuarantine();renderHome();
+}
+function addQuarantine(){
+  const name=document.getElementById('qName').value.trim(),q=document.getElementById('qQuarantined').value,note=document.getElementById('qNote').value.trim();
+  if(!name||!q||!note){alert('All fields are required: Name/leg band, Date quarantined, Note.');return;}
+  S.quarantine.push({id:Date.now(),name,quarantined:q,reintroduced:'',note});
+  document.getElementById('qName').value='';document.getElementById('qNote').value='';
+  save();renderQuarantine();renderHome();
+}
+function editQuarantine(id){const x=S.quarantine.find(x=>x.id===id);if(!x)return;const name=prompt('Name/leg band',x.name);if(name===null)return;const q=prompt('Date quarantined (YYYY-MM-DD)',x.quarantined);if(q===null)return;const note=prompt('Note',x.note);if(note===null)return;const r=prompt('Date reintroduced (YYYY-MM-DD) - leave blank if still quarantined',x.reintroduced||'');if(r===null)return;if(!name.trim()||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(q||'')||!note.trim()||(r.trim()&&!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(r.trim()))){alert('Name/leg band, Date quarantined and Note are required. Date reintroduced is optional (YYYY-MM-DD).');return;}x.name=name.trim();x.quarantined=q;x.note=note.trim();x.reintroduced=r.trim();save();renderQuarantine();renderHome();}
+function delQuarantine(id){ S.quarantine=S.quarantine.filter(x=>x.id!==id); save();renderQuarantine();renderHome(); }
+function renderQuarantine(){ const section=document.getElementById('quarantineSection');if(!section)return; const a=S.quarantine||[]; section.classList.toggle('hidden',!a.length); document.getElementById('quarantineList').innerHTML=a.slice().sort((x,y)=>x.quarantined<y.quarantined?1:-1).map(x=>'<div class="hatchcard" onpointerdown="startHoldRemove(\'quarantine\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>🤒 '+esc(x.name)+'</h3><div class="meta">Quarantined '+short(x.quarantined)+(x.reintroduced?' · Reintroduced '+short(x.reintroduced):'')+' · '+esc(x.note)+'</div><div class="actions"><button class="btn small gray" onclick="editQuarantine('+x.id+')">Edit</button><button class="btn small gray" onclick="delQuarantine('+x.id+')">Delete</button></div></div>').join(''); }
+
+/* ---------- supplies ---------- */
+function addSupply(k){ const d=document.getElementById('sd-'+k).value||today(), note=document.getElementById('sn-'+k).value.trim(); S.supplyEntries[k].push({id:Date.now()+k,date:d,note}); S.supplies[k]=d; save(); renderSupplies(); }
+function delSupply(k,id){ if(!requireAdmin())return; S.supplyEntries[k]=S.supplyEntries[k].filter(x=>String(x.id)!==String(id)); S.supplies[k]=S.supplyEntries[k].slice().sort((a,b)=>a.date<b.date?1:-1)[0]?.date||null; save(); renderSupplies(); }
+function renderSupplies(){
+  const cards=([k,label])=>{ const entries=S.supplyEntries[k]||[], latest=entries.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
+    const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional"><button class="btn small" onclick="addSupply('${k}')">✔ Add Refill</button>`;
+    const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray adminAction" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
+    const detail=k==='fsl'?'<div class="meta">Sprinkle around all of coop &amp; run</div>':'';
+    const archive=k==='fsl'?history:`<details class="history"><summary>History</summary>${history||'<div class="row"><span class="r">No refill history.</span></div>'}</details>`;
+    return `<div class="hatchcard"><h3>${label}</h3>${detail}<div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${archive}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join('');
+}
+
+/* ---------- flock, feed, finance ---------- */
+function chgFlock(k,n){ if(!requireAdmin())return; S[k]=Math.max(0,(S[k]||0)+n); save(); renderMore(); renderHome(); }
+function addFeed(){
+  const d=document.getElementById('fDate').value||today();
+  const lbs=document.getElementById('fLbs').value;
+  const note=document.getElementById('fNote').value.trim();
+  S.feed.push({id:Date.now(), date:d, lbs:lbs, note:note});
+  document.getElementById('fLbs').value=''; document.getElementById('fNote').value='';
+  save(); renderMore();
+}
+function addScratch(){ const d=document.getElementById('scratchDate').value||today(),lbs=document.getElementById('scratchLbs').value,note=document.getElementById('scratchNote').value.trim(); S.scratch.push({id:Date.now(),date:d,lbs,note}); document.getElementById('scratchLbs').value='';document.getElementById('scratchNote').value='';save();renderMore(); }
+function renderMore(){
+  document.getElementById('henV').textContent=S.hens;
+  document.getElementById('rooV').textContent=S.roosters;
+  const last=S.feed.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
+  document.getElementById('feedLast').textContent = last
+    ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
+    : '—';
+  document.getElementById('feedList').innerHTML = S.feed.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
+  const sl=S.scratch.slice().sort((a,b)=>a.date<b.date?1:-1); document.getElementById('scratchLast').textContent=sl[0]?short(sl[0].date)+' ('+daysBetween(sl[0].date,today())+' days ago)'+(sl[0].lbs?' · '+sl[0].lbs+' lbs':''):'—'; document.getElementById('scratchList').innerHTML=sl.slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
+}
+
+/* ---------- finance ---------- */
+function money(v){ return Number.parseFloat(v)||0; }
+function setFinance(k,v){ S.finance[k]=v; save(); renderFinance(); }
+function renderFinance(){
+  const f=S.finance;
+  const total=money(f.lastAmount)+money(f.tbd1)+money(f.tbd2)+money(f.tbd3);
+  document.getElementById('financeTotal').textContent=total.toLocaleString('en-US',{style:'currency',currency:'USD'});
+  const fields={financeLastAmount:'lastAmount',financeLastLink:'lastLink',financeTbd1:'tbd1',financeTbd2:'tbd2',financeTbd3:'tbd3'};
+  Object.entries(fields).forEach(([id,k])=>{ const e=document.getElementById(id); if(document.activeElement!==e)e.value=f[k]||''; });
+  document.getElementById('financeLastOpen').innerHTML=f.lastLink
+    ? '<a class="btn gray" style="text-decoration:none;text-align:center" href="'+esc(f.lastLink)+'" target="_blank" rel="noopener">🔗 Open purchase link</a>' : '';
+}
+
+/* ---------- chick & pullet rearing ---------- */
+function cohortStage(x){ const w=daysBetween(x.hatchDate,today())/7; if(w<0)return 'incubating'; return w<(S.rearing.chickWeeks||8)?'chick':w<(S.rearing.henWeeks||18)?'pullet':'ready'; }
+function addCohort(source='hatched'){ const hatchDate=document.getElementById('cohortDate').value||today(), count=Math.max(1,parseInt(document.getElementById('cohortCount').value,10)||1), note=document.getElementById('cohortNote').value.trim(); S.cohorts.push({id:Date.now(),hatchDate,count,note,source}); document.getElementById('cohortCount').value=''; document.getElementById('cohortNote').value=''; save(); renderCohorts(); renderHome(); }
+function editCohort(id){ const x=S.cohorts.find(x=>x.id===id);if(!x)return;const acquired=x.source==='acquired',count=parseInt(prompt('Number of birds',x.count),10),date=prompt(acquired?'Acquisition date (YYYY-MM-DD)':'Hatch date (YYYY-MM-DD)',x.hatchDate),note=prompt('Relevant details',x.note||'');if(!Number.isFinite(count)||count<1||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date||''))return;x.count=count;x.hatchDate=date;x.note=note||'';save();renderCohorts();renderHome();}
+function delCohort(id){ S.cohorts=S.cohorts.filter(x=>x.id!==id); save(); renderCohorts(); renderHome(); }
+function confirmLaying(id){ if(!requireAdmin())return; const x=S.cohorts.find(x=>x.id===id); if(!x||cohortStage(x)!=='ready')return; S.hens+=x.count; S.cohorts=S.cohorts.filter(y=>y.id!==id); save(); renderAll(); }
+function setRearingAge(k,v){ if(!requireAdmin())return; S.rearing[k]=Math.max(1,parseInt(v,10)||def().rearing[k]); if(S.rearing.henWeeks<=S.rearing.chickWeeks)S.rearing.henWeeks=S.rearing.chickWeeks+1; save(); renderCohorts(); renderHome(); }
+function renderCohorts(){ const totals={incubating:0,chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count);document.getElementById('chickCount').textContent=totals.chick;document.getElementById('pulletCount').textContent=totals.pullet+totals.ready;document.getElementById('chickWeeks').value=S.rearing.chickWeeks;document.getElementById('henWeeks').value=S.rearing.henWeeks;document.getElementById('cohortList').innerHTML=S.cohorts.filter(x=>cohortStage(x)!=='incubating').slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{const st=cohortStage(x),w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)),next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Hen '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation',acquired=x.source==='acquired';return '<div class="hatchcard" onpointerdown="startHoldRemove(\'cohort\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s'))+'</h3><div class="meta">'+(acquired?'Acquired ':'Hatched ')+short(x.hatchDate)+' · '+w+' weeks old'+(x.note?' · '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small adminAction" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray" onclick="editCohort('+x.id+')">Edit</button><button class="btn small gray" onclick="delCohort('+x.id+')">Delete</button></div></div>';}).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
+
+/* ---------- dispatch ---------- */
+function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(), destination=document.getElementById('birdDestination').value.trim(), codes={'😀':'code1','😁':'code2','🙂':'code3','😊':'code4','😚':'code5'}; if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note,destination,destinationCode:codes[destination]||''}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; document.getElementById('birdDestination').value=''; save(); renderDispatch(); }
+function delDispatch(id){ if(!requireAdmin())return; if(!confirm('Delete this dispatch record?'))return; S.dispatches=S.dispatches.filter(x=>x.id!==id); save(); renderDispatch(); }
+function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>☠️ <b>'+esc(x.name)+'</b> · '+short(x.date)+(x.note?' · '+esc(x.note):'')+(x.destination?' · '+esc(x.destination):'')+'</span><button class="btn small gray adminAction" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
+
+const HIDE_EMPTY_MORE_COUNTERS=true;
+function meatBirdTotal(){return S.tractorLogs.filter(x=>daysBetween(x.created||x.date,today())>=49).reduce((n,x)=>n+Number(x.count||0),0);}
+function tractorYoungTotal(){return S.tractorLogs.filter(x=>{const d=daysBetween(x.created||x.date,today());return d>=0&&d<49;}).reduce((n,x)=>n+Number(x.count||0),0);}
+function setCarton(k,v){S.cartons[k]=Math.max(0,parseInt(v,10)||0);save();renderCartons();renderHome();}
+function cartonCapacity(){return (Number(S.cartons.regular)||0)*12+(Number(S.cartons.large)||0)*18;}
+function editCartonDay(date){const prior=S.cartons.log[date]||0,n=prompt('Cartons returned (+) or sent out (-) on '+short(date),prior);if(n===null)return;S.cartons.log[date]=parseInt(n,10)||0;save();renderCartons();}
+function cartonMonthCalendar(m,total){const [y,mo]=m.split('-').map(Number),days=new Date(y,mo,0).getDate(),offset=new Date(y,mo-1,1).getDay(),pad=n=>String(n).padStart(2,'0');let cells=['S','M','T','W','T','F','S'].map(x=>'<div class="dow">'+x+'</div>').join('');for(let i=0;i<offset;i++)cells+='<div class="calday blank"></div>';for(let d=1;d<=days;d++){const key=y+'-'+pad(mo)+'-'+pad(d),v=S.cartons.log[key]||'';cells+='<div class="calday" role="button" tabindex="0" onclick="editCartonDay(\''+key+'\')"><span class="daynum">'+d+'</span><span class="eggnum">'+v+'</span></div>';}return '<details class="month-block"><summary><span>'+pad(mo)+'/01 - '+pad(mo)+'/'+pad(days)+'/'+y+'</span><b>'+total+'</b></summary><div class="month-cal">'+cells+'</div></details>';}
+function renderCartons(){for(const [id,k] of [['cartonRegular','regular'],['cartonLarge','large'],['cartonPlastic','plastic'],['cartonReadyInput','ready']]){const e=document.getElementById(id);if(document.activeElement!==e)e.value=S.cartons[k]||'';}const capacity=cartonCapacity(),ready=Number(S.cartons.ready)||0,dozens=(ready/12).toFixed(1);document.getElementById('cartonSpace').textContent=capacity;document.getElementById('cartonReady').textContent=ready;document.getElementById('cartonReadyDozens').textContent=dozens;const months={};Object.entries(S.cartons.log).forEach(([d,v])=>months[d.slice(0,7)]=(months[d.slice(0,7)]||0)+(Number(v)||0));const cur=today().slice(0,7);if(!Object.prototype.hasOwnProperty.call(months,cur))months[cur]=0;document.getElementById('cartonMonths').innerHTML=Object.keys(months).sort().reverse().map(m=>cartonMonthCalendar(m,months[m])).join('');} 
+
+/* ---------- home ---------- */
+function monthCalendar(m,total){ const [y,mo]=m.split('-').map(Number), days=new Date(y,mo,0).getDate(), offset=new Date(y,mo-1,1).getDay(); const pad=n=>String(n).padStart(2,'0'), label=pad(mo)+'/01 - '+pad(mo)+'/'+pad(days)+'/'+y; let cells=['S','M','T','W','T','F','S'].map(x=>'<div class="dow">'+x+'</div>').join(''); for(let i=0;i<offset;i++)cells+='<div class="calday blank"></div>'; for(let d=1;d<=days;d++){ const key=y+'-'+pad(mo)+'-'+pad(d), has=Object.prototype.hasOwnProperty.call(S.eggs,key), eggs=has?(Number(S.eggs[key])||0):''; cells+='<div class="calday"'+(isAdmin()?' role="button" tabindex="0" onclick="editMonthEgg(\''+key+'\')"':'')+'><span class="daynum">'+d+'</span><span class="eggnum">'+eggs+'</span></div>'; } const isCur=m===today().slice(0,7),avg=isCur?total/Math.max(1,Number(today().slice(8,10))):total/days,avgText=isCur?('Average eggs per day this month: '+avg.toFixed(1)+'<br>Total eggs expected this month: '+Math.floor(avg*days)):('Daily average: '+avg.toFixed(1)); return '<details class="month-block" data-month="'+m+'"><summary><span>'+label+'<span class="note avg-range" style="display:block">'+avgText+'</span></span><b>'+total+' eggs</b></summary><div class="month-cal">'+cells+'</div>'+(isAdmin()?'<button class="btn small gray adminAction" onclick="deleteEggMonth(\''+m+'\')">Delete Month</button>':'')+'</details>'; }
+
+async function editMonthEgg(date){if(!isAdmin())return;const month=date.slice(0,7),prior=Object.prototype.hasOwnProperty.call(S.eggs,date)?S.eggs[date]:0,n=prompt('Eggs for '+short(date),prior);if(n===null)return;const count=Math.max(0,parseInt(n,10)||0),x=await pairAPI('egg_day_update',{date,count});if(x.error){alert(x.error);return;}S=cleanState(x.data);rowVersion=x.version;dirty=false;saveLocal();renderHome();renderEggs();const d=document.querySelector('#eggMonths [data-month="'+month+'"]');if(d)d.open=true;}
+async function addEggMonth(){if(!isAdmin())return;const month=prompt('Month to add (YYYY-MM)',today().slice(0,7));if(month===null)return;if(!/^\d{4}-\d{2}$/.test(month)){alert('Use YYYY-MM.');return;}const x=await pairAPI('egg_month_update',{month,operation:'add'});if(x.error){alert(x.error);return;}S=cleanState(x.data);rowVersion=x.version;dirty=false;saveLocal();renderHome();const d=document.querySelector('#eggMonths [data-month="'+month+'"]');if(d)d.open=true;}
+async function deleteEggMonth(month){if(!isAdmin()||!confirm('Delete all egg entries for '+month+'?'))return;const x=await pairAPI('egg_month_update',{month,operation:'delete'});if(x.error){alert(x.error);return;}S=cleanState(x.data);rowVersion=x.version;dirty=false;saveLocal();renderHome();renderEggs();}
+
+function renderHome(){
+  const ready=S.cohorts.filter(x=>cohortStage(x)==='ready').reduce((n,x)=>n+x.count,0);
+  document.getElementById('hdrSub').textContent = short(today())+' · '+S.hens+' hens · '+S.roosters+' roosters';
+  document.getElementById('cFlock').textContent=S.hens+S.roosters;
+  document.getElementById('cFlockLabel').textContent='🐓 total';
+  const t=S.eggs[today()]||0;
+  document.getElementById('cToday').textContent=t;
+  document.getElementById('cWeek').textContent=S.counterEggs==null?sumRange(7):Number(S.counterEggs)||0;
+  document.getElementById('cMonth').textContent=Object.entries(S.eggs).filter(([d])=>d.slice(0,7)===today().slice(0,7)).reduce((n,[,v])=>n+(Number(v)||0),0);
+  const avgEnd=today(),avg3mStart=shiftMonths(avgEnd,-3),avg7Start=addDays(avgEnd,-6);document.getElementById('cAvg30').textContent=avgBetween(avg3mStart,avgEnd).toFixed(1);document.getElementById('cAvg30Range').textContent=rangeText(avg3mStart,avgEnd);document.getElementById('cAvg').textContent=avgBetween(avg7Start,avgEnd).toFixed(1);document.getElementById('cAvgRange').textContent=rangeText(avg7Start,avgEnd);
+  const yr=today().slice(0,4);document.getElementById('cTotalEggs').textContent=Object.entries(S.eggs).filter(([d])=>d.slice(0,4)===yr).reduce((n,[,v])=>n+(Number(v)||0),0);document.getElementById('cTotalEggsRange').textContent=yr+'/01/01-'+today().replace(/-/g,'/');
+  const months={}; Object.entries(S.eggs).forEach(([d,v])=>months[d.slice(0,7)]=(months[d.slice(0,7)]||0)+(Number(v)||0)); document.getElementById('eggMonths').innerHTML=Object.keys(months).sort().reverse().map(m=>monthCalendar(m,months[m])).join('')||'<div class="row"><span class="r">No eggs logged yet.</span></div>';
+  const cohortTotals={incubating:0,chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>cohortTotals[cohortStage(x)]+=x.count);document.getElementById('cChicks').textContent=cohortTotals.chick;document.getElementById('cPullets').textContent=cohortTotals.pullet+cohortTotals.ready;const incubating=S.hatches.filter(h=>!h.done&&daysBetween(h.set,today())>=0&&daysBetween(h.set,today())<21).reduce((n,h)=>n+h.count,0),meat=meatBirdTotal(),young=tractorYoungTotal(),cartons=['regular','large','plastic'].reduce((n,k)=>n+(Number(S.cartons[k])||0),0);document.getElementById('cIncubating').textContent=incubating;document.getElementById('cMeat').textContent=meat;document.getElementById('cTractor').textContent=young;document.getElementById('cCartons').textContent=cartons;const capacity=cartonCapacity(),readyEggs=Number(S.cartons.ready)||0;document.getElementById('cCartonSpace').textContent=capacity;document.getElementById('cFridge').textContent=readyEggs;document.getElementById('cFridgeDozens').textContent=(readyEggs/12).toFixed(1)+' dozen';const quar=(S.quarantine||[]).length,harvested=(S.dispatches||[]).length;document.getElementById('cQuarantine').textContent=quar;document.getElementById('cHarvested').textContent=harvested;const active=document.getElementById('moreActiveCards'),hidden=document.getElementById('moreHiddenCards');['cMonthCard','cTotalEggsCard','cCartonsCard','cCartonSpaceCard'].forEach(id=>{const c=document.getElementById(id);c.classList.remove('hidden');active.appendChild(c);});[['cIncubatingCard',incubating],['cChicksCard',cohortTotals.chick],['cPulletsCard',cohortTotals.pullet+cohortTotals.ready],['cMeatCard',meat],['cTractorCard',young],['cQuarantineCard',quar]].forEach(([id,value])=>{const card=document.getElementById(id);card.classList.remove('hidden');(value?active:hidden).appendChild(card);});hidden.appendChild(document.getElementById('cHarvestedCard'));document.getElementById('hiddenMore').classList.remove('hidden');
+}
+
+async function editCounterEggs(){if(!isAdmin()){showTab('eggs');return;}const n=prompt('Counter Eggs',S.counterEggs==null?sumRange(7):S.counterEggs);if(n===null)return;const count=Math.max(0,parseInt(n,10)||0),x=await pairAPI('counter_eggs_update',{count});if(x.error){alert(x.error);return;}S=cleanState(x.data);rowVersion=x.version;dirty=false;saveLocal();renderHome();}
+function goFridgeEggs(){document.getElementById('nextGen').open=true;document.getElementById('eggCartonsSection').open=true;requestAnimationFrame(()=>document.getElementById('fridgeEggsField').scrollIntoView({behavior:'smooth',block:'center'}));}
+function goMyFlock(){const d=document.getElementById('nextGen');d.open=true;requestAnimationFrame(()=>document.getElementById('myFlockHome').scrollIntoView({behavior:'smooth',block:'start'}));}
+function goEggMonths(){showTab('eggs');const d=document.getElementById('eggMonthsSection');d.open=true;requestAnimationFrame(()=>{const months=document.querySelectorAll('#eggMonths details.month-block');if(months[0])months[0].open=true;d.scrollIntoView({behavior:'smooth',block:'start'});});}
+function setEtc(k,v){ S.etc[k]=v; save(); }
+function renderEtc(){ const e=S.etc||def().etc; document.getElementById('etcFiller1').value=e.filler1||''; document.getElementById('etcFiller2').value=e.filler2||''; document.getElementById('etcFiller3').value=e.filler3||''; }
+
+/* ---------- More tile interactions ---------- */
+const moreTileRoutes={cMonth:'eggMonthsSection',cTotalEggs:'eggMonthsSection',cCartonsCard:'eggCartonsSection',cCartonSpaceCard:'eggCartonsSection',cIncubatingCard:'chickHatchesSection',cChicksCard:'chickHatchesSection',cPulletsCard:'chickHatchesSection',cMeatCard:'chickenTractorSection',cTractorCard:'chickenTractorSection',cQuarantineCard:'quarantineSection',cHarvestedCard:'dispatchSection'};
+function routeMoreTile(id){const target=document.getElementById(moreTileRoutes[id]);if(!target)return;const tab=target.closest('section[id^="tab-"]');if(tab&&!tab.classList.contains('active'))showTab(tab.id.slice(4));if(target.tagName==='DETAILS')target.open=true;target.closest('details')&&(target.closest('details').open=true);requestAnimationFrame(()=>target.scrollIntoView({behavior:'smooth',block:'center'}));}
+function editMoreTile(id){let n;
+ if(id==='cMonth'||id==='cTotalEggs'){n=prompt('Eggs today',S.eggs[today()]||0);if(n===null)return;S.eggs[today()]=Math.max(0,parseInt(n,10)||0);}
+ else if(id==='cChicksCard'||id==='cPulletsCard'){const stage=id==='cChicksCard'?'chick':'pullet',x=S.cohorts.find(x=>cohortStage(x)===stage||(stage==='pullet'&&cohortStage(x)==='ready'));if(!x){routeMoreTile(id);return;}editCohort(x.id);return;}
+ else if(id==='cIncubatingCard'){const x=S.hatches.find(h=>!h.done&&daysBetween(h.set,today())>=0&&daysBetween(h.set,today())<21);if(!x){routeMoreTile(id);return;}editHatch(x.id);return;}
+ else if(id==='cMeatCard'){const x=S.tractorLogs.slice().sort((a,b)=>(b.created||b.date||'').localeCompare(a.created||a.date||''))[0];if(!x){routeMoreTile(id);return;}editTractorLog(x.id);return;}
+ else if(id==='cCartonsCard'){n=prompt('Regular cartons available',S.cartons.regular||0);if(n===null)return;S.cartons.regular=Math.max(0,parseInt(n,10)||0);}
+ else if(id==='cCartonSpaceCard'){n=prompt('Regular 12-pack cartons',S.cartons.regular||0);if(n===null)return;S.cartons.regular=Math.max(0,parseInt(n,10)||0);}
+ else if(id==='cTractorCard'){routeMoreTile(id);return;}
+ else if(id==='cQuarantineCard'){addQuarantinePrompt();return;}
+ else if(id==='cHarvestedCard'){routeMoreTile(id);return;}
+ save();renderAll();
+}
+function setupMoreTileInteractions(){Object.keys(moreTileRoutes).forEach(id=>{const el=document.getElementById(id);if(!el)return;el.setAttribute('role','button');el.tabIndex=0;let timer=null;el.addEventListener('click',e=>{if(e.target.closest('button,input,a'))return;clearTimeout(timer);timer=setTimeout(()=>editMoreTile(id),240);});el.addEventListener('dblclick',e=>{e.preventDefault();clearTimeout(timer);routeMoreTile(id);});});}
+
+/* ---------- facts ---------- */
+let selectedFactTopic='All',factTimer=null,factSeconds=60;localStorage.removeItem('coopPremiumArchive');
+function renderFactTopics(){const el=document.getElementById('factTopics');if(!el)return;const topics=['All',...new Set(FACT_ARCHIVE.map(x=>x.category))];el.innerHTML=topics.map(t=>'<button class="btn small '+(selectedFactTopic===t?'':'gray')+'" onclick="openFactArchive(\''+t.replace(/'/g,"\\'")+'\')">'+esc(t)+'</button>').join('');document.getElementById('factArchive').classList.remove('hidden');}
+function selectFactTopic(topic){selectedFactTopic=topic;renderFactTopics();}
+function factSource(x){return '<a href="'+x.source+'" target="_blank" rel="noopener">'+esc(x.sourceName)+'</a><div class="r source-url">'+esc(x.source)+'</div>';}
+function randomArchiveFact(){const x=FACT_ARCHIVE[Math.floor(Math.random()*FACT_ARCHIVE.length)];document.getElementById('randomFactResult').innerHTML='<div class="row"><span><b>'+esc(x.category)+'</b><br>'+esc(x.tip)+'<br>'+factSource(x)+'</span></div>';}
+function openFactArchive(topic=selectedFactTopic){selectedFactTopic=topic;renderFactTopics();const rows=FACT_ARCHIVE.filter(x=>topic==='All'||x.category===topic),w=window.open('','_blank');if(!w){alert('Allow pop-ups to view the archive.');return;}const cats=['All',...new Set(FACT_ARCHIVE.map(x=>x.category))],html='<!doctype html><meta name="viewport" content="width=device-width"><title>Did You Know? Archive</title><style>body{font-family:system-ui;background:#fbf7ef;color:#403526;max-width:760px;margin:auto;padding:20px}.close{position:fixed;z-index:9999;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:grid;place-items:center;font-size:32px;font-weight:800;line-height:1;color:#fff;background:#7b3617;border:3px solid #fff;border-radius:50%;width:54px;height:54px;box-shadow:0 3px 12px rgba(0,0,0,.38);cursor:pointer;-webkit-tap-highlight-color:transparent}.nav{display:flex;gap:6px;overflow-x:auto;padding:6px 8px 12px 0;margin-right:72px;position:sticky;top:0;background:#fbf7ef}.nav a{white-space:nowrap;background:#eee4d3;padding:8px 11px;border-radius:12px;text-decoration:none;color:#403526}.nav .on{background:#eb7826;color:white}.tip{background:white;padding:14px;margin:10px 0;border-radius:14px}a{color:#9a5a16}.url{font-size:11px;color:#88755e;overflow-wrap:anywhere;margin-top:3px}</style><button class="close" aria-label="Close archive" title="Close archive" onclick="window.close()">×</button><div class="nav">'+cats.map(c=>'<a class="'+(c===topic?'on':'')+'" href="javascript:void(0)" onclick="window.opener.openFactArchive(\''+c.replace(/'/g,"\\'")+'\');window.close()">'+esc(c)+'</a>').join('')+'</div><h1>'+esc(topic==='All'?'Did You Know? Archive':topic)+'</h1><p>'+rows.length+' tips</p>'+rows.map(x=>'<div class="tip"><b>'+esc(x.category)+'</b><br>'+esc(x.tip)+'<br><a href="'+x.source+'" target="_blank" rel="noopener">'+esc(x.sourceName)+'</a><div class="url">'+esc(x.source)+'</div></div>').join('');w.document.write(html);w.document.close();}
+function newFact(){const x=FACT_ARCHIVE[Math.floor(Math.random()*FACT_ARCHIVE.length)];document.getElementById('factTxt').textContent=x.tip;factSeconds=60;document.getElementById('factCountdown').textContent='';clearInterval(factTimer);factTimer=setInterval(()=>{factSeconds--;document.getElementById('factCountdown').textContent=factSeconds<=5?factSeconds+'s':'';if(factSeconds<=0)newFact();},1000);}
+
+document.getElementById('factCard').onclick = newFact;
+
+
+/* ---------- chicken calls ---------- */
+const CALL_CATEGORIES=[['Social Calls','🐔'],['Distress Calls','🆘'],['Hunger & Feeding Calls','🍽️'],['Rooster Calls','🐓'],['Hen & Chicks Clucks','🐣'],['Mating Calls','💞'],['Aggression & Warning','⚠️'],['Content & Relaxed','😌'],['Unique Calls','🎵']];
+let callsChip='All',callsFavOnly=false,editingCallId=null,pendingCallBlob=null,holdTimer=null,callsAudio=null,callsAudioId=null,callsAudioUrl=null;
+const CALLS_DB='coopCallsDB';
+function callsDB(){return new Promise((res,rej)=>{const r=indexedDB.open(CALLS_DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('clips');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function putClipBlob(id,blob){const d=await callsDB();return new Promise((res,rej)=>{const t=d.transaction('clips','readwrite');t.objectStore('clips').put(blob,id);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
+async function getClipBlob(id){try{const d=await callsDB();return await new Promise((res,rej)=>{const q=d.transaction('clips').objectStore('clips').get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error);});}catch(e){return null;}}
+async function delClipBlob(id){try{const d=await callsDB();await new Promise((res,rej)=>{const t=d.transaction('clips','readwrite');t.objectStore('clips').delete(id);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}catch(e){}}
+function fmtSecs(s){s=Math.max(0,Math.round(Number(s)||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function parseDur(v){v=String(v||'').trim();if(!v)return null;const m=v.match(/^(\d+):(\d{1,2})$/);if(m)return parseInt(m[1],10)*60+parseInt(m[2],10);const n=parseFloat(v);return isFinite(n)?Math.round(n):null;}
+function catEmoji(c){const f=CALL_CATEGORIES.find(x=>x[0]===c);return f?f[1]:'🐔';}
+function stopCallsAudio(){if(callsAudio){try{callsAudio.pause();}catch(e){}callsAudio=null;callsAudioId=null;}if(callsAudioUrl){URL.revokeObjectURL(callsAudioUrl);callsAudioUrl=null;}}
+async function playCall(id){if(callsAudioId===id&&callsAudio){stopCallsAudio();renderCallsList();return;}stopCallsAudio();const blob=await getClipBlob(id);if(!blob)return;callsAudioUrl=URL.createObjectURL(blob);callsAudio=new Audio(callsAudioUrl);callsAudioId=id;callsAudio.onended=()=>{stopCallsAudio();renderCallsList();};try{await callsAudio.play();}catch(e){stopCallsAudio();}renderCallsList();}
+function openCalls(){document.getElementById('callsOverlay').classList.remove('hidden');renderCallsChips();renderCallsList();}
+function closeCalls(){stopCallsAudio();toggleCallForm(true);document.getElementById('callsOverlay').classList.add('hidden');}
+function renderCallsChips(){const chips=[['All','✨'],...CALL_CATEGORIES];document.getElementById('callsChips').innerHTML=chips.map(c=>'<button class="chip'+(callsChip===c[0]?' on':'')+'" onclick="setCallsChip(\''+c[0].replace(/'/g,"\\'")+'\')">'+c[1]+' '+esc(c[0])+'</button>').join('')+'<button class="chip'+(callsFavOnly?' on':'')+'" onclick="toggleCallsFav()">⭐ Favorites</button>';}
+function setCallsChip(c){callsChip=c;renderCallsChips();renderCallsList();}
+function toggleCallsFav(){callsFavOnly=!callsFavOnly;renderCallsChips();renderCallsList();}
+function filteredCalls(){const q=(document.getElementById('callsSearch')?.value||'').trim().toLowerCase();return S.calls.filter(c=>(callsChip==='All'||c.category===callsChip)&&(!callsFavOnly||c.favorite)&&(!q||(c.title||'').toLowerCase().includes(q)||(c.emotion||'').toLowerCase().includes(q)||(c.description||'').toLowerCase().includes(q)||(c.category||'').toLowerCase().includes(q))).slice().sort((a,b)=>(b.added||'').localeCompare(a.added||''));}
+function renderCallsList(){const el=document.getElementById('callsList');if(!el)return;const rows=filteredCalls();if(!S.calls.length){el.innerHTML='<div class="hint">No calls yet. Add your first recording below — once a clip is on this device, Guess the Call unlocks.</div>';return;}if(!rows.length){el.innerHTML='<div class="hint">No calls match that search or filter.</div>';return;}el.innerHTML=rows.map(c=>'<div class="callcard" data-callid="'+c.id+'"><h3>'+catEmoji(c.category)+' '+esc(c.title||'Untitled')+(c.favorite?' ⭐':'')+'</h3><div class="meta">'+esc(c.category||'')+(c.emotion?' · '+esc(c.emotion):'')+(c.duration!=null?' · '+fmtSecs(c.duration):'')+' · added '+esc(c.added||'')+'</div>'+(c.description?'<div class="desc">'+esc(c.description)+'</div>':'')+'<div class="noaudio" id="noaudio-'+c.id+'"></div><div class="actions"><button class="btn small" id="playbtn-'+c.id+'" onclick="playCall(\''+c.id+'\')">'+(callsAudioId===c.id?'⏸ Stop':'▶ Play')+'</button><button class="btn small gray" onclick="toggleFavorite(\''+c.id+'\')">'+(c.favorite?'★ Unfavorite':'☆ Favorite')+'</button><button class="btn small gray" onclick="editCall(\''+c.id+'\')">Edit</button><button class="btn small gray danger" onclick="deleteCall(\''+c.id+'\')">Delete</button></div></div>').join('');rows.forEach(async c=>{const blob=await getClipBlob(c.id);const na=document.getElementById('noaudio-'+c.id),pb=document.getElementById('playbtn-'+c.id);if(!na)return;if(!blob){na.textContent='Audio saved on another device.';if(pb)pb.disabled=true;}});setupCallHold();}
+function setupCallHold(){document.querySelectorAll('#callsList .callcard').forEach(el=>{const id=el.dataset.callid;el.addEventListener('pointerdown',e=>{if(e.target.closest('button,input,select,a'))return;clearTimeout(holdTimer);holdTimer=setTimeout(()=>deleteCall(id),700);});['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(holdTimer)));el.addEventListener('contextmenu',e=>e.preventDefault());});}
+function toggleFavorite(id){const c=S.calls.find(x=>x.id===id);if(!c)return;c.favorite=!c.favorite;save();renderCalls();}
+function toggleCallForm(forceHide){const f=document.getElementById('callForm'),btn=document.getElementById('callsAddBtn');const show=forceHide===true?false:f.classList.contains('hidden');f.classList.toggle('hidden',!show);btn.classList.toggle('hidden',show);if(!show){editingCallId=null;pendingCallBlob=null;document.getElementById('callFormTitle').textContent='Add a Call';['callFile','callTitle','callEmotion','callDuration','callDesc'].forEach(i=>document.getElementById(i).value='');document.getElementById('callFileMeta').textContent='';document.getElementById('callCategory').selectedIndex=0;}else{if(!document.getElementById('callCategory').options.length)document.getElementById('callCategory').innerHTML=CALL_CATEGORIES.map(c=>'<option value="'+esc(c[0])+'">'+c[1]+' '+esc(c[0])+'</option>').join('');}}
+function callFilePicked(){const f=document.getElementById('callFile').files[0];pendingCallBlob=f||null;const meta=document.getElementById('callFileMeta');if(!f){meta.textContent='';return;}meta.textContent=f.name+' · '+Math.max(1,Math.round(f.size/1024))+' KB';const u=URL.createObjectURL(f),a=new Audio();a.preload='metadata';a.onloadedmetadata=()=>{if(isFinite(a.duration))document.getElementById('callDuration').value=fmtSecs(a.duration);URL.revokeObjectURL(u);};a.onerror=()=>URL.revokeObjectURL(u);a.src=u;}
+async function saveCall(){const title=document.getElementById('callTitle').value.trim();if(!title){alert('Give the call a title.');return;}const category=document.getElementById('callCategory').value||CALL_CATEGORIES[0][0];const emotion=document.getElementById('callEmotion').value.trim();const duration=parseDur(document.getElementById('callDuration').value);const description=document.getElementById('callDesc').value.trim();if(editingCallId){const c=S.calls.find(x=>x.id===editingCallId);if(!c){toggleCallForm(true);return;}c.title=title;c.category=category;c.emotion=emotion;c.duration=duration;c.description=description;if(pendingCallBlob)await putClipBlob(editingCallId,pendingCallBlob);}else{if(!pendingCallBlob){alert('Pick a recording from your phone first.');return;}const id='call-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);await putClipBlob(id,pendingCallBlob);S.calls.push({id,title,category,emotion,duration,description,favorite:false,added:today()});}save();toggleCallForm(true);renderCalls();}
+function editCall(id){const c=S.calls.find(x=>x.id===id);if(!c)return;toggleCallForm(true);toggleCallForm();editingCallId=id;document.getElementById('callFormTitle').textContent='Edit Call';document.getElementById('callTitle').value=c.title||'';document.getElementById('callCategory').value=c.category||CALL_CATEGORIES[0][0];document.getElementById('callEmotion').value=c.emotion||'';document.getElementById('callDuration').value=c.duration!=null?fmtSecs(c.duration):'';document.getElementById('callDesc').value=c.description||'';document.getElementById('callFileMeta').textContent='Leave empty to keep the current recording.';document.getElementById('callForm').scrollIntoView({behavior:'smooth',block:'start'});}
+async function deleteCall(id){const c=S.calls.find(x=>x.id===id);if(!c)return;if(!confirm('Delete "'+(c.title||'this call')+'"?'))return;stopCallsAudio();S.calls=S.calls.filter(x=>x.id!==id);await delClipBlob(id);save();renderCalls();}
+function renderCalls(){const n=S.calls.length,favs=S.calls.filter(c=>c.favorite).length;const el=document.getElementById('callsSummary');if(el)el.textContent=n?(n+' clip'+(n===1?'':'s')+(favs?' · '+favs+' favorite'+(favs===1?'':'s'):'')):'No clips yet — add your first recording.';if(!document.getElementById('callsOverlay').classList.contains('hidden'))renderCallsList();}
+
+/* ---------- guess the call ---------- */
+let quizClip=null,quizUrl=null,quizAudio=null,quizAnswered=false,quizScore={right:0,total:0},quizLastId=null;
+async function quizEligible(){const out=[];for(const c of S.calls){if(await getClipBlob(c.id))out.push(c);}return out;}
+async function openCallsQuiz(){const pool=await quizEligible();if(!pool.length){alert(S.calls.length?'None of your clips have audio on this device yet. Record or add them here to play.':'Add at least one call recording first, then Guess the Call unlocks.');return;}quizScore={right:0,total:0};document.getElementById('quizOverlay').classList.remove('hidden');quizNext();}
+function closeQuiz(){quizStop();document.getElementById('quizOverlay').classList.add('hidden');}
+function quizStop(){if(quizAudio){try{quizAudio.pause();}catch(e){}quizAudio=null;}if(quizUrl){URL.revokeObjectURL(quizUrl);quizUrl=null;}}
+async function quizNext(){quizStop();quizAnswered=false;document.getElementById('quizFeedback').textContent='';document.getElementById('quizNextBtn').classList.add('hidden');document.getElementById('quizPlayBtn').classList.remove('hidden');document.getElementById('quizScore').textContent='Score '+quizScore.right+'/'+quizScore.total;const pool=await quizEligible();if(!pool.length){closeQuiz();return;}let c=pool[Math.floor(Math.random()*pool.length)];if(pool.length>1){let guard=0;while(c.id===quizLastId&&guard++<10)c=pool[Math.floor(Math.random()*pool.length)];}quizClip=c;quizLastId=c.id;const others=CALL_CATEGORIES.map(x=>x[0]).filter(x=>x!==c.category).sort(()=>Math.random()-.5).slice(0,3);const choices=[c.category,...others].sort(()=>Math.random()-.5);document.getElementById('quizChoices').innerHTML=choices.map(x=>'<button class="btn gray" style="margin-top:10px" onclick="quizGuess(this,\''+x.replace(/'/g,"\\'")+'\')">'+catEmoji(x)+' '+esc(x)+'</button>').join('');const blob=await getClipBlob(c.id);if(!blob)return;quizUrl=URL.createObjectURL(blob);quizAudio=new Audio(quizUrl);try{await quizAudio.play();}catch(e){}}
+function quizReplay(){if(quizAudio){try{quizAudio.currentTime=0;quizAudio.play();}catch(e){}}}
+function quizGuess(btn,guess){if(quizAnswered||!quizClip)return;quizAnswered=true;quizScore.total++;const right=guess===quizClip.category;if(right)quizScore.right++;quizStop();document.getElementById('quizScore').textContent='Score '+quizScore.right+'/'+quizScore.total;document.getElementById('quizFeedback').textContent=(right?'✅ Correct — ':'❌ That was ')+'"'+ (quizClip.title||'Untitled')+'" · '+quizClip.category;document.getElementById('quizPlayBtn').classList.add('hidden');document.getElementById('quizNextBtn').classList.remove('hidden');}
+
+/* ---------- export & reset ---------- */
+function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); ALL_SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Meat Bird Tracking',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' · '+x.note:'')])); S.quarantine.forEach(x=>rows.push(['quarantine',x.quarantined,x.name,x.reintroduced?('reintroduced '+x.reintroduced):'in quarantine',x.note||''])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.scratch.forEach(f=>rows.push(['scratch',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); S.calls.forEach(c=>rows.push(['call',c.added||today(),c.title||'Untitled',c.category||'',(c.emotion||'')+(c.duration!=null?' · '+fmtSecs(c.duration):'')+(c.description?' · '+c.description:'')])); return rows; }
+function downloadBlob(name,type,text){ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0); }
+function exportData(format){ const rows=exportRows(), base='coop-tracker-'+today(); if(format==='xlsx'){ if(typeof XLSX==='undefined'){alert('Spreadsheet exporter is still loading. Try again.');return;} const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Coop Records');XLSX.writeFile(wb,base+'.xlsx');return; } if(format==='txt'){ downloadBlob(base+'.txt','text/plain',rows.map(r=>r.join(' | ')).join('\n'));return; } const groups={};rows.slice(1).forEach(r=>(groups[r[0]]??=[]).push(r));let md='# Coop Tracker Export\n\nGenerated '+today()+'\n';Object.entries(groups).forEach(([k,v])=>{md+='\n## '+k[0].toUpperCase()+k.slice(1)+'\n\n| Date | Item | Value | Notes |\n|---|---|---|---|\n'+v.map(r=>'| '+r.slice(1).map(x=>String(x).replace(/\|/g,'\\|')).join(' | ')+' |').join('\n')+'\n'});downloadBlob(base+'.md','text/markdown',md); }
+function exportCSV(){ exportData('xlsx'); }
+async function resetAllTesting(){
+  if(!confirm('Confirm reset?'))return;
+  Object.keys(localStorage).filter(k=>k===LEGACY_KEY||k.startsWith(CACHE_PREFIX)).forEach(k=>localStorage.removeItem(k));const blank=def();blank.hens=0;blank.roosters=0;blank.updated=Date.now();S=blank;dirty=false;rowVersion=null;saveLocal();renderAll();setSync('Device reset complete');
+}
+
+/* ---------- init ---------- */
+function renderAll(){ renderHome(); renderEggs(); renderHatch(); renderDispatch(); renderCohorts(); renderTractor(); renderQuarantine(); renderSupplies(); renderFinance(); renderMore(); renderEtc(); renderCartons(); renderCalls(); }
+document.getElementById('hDate').value=today();
+document.getElementById('fDate').value=today();
+document.getElementById('scratchDate').value=today();
+document.getElementById('birdDate').value=today();
+document.getElementById('cohortDate').value=today();
+document.getElementById('tractorCreated').value=today();
+document.getElementById('tractorMoved').value=today();
+renderRestore();
+randomizeNumericPlaceholders();
+prefillAccount();
+setupPasskeyDiscovery();
+setupMoreTileInteractions();
+redeemPair();
+document.getElementById('eggDirect').addEventListener('change', e=>{
+  const v = Math.max(0, parseInt(e.target.value,10)||0); if(v<(S.eggs[selDate]||0)&&!isAdmin()){alert('Admin accounts can add data, but Admin+ is required to remove it.');e.target.value=S.eggs[selDate]||0;return;}
+  S.eggs[selDate] = v; save(); renderEggs(); renderHome();
+});
+testStorage();
+newFact();
+renderFactTopics();
+renderAll();
+initCloud();
+setInterval(checkDevice,60000);
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
+</script>
+</body>
+ </html>
+
