@@ -84,8 +84,8 @@
   details.nextgen { margin:12px 0; background:#fff; border-radius:16px; padding:0 14px; box-shadow:0 1px 4px rgba(60,40,10,.08); }
   details.nextgen > summary { cursor:pointer; list-style:none; padding:15px 0; font-weight:700; color:#5b4933; }
   details.nextgen > summary::-webkit-details-marker { display:none; }
-  details.nextgen > summary:after { content:"⌄"; float:right; font-size:20px; }
-  details.nextgen[open] > summary:after { content:"⌃"; }
+  details.nextgen > summary:after { content:"â"; float:right; font-size:20px; }
+  details.nextgen[open] > summary:after { content:"â"; }
   .stats3 { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0 14px; }
   .statmini { background:#fff7ec; border-radius:12px; padding:10px; text-align:center; }
   .statmini b { display:block; font-size:22px; }
@@ -100,13 +100,13 @@
   .month-block { background:#fff; border-radius:12px; margin-top:8px; box-shadow:0 1px 3px rgba(60,40,10,.06); overflow:hidden; }
   .month-block summary { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; cursor:pointer; font-weight:600; list-style:none; }
   .month-block summary::-webkit-details-marker { display:none; }
-  .month-block summary:before { content:"›"; color:#8a7a63; font-size:20px; margin-right:7px; transform:rotate(0deg); }
+  .month-block summary:before { content:"âº"; color:#8a7a63; font-size:20px; margin-right:7px; transform:rotate(0deg); }
   .month-block[open] summary:before { transform:rotate(90deg); }
   .month-block summary span { flex:1; }
   details.archive { margin:18px 0; border-top:2px solid #d9c4a4; padding-top:4px; }
   details.archive > summary { list-style:none; cursor:pointer; font-size:18px; font-weight:800; padding:14px 2px; }
-  details.archive > summary:before { content:"›"; margin-right:8px; color:#8a7a63; }
-  details.archive[open] > summary:before { content:"⌄"; }
+  details.archive > summary:before { content:"âº"; margin-right:8px; color:#8a7a63; }
+  details.archive[open] > summary:before { content:"â"; }
   .month-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; padding:8px 10px 12px; border-top:1px solid #efe7d8; }
   .dow { text-align:center; font-size:10px; color:#a7957c; padding:3px 0; }
   .calday { min-height:46px; border-radius:8px; background:#fff7ec; padding:4px; text-align:center; }
@@ -138,9 +138,9 @@
 </head>
 <body>
 
-<div id="supportBanner" class="hidden" style="position:sticky;top:0;z-index:9;background:#8b271f;color:#fff;text-align:center;padding:7px;font-weight:800">SUPPORT MODE · ANOTHER ACCOUNT</div>
+<div id="supportBanner" class="hidden" style="position:sticky;top:0;z-index:9;background:#8b271f;color:#fff;text-align:center;padding:7px;font-weight:800">SUPPORT MODE Â· ANOTHER ACCOUNT</div>
 <header>
-  <h1>🐔 Coop Tracker</h1>
+  <h1>ð Coop Tracker</h1>
   <div class="sub" id="hdrSub"></div>
   <div id="saveTag"></div>
   <div id="syncTag"></div>
@@ -153,52 +153,52 @@
 <section id="tab-home" class="active">
   <div class="fact" id="factCard"><b>DID YOU KNOW?</b><span id="factTxt"></span><span id="factCountdown" style="display:block;margin-top:5px;color:#a38f73;font-size:11px;min-height:13px"></span></div>
   <div class="cards" id="homeCards">
-    <div class="card" role="button" onclick="goMyFlock()"><div class="big" id="cFlock">0</div><div class="label" id="cFlockLabel">🐓 total</div></div>
-    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cToday">0</div><div class="label">🍳 today</div></div>
-    <div class="card" role="button" onclick="editCounterEggs()"><div class="big" id="cWeek">0</div><div class="label">counter eggs (unwashed)</div></div>
+    <div class="card" role="button" onclick="goMyFlock()"><div class="big" id="cFlock">0</div><div class="label" id="cFlockLabel">ð total</div></div>
+    <div class="card" role="button" onclick="showTab('eggs')"><div class="big" id="cToday">0</div><div class="label">ð³ today</div></div>
+    <div class="card" role="button" onclick="editCounterEggs()"><div class="big" id="cWeek">0</div><div class="label">counter eggs (unwashed)</div><div class="subnote" id="cCounterUpdated"></div></div>
     <div class="card" role="button" id="cFridgeCard" onclick="goFridgeEggs()"><div class="big" id="cFridge">0</div><div class="label">fridge eggs (washed)</div><div class="note" id="cFridgeDozens"></div><div class="subnote" id="cFridgeUpdated"></div></div>
   </div>
   <div class="wrap"><details class="nextgen" id="nextGen"><summary>More</summary>
-      <div id="myFlockHome"><h2 class="sec">My Flock</h2><div class="row"><span>🐔 Hens</span><div class="stepper"><button class="adminAction" onclick="chgFlock('hens',-1)">−</button><div class="v" id="henV">0</div><button class="adminAction" onclick="chgFlock('hens',1)">+</button></div></div><div class="row"><span>🐓 Roosters</span><div class="stepper"><button class="adminAction" onclick="chgFlock('roosters',-1)">−</button><div class="v" id="rooV">0</div><button class="adminAction" onclick="chgFlock('roosters',1)">+</button></div></div></div>
+      <div id="myFlockHome"><h2 class="sec">My Flock</h2><div class="row"><span>ð Hens</span><div class="stepper"><button class="adminAction" onclick="chgFlock('hens',-1)">â</button><div class="v" id="henV">0</div><button class="adminAction" onclick="chgFlock('hens',1)">+</button></div></div><div class="row"><span>ð Roosters</span><div class="stepper"><button class="adminAction" onclick="chgFlock('roosters',-1)">â</button><div class="v" id="rooV">0</div><button class="adminAction" onclick="chgFlock('roosters',1)">+</button></div></div></div>
       <div class="cards" id="moreActiveCards">
-        <div class="card" id="cMonthCard"><div class="big" id="cMonth">0</div><div class="label">🍳 this month</div><div class="note avg-range" id="cMonthRange"></div></div>
-        <div class="card" id="cTotalEggsCard"><div class="big" id="cTotalEggs">0</div><div class="label">🍳 this year</div><div class="note avg-range" id="cTotalEggsRange"></div></div>
+        <div class="card" id="cMonthCard"><div class="big" id="cMonth">0</div><div class="label">ð³ this month</div><div class="note avg-range" id="cMonthRange"></div></div>
+        <div class="card" id="cTotalEggsCard"><div class="big" id="cTotalEggs">0</div><div class="label">ð³ this year</div><div class="note avg-range" id="cTotalEggsRange"></div></div>
         <div class="card" id="cCartonsCard"><div class="big" id="cCartons">0</div><div class="label">total cartons available</div></div>
         <div class="card" id="cCartonSpaceCard"><div class="big" id="cCartonSpace">0</div><div class="label">total carton space remaining</div></div>
-        <div class="card moreOptionalCounter" id="cIncubatingCard"><div class="big" id="cIncubating">0</div><div class="label">🥚 total incubating</div></div>
-        <div class="card" id="cChicksCard"><div class="big" id="cChicks">0</div><div class="label">🐣 chicks (0w-8w old)</div></div>
-        <div class="card" id="cPulletsCard"><div class="big" id="cPullets">0</div><div class="label">🐥 pullets (8w-18w old)</div></div>
-        <div class="card moreOptionalCounter" id="cMeatCard"><div class="big" id="cMeat">0</div><div class="label">🍗 harvestable 7+ week old</div></div>
-        <div class="card moreOptionalCounter" id="cTractorCard"><div class="big" id="cTractor">0</div><div class="label">🐓 tractor &lt;7 weeks old</div></div>
-        <div class="card moreOptionalCounter" id="cQuarantineCard"><div class="big" id="cQuarantine">0</div><div class="label">🤒 diseased/backup coop</div></div>
+        <div class="card moreOptionalCounter" id="cIncubatingCard"><div class="big" id="cIncubating">0</div><div class="label">ð¥ total incubating</div></div>
+        <div class="card" id="cChicksCard"><div class="big" id="cChicks">0</div><div class="label">ð£ chicks (0w-8w old)</div></div>
+        <div class="card" id="cPulletsCard"><div class="big" id="cPullets">0</div><div class="label">ð¥ pullets (8w-18w old)</div></div>
+        <div class="card moreOptionalCounter" id="cMeatCard"><div class="big" id="cMeat">0</div><div class="label">ð harvestable 7+ week old</div></div>
+        <div class="card moreOptionalCounter" id="cTractorCard"><div class="big" id="cTractor">0</div><div class="label">ð tractor &lt;7 weeks old</div></div>
+        <div class="card moreOptionalCounter" id="cQuarantineCard"><div class="big" id="cQuarantine">0</div><div class="label">ð¤ diseased/backup coop</div></div>
       </div>
-      <details class="nextgen" id="hiddenMore"><summary>Hidden</summary><div class="cards" id="moreHiddenCards"><div class="card" id="cHarvestedCard"><div class="big" id="cHarvested">0</div><div class="label">🪦 total harvested</div></div></div></details>
+      <details class="nextgen" id="hiddenMore"><summary>Hidden</summary><div class="cards" id="moreHiddenCards"><div class="card" id="cHarvestedCard"><div class="big" id="cHarvested">0</div><div class="label">ðª¦ total harvested</div></div></div></details>
       <details class="nextgen" id="eggCartonsSection"><summary>Egg Cartons</summary><div class="workflow"><div class="stats3"><div class="statmini"><b id="cartonSpace">0</b>Space Remaining</div><div class="statmini"><b id="cartonReady">0</b>Fridge Eggs</div><div class="statmini"><b id="cartonReadyDozens">0</b>Dozen ready/washed</div></div><label>Regular (12 pack, cardboard)</label><input id="cartonRegular" type="number" min="0" onchange="setCarton('regular',this.value)"><label>Large (18 pack, cardboard)</label><input id="cartonLarge" type="number" min="0" onchange="setCarton('large',this.value)"><label>Plastic (all sizes)</label><input id="cartonPlastic" type="number" min="0" onchange="setCarton('plastic',this.value)"><div class="note">Plastic cartons are tracked as backups and excluded from Space Remaining.</div><label id="fridgeEggsField">Fridge Eggs</label><input id="cartonReadyInput" type="number" min="0" onchange="setCarton('ready',this.value)"><h2 class="sec">Carton Calendar</h2><div id="cartonMonths"></div></div></details>
       <details class="nextgen" id="chickHatchesSection"><summary>Hatches</summary><div class="workflow"><h2 class="sec">Hatch Tracking</h2><div id="hatchList"></div>
           <label>Name</label><input id="hName" placeholder="Optional">
           <label>Date eggs set</label><input id="hDate" type="date">
           <label>Number of eggs</label><input id="hCount" type="number" min="1" data-random-placeholder>
           <label>Hatch + 7 days survivors</label><input id="hSurvivors" type="number" min="0" data-random-placeholder>
-          <button class="btn" onclick="addHatch()">🐣 Add Hatch Run</button>
+          <button class="btn" onclick="addHatch()">ð£ Add Hatch Run</button>
           <h2 class="sec">Pre-Layer Tracking</h2>
           <div class="stats3" style="grid-template-columns:1fr 1fr"><div class="statmini"><b id="chickCount">0</b>Chicks<div class="note">1 day to 8 weeks</div></div><div class="statmini"><b id="pulletCount">0</b>Pullets<div class="note">8 weeks to 18 weeks</div></div></div>
           <label>Acquisition date</label><input id="cohortDate" type="date">
           <label>Number of chicks</label><input id="cohortCount" type="number" min="1" data-random-placeholder>
           <label>Relevant details</label><input id="cohortNote" placeholder="Optional">
-          <div class="actions"><button class="btn" onclick="addCohort('hatched')">🐣 Add Hatched</button><button class="btn gray" onclick="addCohort('acquired')">🐥 Add Non-Hatched</button></div><div id="cohortList"></div>
+          <div class="actions"><button class="btn" onclick="addCohort('hatched')">ð£ Add Hatched</button><button class="btn gray" onclick="addCohort('acquired')">ð¥ Add Non-Hatched</button></div><div id="cohortList"></div>
           <h2 class="sec">Rearing Ages</h2>
           <label>Chick becomes pullet at (weeks)</label><input id="chickWeeks" type="number" min="1" onchange="setRearingAge('chickWeeks',this.value)">
           <label>Pullet becomes a hen at (weeks)</label><input id="henWeeks" type="number" min="1" onchange="setRearingAge('henWeeks',this.value)">
         </div>
 </details>
-      <details class="nextgen" id="chickenTractorSection"><summary>Tractor</summary><div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><div class="stats3" style="grid-template-columns:1fr 1fr"><div class="statmini"><b id="meatBirdCount">0</b>Meat birds 7+ weeks old</div><div class="statmini"><b id="tractorYoungCount">0</b>Tractor &lt;7 weeks old</div></div><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">🍗 Add Meat Bird</button><div id="tractorList"></div></div></details>
-      <details class="nextgen hidden" id="quarantineSection"><summary>🤒 Diseased / Backup Coop</summary><div class="workflow"><h2 class="sec">Quarantine Tracker</h2><label>Name/leg band</label><input id="qName"><label>Date quarantined</label><input id="qQuarantined" type="date"><label>Note</label><input id="qNote"><button class="btn" onclick="addQuarantine()">🤒 Add Quarantined Bird</button><div id="quarantineList"></div></div></details>
+      <details class="nextgen" id="chickenTractorSection"><summary>Tractor</summary><div class="workflow"><h2 class="sec">Meat Bird Tracking</h2><div class="stats3" style="grid-template-columns:1fr 1fr"><div class="statmini"><b id="meatBirdCount">0</b>Meat birds 7+ weeks old</div><div class="statmini"><b id="tractorYoungCount">0</b>Tractor &lt;7 weeks old</div></div><label>Number of chickens inside</label><input id="tractorCount" type="number" min="0" data-random-placeholder><label>Date created</label><input id="tractorCreated" type="date"><label>Last moved</label><input id="tractorMoved" type="date"><label>Note</label><input id="tractorNote" placeholder="Optional"><button class="btn" onclick="addTractorLog()">ð Add Meat Bird</button><div id="tractorList"></div></div></details>
+      <details class="nextgen hidden" id="quarantineSection"><summary>ð¤ Diseased / Backup Coop</summary><div class="workflow"><h2 class="sec">Quarantine Tracker</h2><label>Name/leg band</label><input id="qName"><label>Date quarantined</label><input id="qQuarantined" type="date"><label>Note</label><input id="qNote"><button class="btn" onclick="addQuarantine()">ð¤ Add Quarantined Bird</button><div id="quarantineList"></div></div></details>
       <details class="nextgen" id="dispatchSection"><summary>Dispatch</summary><div class="workflow"><h2 class="sec">Dispatch Tracking</h2>
         <label>Bird name / tag</label><input id="birdName" placeholder="e.g. Red 12">
         <label>Dispatched date</label><input id="birdDate" type="date">
         <label>Note</label><input id="birdNote" placeholder="Optional">
-        <label>Destination</label><input id="birdDestination" list="destinationCodes" placeholder="Optional · 😀 😁 🙂 😊 😚"><datalist id="destinationCodes"><option value="😀"><option value="😁"><option value="🙂"><option value="😊"><option value="😚"></datalist><div style="color:#8a7a63;font-size:12px;margin-top:6px">Emoji legend: 😀 code1 · 😁 code2 · 🙂 code3 · 😊 code4 · 😚 code5</div>
-        <button class="btn" onclick="addDispatch()">☠️ Add Dispatch Bird</button>
+        <label>Destination</label><input id="birdDestination" list="destinationCodes" placeholder="Optional Â· ð ð ð ð ð"><datalist id="destinationCodes"><option value="ð"><option value="ð"><option value="ð"><option value="ð"><option value="ð"></datalist><div style="color:#8a7a63;font-size:12px;margin-top:6px">Emoji legend: ð code1 Â· ð code2 Â· ð code3 Â· ð code4 Â· ð code5</div>
+        <button class="btn" onclick="addDispatch()">â ï¸ Add Dispatch Bird</button>
         <div class="stats3"><div class="statmini"><b id="d7">0</b>Prior Week</div><div class="statmini"><b id="d30">0</b>Prior Month</div><div class="statmini"><b id="dAll">0</b>Cumulative</div></div>
         <div id="dispatchList"></div></div></details>
     </details>
@@ -215,11 +215,11 @@
   <div class="wrap">
     <h2 class="sec" id="eggDateLbl">Today</h2>
     <div class="counter">
-      <button onclick="chgEgg(-1)">−</button>
+      <button onclick="chgEgg(-1)">â</button>
       <input class="numin" type="number" id="eggDirect" inputmode="numeric" min="0" value="0">
       <button onclick="chgEgg(1)">+</button>
     </div>
-    <div style="text-align:center;color:#8a7a63;font-size:13px">Tap +/− or type the number. Saves automatically.</div>
+    <div style="text-align:center;color:#8a7a63;font-size:13px">Tap +/â or type the number. Saves automatically.</div>
     <h2 class="sec">Last 7 Days</h2>
     <div id="eggHist"></div>
     <div style="color:#8a7a63;font-size:12px;margin-top:6px">Tap a day to edit it.</div><div class="cards" id="eggStats"><div class="card"><div class="big" id="eAvg3">0</div><div class="label">Prior 3d Avg</div><div class="note avg-range" id="eAvg3Range"></div></div><div class="card"><div class="big" id="cAvg">0</div><div class="label">Prior 7d Avg</div><div class="note avg-range" id="cAvgRange"></div></div><div class="card"><div class="big" id="eAvg1m">0</div><div class="label">Prior 1m Avg</div><div class="note avg-range" id="eAvg1mRange"></div></div><div class="card"><div class="big" id="cAvg30">0</div><div class="label">Prior 3m Avg</div><div class="note avg-range" id="cAvg30Range"></div></div><div class="card"><div class="big" id="eMonthDiff">0</div><div class="label">Month Difference</div><div class="note avg-range" id="eMonthDiffRange"></div></div></div>
@@ -234,10 +234,10 @@
     
     <div id="supplyList"></div>
     <details class="archive" id="inventory"><summary>Inventory</summary>
-      <div class="hatchcard"><h3>🌾 Feed</h3><div class="meta">Last fill: <span id="feedLast">—</span></div>
-        <label>Date</label><input id="fDate" type="date"><label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="fNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addFeed()">Add Feed</button><details class="history"><summary>History</summary><div id="feedList"></div></details></div>
-      <div class="hatchcard"><h3>🌾 Scratch</h3><div class="meta">Last fill: <span id="scratchLast">—</span></div>
-        <label>Date</label><input id="scratchDate" type="date"><label>Pounds</label><input id="scratchLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="scratchNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addScratch()">Add Scratch</button><details class="history"><summary>History</summary><div id="scratchList"></div></details></div>
+      <div class="hatchcard"><h3>ð¾ Feed</h3><div class="meta">Last fill: <span id="feedLast">â</span></div>
+        <label>Date</label><input id="fDate" type="date"><label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="fNote" placeholder="Optional Â· brand, typeâ¦"><button class="btn" onclick="addFeed()">Add Feed</button><details class="history"><summary>History</summary><div id="feedList"></div></details></div>
+      <div class="hatchcard"><h3>ð¾ Scratch</h3><div class="meta">Last fill: <span id="scratchLast">â</span></div>
+        <label>Date</label><input id="scratchDate" type="date"><label>Pounds</label><input id="scratchLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="scratchNote" placeholder="Optional Â· brand, typeâ¦"><button class="btn" onclick="addScratch()">Add Scratch</button><details class="history"><summary>History</summary><div id="scratchList"></div></details></div>
       <div id="inventorySupplyList"></div>
     </details>
   </div>
@@ -252,7 +252,7 @@
     <div class="hatchcard">
       <h3>Last related purchase</h3>
       <label>Amount</label><input id="financeLastAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" onchange="setFinance('lastAmount',this.value)">
-      <label>Receipt or product link</label><input id="financeLastLink" type="url" placeholder="https://…" onchange="setFinance('lastLink',this.value)">
+      <label>Receipt or product link</label><input id="financeLastLink" type="url" placeholder="https://â¦" onchange="setFinance('lastLink',this.value)">
       <div id="financeLastOpen" style="margin-top:8px"></div>
     </div>
 
@@ -267,7 +267,7 @@
   <div class="wrap">
 
     <h2 class="sec">Cloud Sync</h2>
-    <div class="row"><span>Status</span><span class="r" id="syncStatus">Starting…</span></div>
+    <div class="row"><span>Status</span><span class="r" id="syncStatus">Startingâ¦</span></div>
     <div class="authbox" id="authSignedOut">
       <p>Enter email below &amp; open sign in link to sync.</p>
       <label>Email</label><input id="accountEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com">
@@ -276,7 +276,7 @@
     </div>
     <div class="authbox hidden" id="authSignedIn">
       <p><b id="accountNote">Signed in.</b><br>Your records stay with this email and sync on every signed-in device.</p>
-      <button class="btn gray" onclick="syncNow()">🔄 Sync Now</button>
+      <button class="btn gray" onclick="syncNow()">ð Sync Now</button>
       <button class="btn gray" onclick="signOutAccount()">Use a different email</button>
     </div>
     <div class="authbox hidden" id="conflictBox">
@@ -293,10 +293,10 @@
     </div>
     <div id="adminBottom" class="adminOnlyBlock">
       <div id="adminPlus"><h2 class="sec">Admin+</h2><button id="untrustDeviceBtn" class="btn gray danger hidden" onclick="untrustThisDevice()">Remove Trusted Admin+ from This Device</button><div id="passkeyManager"><button class="btn gray" onclick="registerPasskey()">Add Admin+ Passkey</button><div id="passkeyList"></div></div><div id="adminMagicLink"><button class="btn gray" onclick="generateAdminLink()">Generate Magic Link</button><div id="adminMagicResult" class="hidden"><input id="adminMagicText" readonly><button class="btn gray" onclick="copyAdminLink()">Copy Link</button><div id="adminMagicStatus" class="hint"></div></div></div></div>
-      <div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devices…</span></div></div></div>
+      <div id="adminSessions"><h2 class="sec">Active Sessions</h2><div id="deviceList"><div class="row"><span class="r">Loading devicesâ¦</span></div></div></div>
     </div>
-    <div id="factArchive"><h2 class="sec">Did you know? Archive</h2><button class="btn" style="font-size:20px" onclick="randomArchiveFact()">🐣🐓Random🐔🐥</button><div id="randomFactResult"></div><button class="btn gray" onclick="openFactArchive()">View All</button><div id="factTopics" class="auth-actions"></div></div>
-    <div id="callsArchive"><h2 class="sec">Chicken Calls</h2><button class="btn" style="font-size:20px" onclick="openCallsQuiz()">🐔🔊 Guess the Call</button><div class="r" id="callsSummary" style="margin-top:8px"></div><button class="btn gray" onclick="openCalls()">View All</button><div id="callsTopics" class="auth-actions"></div></div>
+    <div id="factArchive"><h2 class="sec">Did you know? Archive</h2><button class="btn" style="font-size:20px" onclick="randomArchiveFact()">ð£ðRandomðð¥</button><div id="randomFactResult"></div><button class="btn gray" onclick="openFactArchive()">View All</button><div id="factTopics" class="auth-actions"></div></div>
+    <div id="callsArchive"><h2 class="sec">Chicken Calls</h2><button class="btn" style="font-size:20px" onclick="openCallsQuiz()">ðð Guess the Call</button><div class="r" id="callsSummary" style="margin-top:8px"></div><button class="btn gray" onclick="openCalls()">View All</button><div id="callsTopics" class="auth-actions"></div></div>
     <div class="adminOnlyBlock" id="downloadData"><h2 class="sec">Download Your Data</h2><div class="hint" style="margin:8px 0">Downloads create a copy of your records. TXT is plain readable text, MD keeps headings for notes apps, and XLSX opens as a spreadsheet.</div><div class="auth-actions"><button class="btn gray" onclick="exportData('txt')">TXT</button><button class="btn gray" onclick="exportData('md')">MD</button></div><button class="btn gray" onclick="exportData('xlsx')">XLSX spreadsheet</button></div>
   </div>
 </section>
@@ -306,13 +306,13 @@
 <!-- CHICKEN CALLS -->
 <div id="callsOverlay" class="callsOverlay hidden">
   <div class="callsHead">
-    <div class="callsHeadRow"><h2>🐔 Chicken Calls</h2><button class="callsClose" aria-label="Close" onclick="closeCalls()">×</button></div>
-    <input id="callsSearch" placeholder="Search calls…" oninput="renderCallsList()" style="margin-top:10px">
+    <div class="callsHeadRow"><h2>ð Chicken Calls</h2><button class="callsClose" aria-label="Close" onclick="closeCalls()">Ã</button></div>
+    <input id="callsSearch" placeholder="Search callsâ¦" oninput="renderCallsList()" style="margin-top:10px">
     <div id="callsChips" class="chips"></div>
   </div>
   <div class="callsBody">
     <div id="callsList"></div>
-    <button class="btn" id="callsAddBtn" onclick="toggleCallForm()">➕ Add a Call</button>
+    <button class="btn" id="callsAddBtn" onclick="toggleCallForm()">â Add a Call</button>
     <div id="callForm" class="hatchcard hidden">
       <h3 id="callFormTitle">Add a Call</h3>
       <label>Recording</label><input id="callFile" type="file" accept="audio/*" onchange="callFilePicked()">
@@ -325,19 +325,19 @@
       <button class="btn" onclick="saveCall()">Save Call</button>
       <button class="btn gray" onclick="toggleCallForm(true)">Cancel</button>
     </div>
-    <button class="btn gray" style="margin-top:14px" onclick="openCallsCredits()">🙏 Library Credits</button>
+    <button class="btn gray" style="margin-top:14px" onclick="openCallsCredits()">ð Library Credits</button>
   </div>
 </div>
 
 <!-- GUESS THE CALL -->
 <div id="quizOverlay" class="callsOverlay hidden">
   <div class="callsHead">
-    <div class="callsHeadRow"><h2>🐔🔊 Guess the Call</h2><button class="callsClose" aria-label="Close" onclick="closeQuiz()">×</button></div>
+    <div class="callsHeadRow"><h2>ðð Guess the Call</h2><button class="callsClose" aria-label="Close" onclick="closeQuiz()">Ã</button></div>
   </div>
   <div class="callsBody"><div class="quizBody">
-    <div class="quizBig">🔊</div>
+    <div class="quizBig">ð</div>
     <div class="quizScore" id="quizScore"></div>
-    <button class="btn" id="quizPlayBtn" onclick="quizReplay()">▶ Play the call</button>
+    <button class="btn" id="quizPlayBtn" onclick="quizReplay()">â¶ Play the call</button>
     <div id="quizChoices"></div>
     <div class="quizFeedback" id="quizFeedback"></div>
     <button class="btn hidden" id="quizNextBtn" onclick="quizNext()">Next Call</button>
@@ -345,11 +345,11 @@
 </div>
 
 <nav id="tabbar">
-  <button data-tab="home" class="active" onclick="showTab('home')"><span class="ic">🏠</span>Home</button>
-  <button data-tab="eggs" onclick="showTab('eggs')"><span class="ic">🥚</span>Eggs</button>
-  <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">🌾</span>Supplies</button>
-  <button data-tab="finance" onclick="showTab('finance')"><span class="ic">💵</span>Finance</button>
-  <button data-tab="more" onclick="showTab('more')"><span class="ic">⚙️</span>Settings</button>
+  <button data-tab="home" class="active" onclick="showTab('home')"><span class="ic">ð </span>Home</button>
+  <button data-tab="eggs" onclick="showTab('eggs')"><span class="ic">ð¥</span>Eggs</button>
+  <button data-tab="tasks" onclick="showTab('tasks')"><span class="ic">ð¾</span>Supplies</button>
+  <button data-tab="finance" onclick="showTab('finance')"><span class="ic">ðµ</span>Finance</button>
+  <button data-tab="more" onclick="showTab('more')"><span class="ic">âï¸</span>Settings</button>
 </nav>
 
 <script src="supabase.js"></script>
@@ -366,14 +366,14 @@ let supportMode=false;
 const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
 const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdWFoemN2ZmRobmZ0d21sdnJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTIzNzIsImV4cCI6MjEwMzg4ODM3Mn0.6rksBqxsn51ARofrxt48p7QaBMngU2VGzrc9UXxcUTc';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
-const SUPPLIES = [ ['fsl','🌾 First Saturday Lime (FSL)'], ['water','💧 Big Water'], ['bigFood','🍽️ Big Food'], ['calcium','🐚 Calcium'], ['grit','🪨 Grit'] ];
+const SUPPLIES = [ ['fsl','ð¾ First Saturday Lime (FSL)'], ['water','ð§ Big Water'], ['bigFood','ð½ï¸ Big Food'], ['calcium','ð Calcium'], ['grit','ðª¨ Grit'] ];
 const INVENTORY_SUPPLIES = [];
 const ALL_SUPPLIES=[...SUPPLIES,...INVENTORY_SUPPLIES];
 const ADMIN_EMAIL='aerauwolf15@gmail.com';
 const FACT_ARCHIVE = [
   {
     "category": "Breeds, Domestication & History",
-    "tip": "Brown eggshell pigment is called protoporphyrin — it's painted on in the last hours before laying.",
+    "tip": "Brown eggshell pigment is called protoporphyrin â it's painted on in the last hours before laying.",
     "existing": true,
     "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
     "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
@@ -387,21 +387,21 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Chicken Lifecycle",
-    "tip": "Hens lay best with 14–16 hours of light. Short winter days are why production drops.",
+    "tip": "Hens lay best with 14â16 hours of light. Short winter days are why production drops.",
     "existing": true,
     "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
     "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
   },
   {
     "category": "Chicken Lifecycle",
-    "tip": "An egg takes about 24–26 hours to form, so hens rarely lay more than one per day.",
+    "tip": "An egg takes about 24â26 hours to form, so hens rarely lay more than one per day.",
     "existing": true,
     "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
     "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
   },
   {
     "category": "Chicken Lifecycle",
-    "tip": "Chicks can absorb the yolk sac just before hatching — that's how they ship day-old chicks with no food.",
+    "tip": "Chicks can absorb the yolk sac just before hatching â that's how they ship day-old chicks with no food.",
     "existing": true,
     "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
     "sourceName": "Penn State Extension - Setting Up the Incubator"
@@ -415,28 +415,28 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Chicken Lifecycle",
-    "tip": "A rooster isn't needed for eggs — only for fertile eggs.",
+    "tip": "A rooster isn't needed for eggs â only for fertile eggs.",
     "existing": true,
     "source": "https://extension.msstate.edu/publications/hatching-quality-chicks",
     "sourceName": "Mississippi State University Extension - Hatching Quality Chicks"
   },
   {
     "category": "Chicken Lifecycle",
-    "tip": "Candling at day 7–10 lets you spot clear (infertile) eggs before they spoil.",
+    "tip": "Candling at day 7â10 lets you spot clear (infertile) eggs before they spoil.",
     "existing": true,
     "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
     "sourceName": "Penn State Extension - Setting Up the Incubator"
   },
   {
     "category": "Chicken Lifecycle",
-    "tip": "Humidity matters at hatch: aim ~45–55% early, then 65%+ for lockdown.",
+    "tip": "Humidity matters at hatch: aim ~45â55% early, then 65%+ for lockdown.",
     "existing": true,
     "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
     "sourceName": "Penn State Extension - Setting Up the Incubator"
   },
   {
     "category": "Animal Husbandry",
-    "tip": "Hens have a 'pecking order' — literally. New birds get ranked by squabbles.",
+    "tip": "Hens have a 'pecking order' â literally. New birds get ranked by squabbles.",
     "existing": true,
     "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
     "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
@@ -823,7 +823,7 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Pests & Diseases",
-    "tip": "Marek’s disease prevention is most effective when chicks are vaccinated at hatch.",
+    "tip": "Marekâs disease prevention is most effective when chicks are vaccinated at hatch.",
     "source": "https://extension.psu.edu/programs/4-h/counties/montgomery/programs/school-enrichment/embryology/setting-up-the-incubator",
     "sourceName": "Penn State Extension - Setting Up the Incubator"
   },
@@ -877,7 +877,7 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Fun Facts",
-    "tip": "A flock’s pecking order helps determine access to food, roosts, and nest boxes.",
+    "tip": "A flockâs pecking order helps determine access to food, roosts, and nest boxes.",
     "source": "https://www.merckvetmanual.com/behavior/behavior-of-poultry/behavior-of-poultry",
     "sourceName": "Merck Veterinary Manual - Behavior of Poultry"
   },
@@ -925,7 +925,7 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Fun Facts",
-    "tip": "A chicken’s body temperature is higher than a human’s, generally around 105 to 107°F.",
+    "tip": "A chickenâs body temperature is higher than a humanâs, generally around 105 to 107Â°F.",
     "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/management-of-backyard-poultry",
     "sourceName": "Merck Veterinary Manual - Management of Backyard Poultry"
   },
@@ -991,7 +991,7 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Fun Facts",
-    "tip": "An egg’s air cell grows larger as moisture leaves through shell pores.",
+    "tip": "An eggâs air cell grows larger as moisture leaves through shell pores.",
     "source": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/eggs/shell-eggs-farm-table",
     "sourceName": "USDA FSIS - Shell Eggs from Farm to Table"
   },
@@ -1015,7 +1015,7 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Fun Facts",
-    "tip": "A chicken’s gizzard uses grit and strong muscles to grind food without teeth.",
+    "tip": "A chickenâs gizzard uses grit and strong muscles to grind food without teeth.",
     "source": "https://www.merckvetmanual.com/exotic-and-laboratory-animals/backyard-poultry/management-of-backyard-poultry",
     "sourceName": "Merck Veterinary Manual - Management of Backyard Poultry"
   },
@@ -1513,7 +1513,7 @@ const FACT_ARCHIVE = [
   },
   {
     "category": "Breeds, Domestication & History",
-    "tip": "Eggshell color is inherited and does not indicate the egg’s nutritional value.",
+    "tip": "Eggshell color is inherited and does not indicate the eggâs nutritional value.",
     "source": "https://livestockconservancy.org/heritage-breeds/heritage-breed-chickens/",
     "sourceName": "The Livestock Conservancy - Heritage Breed Chickens"
   },
@@ -1568,7 +1568,7 @@ const FACT_ARCHIVE = [
 ];
 const FACTS = FACT_ARCHIVE.map(x=>x.tip);
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], quarantine:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:24}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, etc:{filler1:'',filler2:'',filler3:''}, cartons:{regular:0,large:0,plastic:0,plasticCapacity:12,ready:0,readyUpdated:'',log:{}}, counterEggs:null, calls:[], updated:0 }; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], quarantine:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:24}, tasks:[], feed:[], scratch:[], supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, etc:{filler1:'',filler2:'',filler3:''}, cartons:{regular:0,large:0,plastic:0,plasticCapacity:12,ready:0,readyUpdated:'',log:{}}, counterEggs:null, counterEggsUpdated:'', calls:[], updated:0 }; }
 function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.etc=Object.assign(def().etc,(x&&x.etc)||{}); y.cartons=Object.assign(def().cartons,(x&&x.cartons)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); if(y.rearing.henWeeks===18)y.rearing.henWeeks=24; y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.quarantine=Array.isArray(y.quarantine)?y.quarantine:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.calls=Array.isArray(y.calls)?y.calls:[]; y.calls.forEach(c=>{if(typeof c.favorite!=="boolean")c.favorite=!!c.favorite;}); y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
@@ -1580,11 +1580,11 @@ function testStorage(){
   try { localStorage.setItem('__ct','1'); storageOK=localStorage.getItem('__ct')==='1'; localStorage.removeItem('__ct'); }
   catch(e){ storageOK=false; }
   const w=document.getElementById('warnBox');
-  if(!storageOK){ w.style.display='block'; w.innerHTML='<b>⚠️ Local cache is blocked.</b> Turn off Private Browsing and allow site storage, then reload.'; }
+  if(!storageOK){ w.style.display='block'; w.innerHTML='<b>â ï¸ Local cache is blocked.</b> Turn off Private Browsing and allow site storage, then reload.'; }
   else w.style.display='none';
 }
 function saveLocal(){
-  try { localStorage.setItem(cacheKey(), JSON.stringify(cleanState(S))); const t=document.getElementById('saveTag'); if(t) t.textContent='💾 Saved '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+  try { localStorage.setItem(cacheKey(), JSON.stringify(cleanState(S))); const t=document.getElementById('saveTag'); if(t) t.textContent='ð¾ Saved '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
   catch(e){ storageOK=false; testStorage(); }
 }
 function save(){ S.updated=Date.now(); dirty=true; saveLocal(); schedulePush(); }
@@ -1594,7 +1594,7 @@ function isAccountUser(u=currentUser){ return !!u && !u.is_anonymous && !!u.emai
 function isAdmin(){ return isAccountUser()&&accountRole==='admin'; }
 function requireAdmin(){ if(isAdmin())return true; alert('Admin+ access is required for that change.'); return false; }
 function renderRestore(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY)||''; const note=document.getElementById('restoreNote'),btn=document.getElementById('restoreBtn'); if(!note||!btn)return; note.textContent=email?'Remembered on this device: '+email:'No remembered email on this device yet.'; btn.disabled=!localStorage.getItem(DEVICE_SECRET_KEY); }
-async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){authMsg('This device is not registered yet. Use an email sign-in link.',true);return;} authMsg('Restoring this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action:'restore',device_id:deviceId(),secret})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Could not restore this device',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device restored. Syncing…'); }
+async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){authMsg('This device is not registered yet. Use an email sign-in link.',true);return;} authMsg('Restoring this deviceâ¦'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action:'restore',device_id:deviceId(),secret})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Could not restore this device',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device restored. Syncingâ¦'); }
 
 function randomizeNumericPlaceholders(){document.querySelectorAll('[data-random-placeholder]').forEach(x=>x.placeholder=String(1+Math.floor(Math.random()*10)));}
 function showAuth(){
@@ -1607,7 +1607,7 @@ function showAuth(){
 function accountEmail(){ return document.getElementById('accountEmail').value.trim().toLowerCase(); }
 function deviceId(){ let id=localStorage.getItem(DEVICE_KEY); if(!id){ const b=crypto.getRandomValues(new Uint8Array(16)); id=[...b].map(x=>x.toString(16).padStart(2,'0')).join(''); localStorage.setItem(DEVICE_KEY,id); } return id; }
 function deviceSecret(){ let secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){ const b=crypto.getRandomValues(new Uint8Array(32)); secret=[...b].map(x=>x.toString(16).padStart(2,'0')).join(''); localStorage.setItem(DEVICE_SECRET_KEY,secret); } return secret; }
-function deviceInfo(){ const ua=navigator.userAgent, browser=/CriOS|Chrome/.test(ua)?'Chrome':/FxiOS|Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Web browser', client_type=isStandalone()?'Installed App':'Browser', device=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'Device'; return {id:deviceId(),secret:deviceSecret(),label:device+' · '+browser+' · '+client_type,client_type,browser}; }
+function deviceInfo(){ const ua=navigator.userAgent, browser=/CriOS|Chrome/.test(ua)?'Chrome':/FxiOS|Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Web browser', client_type=isStandalone()?'Installed App':'Browser', device=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'Device'; return {id:deviceId(),secret:deviceSecret(),label:device+' Â· '+browser+' Â· '+client_type,client_type,browser}; }
 const b64uToBytes=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(s.length/4)*4,'=')),c=>c.charCodeAt(0));
 const bytesToB64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 function credentialJSON(c){return {id:c.id,rawId:bytesToB64u(c.rawId),type:c.type,authenticatorAttachment:c.authenticatorAttachment,response:{clientDataJSON:bytesToB64u(c.response.clientDataJSON),attestationObject:c.response.attestationObject?bytesToB64u(c.response.attestationObject):undefined,authenticatorData:c.response.authenticatorData?bytesToB64u(c.response.authenticatorData):undefined,signature:c.response.signature?bytesToB64u(c.response.signature):undefined,userHandle:c.response.userHandle?bytesToB64u(c.response.userHandle):null,transports:c.response.getTransports?c.response.getTransports():undefined},clientExtensionResults:c.getClientExtensionResults()};}
@@ -1615,31 +1615,31 @@ async function publicPairAPI(action,extra={}){const r=await fetch(SUPABASE_URL+'
 async function pairAPI(action,extra={}){ const {data:{session}}=await db.auth.getSession(); if(!session?.access_token)return {error:'No active session'}; const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify({action,device_id:deviceId(),secret:localStorage.getItem(DEVICE_SECRET_KEY)||'',admin_token:localStorage.getItem(ADMIN_TOKEN_KEY)||'',...extra})}); return await r.json(); }
 async function registerDevice(){ if(!isAccountUser())return; const x=await pairAPI('register',{device:deviceInfo()}); if(!x.error)await renderDevices(); }
 async function setupPasskeyDiscovery(){const btn=document.getElementById('passkeySignInBtn');if(!btn||!window.PublicKeyCredential)return;try{const [platform,conditional]=await Promise.all([PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),PublicKeyCredential.isConditionalMediationAvailable?.()||false]);btn.classList.toggle('hidden',!platform);document.getElementById('passkeyHelp').classList.toggle('hidden',!platform);if(conditional){const b=await publicPairAPI('passkey_auth_begin');if(!b.error){const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));navigator.credentials.get({publicKey:o,mediation:'conditional'}).then(async cred=>{if(!cred)return;const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo(),target_email:accountEmail()});if(f.error)return;localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);supportMode=!!f.support_mode;await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});}).catch(()=>{});}}}catch(e){btn.classList.add('hidden')}}
-async function signInWithPasskey(){if(!window.PublicKeyCredential){authMsg('Passkeys are not supported in this browser.',true);return;}try{authMsg('Waiting for passkey…');const b=await publicPairAPI('passkey_auth_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.get({publicKey:o});const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo(),target_email:accountEmail()});if(f.error)throw new Error(f.error);localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);supportMode=!!f.support_mode;const v=await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});if(v.error)throw v.error;authMsg('Admin+ passkey verified. Syncing…');}catch(e){authMsg(e.name==='NotAllowedError'?'Passkey unavailable or canceled. Use the email link below for Admin access.':e.message+' Use the email link below if needed.',true)}}
+async function signInWithPasskey(){if(!window.PublicKeyCredential){authMsg('Passkeys are not supported in this browser.',true);return;}try{authMsg('Waiting for passkeyâ¦');const b=await publicPairAPI('passkey_auth_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.allowCredentials=(o.allowCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.get({publicKey:o});const f=await publicPairAPI('passkey_auth_finish',{challenge,response:credentialJSON(cred),device_id:deviceId(),secret:deviceSecret(),device:deviceInfo(),target_email:accountEmail()});if(f.error)throw new Error(f.error);localStorage.setItem(ADMIN_TOKEN_KEY,f.admin_token);supportMode=!!f.support_mode;const v=await db.auth.verifyOtp({token_hash:f.token_hash,type:f.type});if(v.error)throw v.error;authMsg('Admin+ passkey verified. Syncingâ¦');}catch(e){authMsg(e.name==='NotAllowedError'?'Passkey unavailable or canceled. Use the email link below for Admin access.':e.message+' Use the email link below if needed.',true)}}
 async function registerPasskey(){try{const b=await pairAPI('passkey_register_begin');if(b.error)throw new Error(b.error);const challenge=b.options.challenge,o=b.options;o.challenge=b64uToBytes(o.challenge);o.user.id=b64uToBytes(o.user.id);o.excludeCredentials=(o.excludeCredentials||[]).map(c=>({...c,id:b64uToBytes(c.id)}));const cred=await navigator.credentials.create({publicKey:o});const f=await pairAPI('passkey_register_finish',{challenge,response:credentialJSON(cred),label:'sean0donnell@icloud.com passkey'});if(f.error)throw new Error(f.error);await renderPasskeys();alert('Admin+ passkey added.');}catch(e){alert(e.name==='NotAllowedError'?'Passkey setup was canceled.':e.message)}}
 async function generateAdminLink(){ if(!confirm('Are you sure? Link expires after 2 minutes or when opened.'))return; const x=await pairAPI('create_admin_link'); const status=document.getElementById('adminMagicStatus'); if(x.error){status.textContent=x.error;document.getElementById('adminMagicResult').classList.remove('hidden');return;} const link=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token);document.getElementById('adminMagicText').value=link;document.getElementById('adminMagicResult').classList.remove('hidden');status.textContent='Expires '+new Date(x.expires_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+' or after first use.'; }
 async function copyAdminLink(){ const input=document.getElementById('adminMagicText');try{await navigator.clipboard.writeText(input.value);}catch(e){input.focus();input.select();document.execCommand('copy');} }
-async function renderPasskeys(){if(!isAdmin())return;const x=await pairAPI('passkey_list');const el=document.getElementById('passkeyList');if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load passkeys.</span></div>';return;}el.innerHTML=(x.passkeys||[]).map(p=>'<div class="row"><span><b>'+esc(p.label)+'</b><br><span class="r">Added '+new Date(p.created_at).toLocaleDateString()+(p.last_used_at?' · Last used '+new Date(p.last_used_at).toLocaleString():'')+'</span></span><button class="btn small gray" onclick="removePasskey(\''+p.credential_id+'\')">Remove</button></div>').join('')||'<div class="row"><span class="r">No passkeys enrolled.</span></div>';}
+async function renderPasskeys(){if(!isAdmin())return;const x=await pairAPI('passkey_list');const el=document.getElementById('passkeyList');if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load passkeys.</span></div>';return;}el.innerHTML=(x.passkeys||[]).map(p=>'<div class="row"><span><b>'+esc(p.label)+'</b><br><span class="r">Added '+new Date(p.created_at).toLocaleDateString()+(p.last_used_at?' Â· Last used '+new Date(p.last_used_at).toLocaleString():'')+'</span></span><button class="btn small gray" onclick="removePasskey(\''+p.credential_id+'\')">Remove</button></div>').join('')||'<div class="row"><span class="r">No passkeys enrolled.</span></div>';}
 async function removePasskey(id){if(!confirm('Remove this Admin+ passkey?'))return;const x=await pairAPI('passkey_remove',{credential_id:id});if(x.error)alert(x.error);else await renderPasskeys();}
 async function trustThisDevice(){if(!confirm('Trust this device as Admin+ even after logging out and restoring?'))return;const x=await pairAPI('trust_device');if(x.error){alert(x.error);return;}trustedDevice=true;accountRole='admin';showAuth();await renderDevices();}
 async function untrustThisDevice(){if(!confirm('Remove trusted Admin+ recovery from this device? Another Admin+ device can then be enrolled.'))return;const x=await pairAPI('untrust_device');if(x.error){alert(x.error);return;}trustedDevice=false;trustedExists=false;accountRole=currentUser?.email?.toLowerCase()===ADMIN_EMAIL?'admin':'limited';showAuth();}
 async function revokeOtherDevices(){if(!confirm('Sign out every other device except trusted Admin devices?'))return;const x=await pairAPI('revoke_others');if(x.error){alert(x.error);return;}await renderDevices();}
 async function renameDevice(id,current){ const label=prompt('Device name',current); if(!label?.trim())return; const x=await pairAPI('rename',{device_id:id,label:label.trim()}); if(x.error)alert(x.error); else await renderDevices(); }
-async function renderDevices(){ const el=document.getElementById('deviceList'); if(!el||!isAdmin())return; const x=await pairAPI('list'); if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load sessions.</span></div>';return;} const active=(x.devices||[]).filter(d=>!d.revoked_at&&Date.now()-new Date(d.last_seen).getTime()<120000); el.innerHTML=active.map(d=>'<div class="hatchcard session-card"><div><b>'+esc(d.label)+(d.device_id===deviceId()?' · This device':'')+'</b>'+(d.trusted_admin?'<span class="status">Trusted Admin+</span>':'')+'</div><div class="meta">'+esc(d.client_type||'Device')+' · '+esc(d.browser||'Browser')+'</div><div class="meta">IP '+esc(d.last_ip||'Not recorded')+'<br>Last seen '+new Date(d.last_seen).toLocaleString()+(d.revoked_at?' · Signed out':'')+'</div><div class="actions">'+(d.revoked_at?'':'<button class="btn small gray" onclick="renameDevice(\''+d.device_id+'\',\''+esc(d.label).replace(/'/g,'&#39;')+'\')">Rename</button><button class="btn small gray" onclick="revokeDevice(\''+d.device_id+'\')">Sign Out</button>')+'</div></div>').join('')||'<div class="row"><span class="r">No active sessions.</span></div>'; }
+async function renderDevices(){ const el=document.getElementById('deviceList'); if(!el||!isAdmin())return; const x=await pairAPI('list'); if(x.error){el.innerHTML='<div class="row"><span class="r">Could not load sessions.</span></div>';return;} const active=(x.devices||[]).filter(d=>!d.revoked_at&&Date.now()-new Date(d.last_seen).getTime()<120000); el.innerHTML=active.map(d=>'<div class="hatchcard session-card"><div><b>'+esc(d.label)+(d.device_id===deviceId()?' Â· This device':'')+'</b>'+(d.trusted_admin?'<span class="status">Trusted Admin+</span>':'')+'</div><div class="meta">'+esc(d.client_type||'Device')+' Â· '+esc(d.browser||'Browser')+'</div><div class="meta">IP '+esc(d.last_ip||'Not recorded')+'<br>Last seen '+new Date(d.last_seen).toLocaleString()+(d.revoked_at?' Â· Signed out':'')+'</div><div class="actions">'+(d.revoked_at?'':'<button class="btn small gray" onclick="renameDevice(\''+d.device_id+'\',\''+esc(d.label).replace(/'/g,'&#39;')+'\')">Rename</button><button class="btn small gray" onclick="revokeDevice(\''+d.device_id+'\')">Sign Out</button>')+'</div></div>').join('')||'<div class="row"><span class="r">No active sessions.</span></div>'; }
 async function revokeDevice(id){ if(!confirm('Sign out this device?'))return; const x=await pairAPI('revoke',{device_id:id}); if(x.error){alert(x.error);return;} if(id===deviceId()){await signOutAccount();return;} await renderDevices(); }
 async function checkDevice(){ if(!isAccountUser())return; const x=await pairAPI('check',{device_id:deviceId()}); if(x.active===false){ await db.auth.signOut({scope:'local'}); currentUser=null; showAuth(); setSync('Signed out on another device'); } }
 
 let qrGeneration=null,qrOwner='';
 async function renderAccountQR(){
- const el=document.getElementById('accountQR');if(!el||!isAccountUser()||typeof QRCode==='undefined')return;if(qrGeneration&&qrOwner===currentUser.id)return qrGeneration;qrOwner=currentUser.id;el.replaceChildren(Object.assign(document.createElement('span'),{textContent:'Creating secure QR…'}));
+ const el=document.getElementById('accountQR');if(!el||!isAccountUser()||typeof QRCode==='undefined')return;if(qrGeneration&&qrOwner===currentUser.id)return qrGeneration;qrOwner=currentUser.id;el.replaceChildren(Object.assign(document.createElement('span'),{textContent:'Creating secure QRâ¦'}));
  qrGeneration=(async()=>{const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('QR creation timed out. Tap Sync Now and try again.')),8000));try{const x=await Promise.race([pairAPI('create'),timeout]);if(x.error)throw new Error(x.error);if(!x.token)throw new Error('Secure QR service returned no pairing code.');el.innerHTML='';const u=location.origin+location.pathname+'?pair='+encodeURIComponent(x.token);new QRCode(el,{text:u,width:180,height:180});}catch(e){el.textContent=e.message||'Could not create QR';}})().finally(()=>setTimeout(()=>{qrGeneration=null},1000));return qrGeneration;
 }
 function prefillAccount(){ const e=new URLSearchParams(location.search).get('account'); if(e)document.getElementById('accountEmail').value=e; }
-async function redeemPair(){ const token=new URLSearchParams(location.search).get('pair'); if(!token)return;document.getElementById('rememberPairWrap').classList.remove('hidden');document.getElementById('rememberPair').checked=true;history.replaceState({},'',location.pathname);authMsg('Securely pairing this device…');const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',token})});const x=await r.json();if(!r.ok){authMsg(x.error||'Pairing failed',true);return;}const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type});if(v.error){authMsg(v.error.message,true);return;}currentUser=v.data.user;if(document.getElementById('rememberPair').checked){deviceSecret();await registerDevice();localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email||'');}document.getElementById('rememberPairWrap').classList.add('hidden');authMsg('Device paired and remembered. Syncing records…'); }
+async function redeemPair(){ const token=new URLSearchParams(location.search).get('pair'); if(!token)return;document.getElementById('rememberPairWrap').classList.remove('hidden');document.getElementById('rememberPair').checked=true;history.replaceState({},'',location.pathname);authMsg('Securely pairing this deviceâ¦');const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'redeem',token})});const x=await r.json();if(!r.ok){authMsg(x.error||'Pairing failed',true);return;}const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type});if(v.error){authMsg(v.error.message,true);return;}currentUser=v.data.user;if(document.getElementById('rememberPair').checked){deviceSecret();await registerDevice();localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email||'');}document.getElementById('rememberPairWrap').classList.add('hidden');authMsg('Device paired and remembered. Syncing recordsâ¦'); }
 function stashPendingMigration(){ try { const x=cleanState(S); x.updated=x.updated||Date.now(); localStorage.setItem(LEGACY_KEY,JSON.stringify(x)); localStorage.setItem('coopPendingEmailMigration','1'); } catch(e){} }
 async function sendSignInLink(){
   localStorage.removeItem(ADMIN_TOKEN_KEY); const email=accountEmail(); if(!email){authMsg('Enter your email.',true);return;}
-  localStorage.setItem(REMEMBERED_EMAIL_KEY,email); renderRestore(); authMsg('Sending sign-in link…');
+  localStorage.setItem(REMEMBERED_EMAIL_KEY,email); renderRestore(); authMsg('Sending sign-in linkâ¦');
   if(currentUser?.is_anonymous){
     const {error}=await db.auth.updateUser({email},{emailRedirectTo:location.origin+location.pathname});
     if(error && /already|registered|exists/i.test(error.message||'')){
@@ -1662,23 +1662,23 @@ async function signOutAccount(){
   currentUser=null; rowVersion=null;
   showAuth(); authMsg(''); setupPasskeyDiscovery(); setSync('Sign in to sync');
 }
-function schedulePush(){ if(!isAccountUser()){ setSync('Sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to sync…'); syncTimer=setTimeout(pushCloud,800); }
+function schedulePush(){ if(!isAccountUser()){ setSync('Sign in to sync'); return; } clearTimeout(syncTimer); setSync('Changes waiting to syncâ¦'); syncTimer=setTimeout(pushCloud,800); }
 async function loadCloud(){
-  if(!currentUser)return; setSync('☁️ Syncing…');
-  const x=await pairAPI('state_get'); if(x.error){setSync('⚠️ Offline — using device copy');renderAll();return;}
+  if(!currentUser)return; setSync('âï¸ Syncingâ¦');
+  const x=await pairAPI('state_get'); if(x.error){setSync('â ï¸ Offline â using device copy');renderAll();return;}
   accountRole=x.role||'limited';supportMode=!!x.support_mode;document.getElementById('supportBanner').classList.toggle('hidden',!supportMode);showAuth(); const local=loadKey(CACHE_PREFIX+currentUser.id); if(local)S=local;
   if(!x.data){ if(!isAdmin()){setSync('Waiting for admin to initialize records');renderAll();return;} rowVersion=0;dirty=true;await pushCloud();return; }
-  const cloudState=cleanState(x.data); S=cloudState;rowVersion=x.version;dirty=false;saveLocal();renderAll();setSync('✔ Up to date');
+  const cloudState=cleanState(x.data); S=cloudState;rowVersion=x.version;dirty=false;saveLocal();renderAll();setSync('â Up to date');
 }
 async function pushCloud(force=false){
- if(!currentUser||rowVersion===null)return;setSync('☁️ Syncing…');const x=await pairAPI('state_update',{data:cleanState(S),version:rowVersion});
- if(x.error){if(x.error==='version_conflict'){conflictCloud={data:x.data,version:x.version};document.getElementById('conflictBox').classList.remove('hidden');setSync('⚠️ Choose which copy to keep');}else{setSync('⚠️ '+x.error);if(!isAdmin())await loadCloud();}return;}
- rowVersion=x.version;dirty=false;setSync('☁️ Synced '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
+ if(!currentUser||rowVersion===null)return;setSync('âï¸ Syncingâ¦');const x=await pairAPI('state_update',{data:cleanState(S),version:rowVersion});
+ if(x.error){if(x.error==='version_conflict'){conflictCloud={data:x.data,version:x.version};document.getElementById('conflictBox').classList.remove('hidden');setSync('â ï¸ Choose which copy to keep');}else{setSync('â ï¸ '+x.error);if(!isAdmin())await loadCloud();}return;}
+ rowVersion=x.version;dirty=false;setSync('âï¸ Synced '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
 }
-async function syncNow(){ if(!currentUser)return; setSync('Checking session…'); const fresh=await db.auth.refreshSession(); if(fresh.error||!fresh.data.session){ setSync('⚠️ Sign-in expired'); authMsg('Your device session was invalidated. Use the sign-in link once more; future sign-outs now affect only this device.',true); document.getElementById('authSignedIn').classList.add('hidden'); document.getElementById('authSignedOut').classList.remove('hidden'); document.getElementById('accountEmail').value=currentUser.email||''; return; } currentUser=fresh.data.session.user; if(dirty)await pushCloud(); else await loadCloud(); setTimeout(renderAccountQR,0); if(admin)setTimeout(renderPasskeys,0); }
+async function syncNow(){ if(!currentUser)return; setSync('Checking sessionâ¦'); const fresh=await db.auth.refreshSession(); if(fresh.error||!fresh.data.session){ setSync('â ï¸ Sign-in expired'); authMsg('Your device session was invalidated. Use the sign-in link once more; future sign-outs now affect only this device.',true); document.getElementById('authSignedIn').classList.add('hidden'); document.getElementById('authSignedOut').classList.remove('hidden'); document.getElementById('accountEmail').value=currentUser.email||''; return; } currentUser=fresh.data.session.user; if(dirty)await pushCloud(); else await loadCloud(); setTimeout(renderAccountQR,0); if(admin)setTimeout(renderPasskeys,0); }
 async function resolveConflict(which){
   document.getElementById('conflictBox').classList.add('hidden');
-  if(which==='cloud'){ S=cleanState(conflictCloud.data); rowVersion=conflictCloud.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Cloud copy loaded'); }
+  if(which==='cloud'){ S=cleanState(conflictCloud.data); rowVersion=conflictCloud.version; dirty=false; saveLocal(); renderAll(); setSync('â Cloud copy loaded'); }
   else { rowVersion=conflictCloud.version; conflictCloud=null; dirty=true; await pushCloud(); }
 }
 function subscribeRealtime(){}
@@ -1744,13 +1744,13 @@ function rangeText(start,end,shortYear=false){const a=new Date(start+'T12:00:00'
 function avgBetween(start,end){const days=daysBetween(start,end)+1;let n=0;for(let i=0;i<days;i++)n+=Number(S.eggs[addDays(start,i)]||0);return n/days;}
 function renderEggs(){
   const isToday = selDate===today();
-  document.getElementById('eggDateLbl').textContent = isToday ? 'Today — '+short(selDate) : 'Editing '+short(selDate);
+  document.getElementById('eggDateLbl').textContent = isToday ? 'Today â '+short(selDate) : 'Editing '+short(selDate);
   const ed = document.getElementById('eggDirect');
   if(document.activeElement !== ed) ed.value = S.eggs[selDate]||0;
   let h='';
   for(let i=0;i<7;i++){
     const d=addDays(today(),-i), v=S.eggs[d];
-    h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?('Today'+(S.hens?' <span class="egg-rate">'+Math.round((Number(v)||0)/S.hens*100)+'% of hens</span>':'')):i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('🥚 '+v):'—')+'</span></div>';
+    h += '<div class="row'+(d===selDate?' sel':'')+'" onclick="pickDate(\''+d+'\')"><span>'+(i===0?('Today'+(S.hens?' <span class="egg-rate">'+Math.round((Number(v)||0)/S.hens*100)+'% of hens</span>':'')):i===1?'Yesterday':short(d))+'</span><span class="r">'+(v!=null?('ð¥ '+v):'â')+'</span></div>';
   }
   document.getElementById('eggHist').innerHTML = h;
   const end=today(),s3=addDays(end,-2),s1=shiftMonths(end,-1),cur7Start=addDays(end,-6),prev7End=shiftMonths(end,-1),prev7Start=addDays(prev7End,-6),curAvg=avgBetween(s1,end),monthDiff=avgBetween(cur7Start,end)-avgBetween(prev7Start,prev7End);document.getElementById('eAvg3').textContent=avgBetween(s3,end).toFixed(1);document.getElementById('eAvg3Range').textContent=rangeText(s3,end,true);document.getElementById('eAvg1m').textContent=curAvg.toFixed(1);document.getElementById('eAvg1mRange').textContent=rangeText(s1,end,true);document.getElementById('eMonthDiff').textContent=(monthDiff>0?'+':'')+monthDiff.toFixed(1);document.getElementById('eMonthDiffRange').textContent='vs '+rangeText(prev7Start,prev7End,true);
@@ -1788,17 +1788,17 @@ function renderHatch(){
     const day=daysBetween(x.set, today());
     const pct=Math.max(0,Math.min(100, Math.round(day/21*100)));
     let status;
-    if(x.done){ status='✔ Complete'+(x.hatched!=null?(' — '+x.hatched+' of '+x.count+' hatched'):''); }
-    else if(day<7){ status='Day '+day+' of 21 — candle on '+short(addDays(x.set,7)); }
-    else if(day<18){ status='Day '+day+' of 21 — lockdown on '+short(addDays(x.set,18)); }
-    else if(day<=21){ status='Day '+day+' of 21 — hatch day '+short(addDays(x.set,21))+'! 🐥'; }
-    else { status='Day '+day+' — past hatch window'; }
+    if(x.done){ status='â Complete'+(x.hatched!=null?(' â '+x.hatched+' of '+x.count+' hatched'):''); }
+    else if(day<7){ status='Day '+day+' of 21 â candle on '+short(addDays(x.set,7)); }
+    else if(day<18){ status='Day '+day+' of 21 â lockdown on '+short(addDays(x.set,18)); }
+    else if(day<=21){ status='Day '+day+' of 21 â hatch day '+short(addDays(x.set,21))+'! ð¥'; }
+    else { status='Day '+day+' â past hatch window'; }
     h += '<div class="hatchcard"><h3>'+esc(x.name||'Hatch Run')+'</h3>'
-       + '<div class="meta">Set '+short(x.set)+' · '+x.count+' eggs · candle '+short(addDays(x.set,7))+' · lockdown '+short(addDays(x.set,18))+' · hatch '+short(addDays(x.set,21))+'</div>'
+       + '<div class="meta">Set '+short(x.set)+' Â· '+x.count+' eggs Â· candle '+short(addDays(x.set,7))+' Â· lockdown '+short(addDays(x.set,18))+' Â· hatch '+short(addDays(x.set,21))+'</div>'
        + '<div class="bar"><div style="width:'+pct+'%"></div></div>'
        + '<div class="status">'+status+'</div>'
        + '<div class="status">Hatch + 7 days survivors: '+(x.survivors7==null?'Not recorded':x.survivors7)+'</div>'
-       + '<div class="actions"><button class="btn small gray" onclick="setSurvivors('+x.id+')">Edit H+7 Survivors</button>'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">✔ Done</button>')
+       + '<div class="actions"><button class="btn small gray" onclick="setSurvivors('+x.id+')">Edit H+7 Survivors</button>'+(x.done?'':'<button class="btn small" onclick="doneHatch('+x.id+')">â Done</button>')
        + '<button class="btn small gray adminAction" onclick="delHatch('+x.id+')">Delete</button></div></div>';
   });
   list.innerHTML=h;
@@ -1811,7 +1811,7 @@ function delTractorLog(id){ S.tractorLogs=S.tractorLogs.filter(x=>x.id!==id); sa
 let holdRemoveTimer=null;
 function startHoldRemove(kind,id){clearTimeout(holdRemoveTimer);holdRemoveTimer=setTimeout(()=>{holdRemoveTimer=null;kind==='tractor'?delTractorLog(id):kind==='quarantine'?delQuarantine(id):delCohort(id);},700);}
 function cancelHoldRemove(){clearTimeout(holdRemoveTimer);holdRemoveTimer=null;}
-function renderTractor(){const mc=meatBirdTotal();document.getElementById('meatBirdCount').textContent=mc;document.getElementById('tractorYoungCount').textContent=tractorYoungTotal(); const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard" onpointerdown="startHoldRemove(\'tractor\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' · Last moved '+short(x.moved||x.date)+(x.note?' · '+esc(x.note):'')+'</div><div class="actions"><button class="btn small gray" onclick="editTractorLog('+x.id+')">Edit</button><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div></div>').join('')||'<div class="row"><span class="r">No meat bird records yet.</span></div>'; }
+function renderTractor(){const mc=meatBirdTotal();document.getElementById('meatBirdCount').textContent=mc;document.getElementById('tractorYoungCount').textContent=tractorYoungTotal(); const el=document.getElementById('tractorList'); if(!el)return; el.innerHTML=S.tractorLogs.slice().sort((a,b)=>(a.moved||a.date)<(b.moved||b.date)?1:-1).map(x=>'<div class="hatchcard" onpointerdown="startHoldRemove(\'tractor\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>'+Number(x.count||0)+' chickens</h3><div class="meta">Created '+short(x.created||x.date)+' Â· Last moved '+short(x.moved||x.date)+(x.note?' Â· '+esc(x.note):'')+'</div><div class="actions"><button class="btn small gray" onclick="editTractorLog('+x.id+')">Edit</button><button class="btn small gray" onclick="delTractorLog('+x.id+')">Delete</button></div></div>').join('')||'<div class="row"><span class="r">No meat bird records yet.</span></div>'; }
 
 /* ---------- diseased / backup coop (quarantine) ---------- */
 function addQuarantinePrompt(){
@@ -1831,18 +1831,18 @@ function addQuarantine(){
 }
 function editQuarantine(id){const x=S.quarantine.find(x=>x.id===id);if(!x)return;const name=prompt('Name/leg band',x.name);if(name===null)return;const q=prompt('Date quarantined (YYYY-MM-DD)',x.quarantined);if(q===null)return;const note=prompt('Note',x.note);if(note===null)return;const r=prompt('Date reintroduced (YYYY-MM-DD) - leave blank if still quarantined',x.reintroduced||'');if(r===null)return;if(!name.trim()||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(q||'')||!note.trim()||(r.trim()&&!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(r.trim()))){alert('Name/leg band, Date quarantined and Note are required. Date reintroduced is optional (YYYY-MM-DD).');return;}x.name=name.trim();x.quarantined=q;x.note=note.trim();x.reintroduced=r.trim();save();renderQuarantine();renderHome();}
 function delQuarantine(id){ S.quarantine=S.quarantine.filter(x=>x.id!==id); save();renderQuarantine();renderHome(); }
-function renderQuarantine(){ const section=document.getElementById('quarantineSection');if(!section)return; const a=S.quarantine||[]; section.classList.toggle('hidden',!a.length); document.getElementById('quarantineList').innerHTML=a.slice().sort((x,y)=>x.quarantined<y.quarantined?1:-1).map(x=>'<div class="hatchcard" onpointerdown="startHoldRemove(\'quarantine\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>🤒 '+esc(x.name)+'</h3><div class="meta">Quarantined '+short(x.quarantined)+(x.reintroduced?' · Reintroduced '+short(x.reintroduced):'')+' · '+esc(x.note)+'</div><div class="actions"><button class="btn small gray" onclick="editQuarantine('+x.id+')">Edit</button><button class="btn small gray" onclick="delQuarantine('+x.id+')">Delete</button></div></div>').join(''); }
+function renderQuarantine(){ const section=document.getElementById('quarantineSection');if(!section)return; const a=S.quarantine||[]; section.classList.toggle('hidden',!a.length); document.getElementById('quarantineList').innerHTML=a.slice().sort((x,y)=>x.quarantined<y.quarantined?1:-1).map(x=>'<div class="hatchcard" onpointerdown="startHoldRemove(\'quarantine\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>ð¤ '+esc(x.name)+'</h3><div class="meta">Quarantined '+short(x.quarantined)+(x.reintroduced?' Â· Reintroduced '+short(x.reintroduced):'')+' Â· '+esc(x.note)+'</div><div class="actions"><button class="btn small gray" onclick="editQuarantine('+x.id+')">Edit</button><button class="btn small gray" onclick="delQuarantine('+x.id+')">Delete</button></div></div>').join(''); }
 
 /* ---------- supplies ---------- */
 function addSupply(k){ const d=document.getElementById('sd-'+k).value||today(), note=document.getElementById('sn-'+k).value.trim(); S.supplyEntries[k].push({id:Date.now()+k,date:d,note}); S.supplies[k]=d; save(); renderSupplies(); }
 function delSupply(k,id){ if(!requireAdmin())return; S.supplyEntries[k]=S.supplyEntries[k].filter(x=>String(x.id)!==String(id)); S.supplies[k]=S.supplyEntries[k].slice().sort((a,b)=>a.date<b.date?1:-1)[0]?.date||null; save(); renderSupplies(); }
 function renderSupplies(){
   const cards=([k,label])=>{ const entries=S.supplyEntries[k]||[], latest=entries.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
-    const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional"><button class="btn small" onclick="addSupply('${k}')">✔ Add Refill</button>`;
-    const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray adminAction" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
+    const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional"><button class="btn small" onclick="addSupply('${k}')">â Add Refill</button>`;
+    const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' Â· '+esc(x.note):''}</span><button class="btn small gray adminAction" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
     const detail=k==='fsl'?'<div class="meta">Sprinkle around all of coop &amp; run</div>':'';
     const archive=k==='fsl'?history:`<details class="history"><summary>History</summary>${history||'<div class="row"><span class="r">No refill history.</span></div>'}</details>`;
-    return `<div class="hatchcard"><h3>${label}</h3>${detail}<div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${archive}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join('');
+    return `<div class="hatchcard"><h3>${label}</h3>${detail}<div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> Â· '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${archive}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join('');
 }
 
 /* ---------- flock, feed, finance ---------- */
@@ -1861,10 +1861,10 @@ function renderMore(){
   document.getElementById('rooV').textContent=S.roosters;
   const last=S.feed.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
   document.getElementById('feedLast').textContent = last
-    ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' · '+last.lbs+' lbs'):'')
-    : '—';
-  document.getElementById('feedList').innerHTML = S.feed.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
-  const sl=S.scratch.slice().sort((a,b)=>a.date<b.date?1:-1); document.getElementById('scratchLast').textContent=sl[0]?short(sl[0].date)+' ('+daysBetween(sl[0].date,today())+' days ago)'+(sl[0].lbs?' · '+sl[0].lbs+' lbs':''):'—'; document.getElementById('scratchList').innerHTML=sl.slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' · '+esc(f.note):'')+'</span></div>').join('');
+    ? short(last.date)+' ('+daysBetween(last.date,today())+' days ago)'+(last.lbs?(' Â· '+last.lbs+' lbs'):'')
+    : 'â';
+  document.getElementById('feedList').innerHTML = S.feed.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' Â· '+esc(f.note):'')+'</span></div>').join('');
+  const sl=S.scratch.slice().sort((a,b)=>a.date<b.date?1:-1); document.getElementById('scratchLast').textContent=sl[0]?short(sl[0].date)+' ('+daysBetween(sl[0].date,today())+' days ago)'+(sl[0].lbs?' Â· '+sl[0].lbs+' lbs':''):'â'; document.getElementById('scratchList').innerHTML=sl.slice(0,5).map(f=>'<div class="row"><span>'+short(f.date)+'</span><span class="r">'+(f.lbs?f.lbs+' lbs':'')+(f.note?' Â· '+esc(f.note):'')+'</span></div>').join('');
 }
 
 /* ---------- finance ---------- */
@@ -1877,7 +1877,7 @@ function renderFinance(){
   const fields={financeLastAmount:'lastAmount',financeLastLink:'lastLink',financeTbd1:'tbd1',financeTbd2:'tbd2',financeTbd3:'tbd3'};
   Object.entries(fields).forEach(([id,k])=>{ const e=document.getElementById(id); if(document.activeElement!==e)e.value=f[k]||''; });
   document.getElementById('financeLastOpen').innerHTML=f.lastLink
-    ? '<a class="btn gray" style="text-decoration:none;text-align:center" href="'+esc(f.lastLink)+'" target="_blank" rel="noopener">🔗 Open purchase link</a>' : '';
+    ? '<a class="btn gray" style="text-decoration:none;text-align:center" href="'+esc(f.lastLink)+'" target="_blank" rel="noopener">ð Open purchase link</a>' : '';
 }
 
 /* ---------- chick & pullet rearing ---------- */
@@ -1887,12 +1887,12 @@ function editCohort(id){ const x=S.cohorts.find(x=>x.id===id);if(!x)return;const
 function delCohort(id){ S.cohorts=S.cohorts.filter(x=>x.id!==id); save(); renderCohorts(); renderHome(); }
 function confirmLaying(id){ if(!requireAdmin())return; const x=S.cohorts.find(x=>x.id===id); if(!x||cohortStage(x)!=='ready')return; S.hens+=x.count; S.cohorts=S.cohorts.filter(y=>y.id!==id); save(); renderAll(); }
 function setRearingAge(k,v){ if(!requireAdmin())return; S.rearing[k]=Math.max(1,parseInt(v,10)||def().rearing[k]); if(S.rearing.henWeeks<=S.rearing.chickWeeks)S.rearing.henWeeks=S.rearing.chickWeeks+1; save(); renderCohorts(); renderHome(); }
-function renderCohorts(){ const totals={incubating:0,chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count);document.getElementById('chickCount').textContent=totals.chick;document.getElementById('pulletCount').textContent=totals.pullet+totals.ready;document.getElementById('chickWeeks').value=S.rearing.chickWeeks;document.getElementById('henWeeks').value=S.rearing.henWeeks;document.getElementById('cohortList').innerHTML=S.cohorts.filter(x=>cohortStage(x)!=='incubating').slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{const st=cohortStage(x),w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)),next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Hen '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation',acquired=x.source==='acquired';return '<div class="hatchcard" onpointerdown="startHoldRemove(\'cohort\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s'))+'</h3><div class="meta">'+(acquired?'Acquired ':'Hatched ')+short(x.hatchDate)+' · '+w+' weeks old'+(x.note?' · '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small adminAction" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray" onclick="editCohort('+x.id+')">Edit</button><button class="btn small gray" onclick="delCohort('+x.id+')">Delete</button></div></div>';}).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
+function renderCohorts(){ const totals={incubating:0,chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>totals[cohortStage(x)]+=x.count);document.getElementById('chickCount').textContent=totals.chick;document.getElementById('pulletCount').textContent=totals.pullet+totals.ready;document.getElementById('chickWeeks').value=S.rearing.chickWeeks;document.getElementById('henWeeks').value=S.rearing.henWeeks;document.getElementById('cohortList').innerHTML=S.cohorts.filter(x=>cohortStage(x)!=='incubating').slice().sort((a,b)=>a.hatchDate<b.hatchDate?-1:1).map(x=>{const st=cohortStage(x),w=Math.max(0,Math.floor(daysBetween(x.hatchDate,today())/7)),next=st==='chick'?'Pullet '+short(addDays(x.hatchDate,S.rearing.chickWeeks*7)):st==='pullet'?'Hen '+short(addDays(x.hatchDate,S.rearing.henWeeks*7)):'Ready for laying confirmation',acquired=x.source==='acquired';return '<div class="hatchcard" onpointerdown="startHoldRemove(\'cohort\','+x.id+')" onpointerup="cancelHoldRemove()" onpointercancel="cancelHoldRemove()" onpointermove="cancelHoldRemove()"><h3>'+x.count+' '+(st==='chick'?'chick'+(x.count===1?'':'s'):'pullet'+(x.count===1?'':'s'))+'</h3><div class="meta">'+(acquired?'Acquired ':'Hatched ')+short(x.hatchDate)+' Â· '+w+' weeks old'+(x.note?' Â· '+esc(x.note):'')+'</div><div class="status">'+next+'</div><div class="actions">'+(st==='ready'?'<button class="btn small adminAction" onclick="confirmLaying('+x.id+')">Confirm as Laying Hens</button>':'')+'<button class="btn small gray" onclick="editCohort('+x.id+')">Edit</button><button class="btn small gray" onclick="delCohort('+x.id+')">Delete</button></div></div>';}).join('')||'<div class="row"><span class="r">No chicks or pullets tracked.</span></div>'; }
 
 /* ---------- dispatch ---------- */
-function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(), destination=document.getElementById('birdDestination').value.trim(), codes={'😀':'code1','😁':'code2','🙂':'code3','😊':'code4','😚':'code5'}; if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note,destination,destinationCode:codes[destination]||''}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; document.getElementById('birdDestination').value=''; save(); renderDispatch(); }
+function addDispatch(){ const name=document.getElementById('birdName').value.trim(), date=document.getElementById('birdDate').value||today(), note=document.getElementById('birdNote').value.trim(), destination=document.getElementById('birdDestination').value.trim(), codes={'ð':'code1','ð':'code2','ð':'code3','ð':'code4','ð':'code5'}; if(!name){alert('Add the bird name or tag.');return;} S.dispatches.push({id:Date.now(),name,date,note,destination,destinationCode:codes[destination]||''}); document.getElementById('birdName').value=''; document.getElementById('birdNote').value=''; document.getElementById('birdDestination').value=''; save(); renderDispatch(); }
 function delDispatch(id){ if(!requireAdmin())return; if(!confirm('Delete this dispatch record?'))return; S.dispatches=S.dispatches.filter(x=>x.id!==id); save(); renderDispatch(); }
-function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>☠️ <b>'+esc(x.name)+'</b> · '+short(x.date)+(x.note?' · '+esc(x.note):'')+(x.destination?' · '+esc(x.destination):'')+'</span><button class="btn small gray adminAction" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
+function renderDispatch(){ const a=S.dispatches||[]; document.getElementById('d7').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<7).length; document.getElementById('d30').textContent=a.filter(x=>daysBetween(x.date,today())>=0&&daysBetween(x.date,today())<30).length; document.getElementById('dAll').textContent=a.length; document.getElementById('dispatchList').innerHTML=a.slice().sort((x,y)=>x.date<y.date?1:-1).map(x=>'<div class="row"><span>â ï¸ <b>'+esc(x.name)+'</b> Â· '+short(x.date)+(x.note?' Â· '+esc(x.note):'')+(x.destination?' Â· '+esc(x.destination):'')+'</span><button class="btn small gray adminAction" onclick="delDispatch('+x.id+')">Delete</button></div>').join('')||'<div class="row"><span class="r">No dispatches logged.</span></div>'; }
 
 const HIDE_EMPTY_MORE_COUNTERS=true;
 function meatBirdTotal(){return S.tractorLogs.filter(x=>daysBetween(x.created||x.date,today())>=49).reduce((n,x)=>n+Number(x.count||0),0);}
@@ -1912,12 +1912,12 @@ async function deleteEggMonth(month){if(!isAdmin()||!confirm('Delete all egg ent
 
 function renderHome(){
   const ready=S.cohorts.filter(x=>cohortStage(x)==='ready').reduce((n,x)=>n+x.count,0);
-  document.getElementById('hdrSub').textContent = short(today())+' · '+S.hens+' hens · '+S.roosters+' roosters';
+  document.getElementById('hdrSub').textContent = short(today())+' Â· '+S.hens+' hens Â· '+S.roosters+' roosters';
   document.getElementById('cFlock').textContent=S.hens+S.roosters;
-  document.getElementById('cFlockLabel').textContent='🐓 total';
+  document.getElementById('cFlockLabel').textContent='ð total';
   const t=S.eggs[today()]||0;
   document.getElementById('cToday').textContent=t;
-  document.getElementById('cWeek').textContent=S.counterEggs==null?sumRange(7):Number(S.counterEggs)||0;
+  document.getElementById('cWeek').textContent=S.counterEggs==null?sumRange(7):Number(S.counterEggs)||0;document.getElementById('cCounterUpdated').textContent=S.counterEggsUpdated?('last edited '+short(S.counterEggsUpdated)):'';
   document.getElementById('cMonth').textContent=Object.entries(S.eggs).filter(([d])=>d.slice(0,7)===today().slice(0,7)).reduce((n,[,v])=>n+(Number(v)||0),0);document.getElementById('cMonthRange').textContent=today().slice(0,4)+'/'+today().slice(5,7)+'/01-'+today().replace(/-/g,'/');
   const avgEnd=today(),avg3mStart=shiftMonths(avgEnd,-3),avg7Start=addDays(avgEnd,-6);document.getElementById('cAvg30').textContent=avgBetween(avg3mStart,avgEnd).toFixed(1);document.getElementById('cAvg30Range').textContent=rangeText(avg3mStart,avgEnd);document.getElementById('cAvg').textContent=avgBetween(avg7Start,avgEnd).toFixed(1);document.getElementById('cAvgRange').textContent=rangeText(avg7Start,avgEnd);
   const yr=today().slice(0,4);document.getElementById('cTotalEggs').textContent=Object.entries(S.eggs).filter(([d])=>d.slice(0,4)===yr).reduce((n,[,v])=>n+(Number(v)||0),0);document.getElementById('cTotalEggsRange').textContent=yr+'/01/01-'+today().replace(/-/g,'/');
@@ -1925,7 +1925,7 @@ function renderHome(){
   const cohortTotals={incubating:0,chick:0,pullet:0,ready:0};S.cohorts.forEach(x=>cohortTotals[cohortStage(x)]+=x.count);document.getElementById('cChicks').textContent=cohortTotals.chick;document.getElementById('cPullets').textContent=cohortTotals.pullet+cohortTotals.ready;const incubating=S.hatches.filter(h=>!h.done&&daysBetween(h.set,today())>=0&&daysBetween(h.set,today())<21).reduce((n,h)=>n+h.count,0),meat=meatBirdTotal(),young=tractorYoungTotal(),cartons=['regular','large','plastic'].reduce((n,k)=>n+(Number(S.cartons[k])||0),0);document.getElementById('cIncubating').textContent=incubating;document.getElementById('cMeat').textContent=meat;document.getElementById('cTractor').textContent=young;document.getElementById('cCartons').textContent=cartons;const capacity=cartonCapacity(),readyEggs=Number(S.cartons.ready)||0;document.getElementById('cCartonSpace').textContent=capacity;document.getElementById('cFridge').textContent=readyEggs;document.getElementById('cFridgeDozens').textContent=(readyEggs/12).toFixed(1)+' dozen';document.getElementById('cFridgeUpdated').textContent=S.cartons.readyUpdated?('last edited '+short(S.cartons.readyUpdated)):'';const quar=(S.quarantine||[]).length,harvested=(S.dispatches||[]).length;document.getElementById('cQuarantine').textContent=quar;document.getElementById('cHarvested').textContent=harvested;const active=document.getElementById('moreActiveCards'),hidden=document.getElementById('moreHiddenCards');['cMonthCard','cTotalEggsCard','cCartonsCard','cCartonSpaceCard'].forEach(id=>{const c=document.getElementById(id);c.classList.remove('hidden');active.appendChild(c);});[['cIncubatingCard',incubating],['cChicksCard',cohortTotals.chick],['cPulletsCard',cohortTotals.pullet+cohortTotals.ready],['cMeatCard',meat],['cTractorCard',young],['cQuarantineCard',quar]].forEach(([id,value])=>{const card=document.getElementById(id);card.classList.remove('hidden');(value?active:hidden).appendChild(card);});const harvestedCard=document.getElementById('cHarvestedCard'),fridgeCard=document.getElementById('cFridgeCard'),homeCards=document.getElementById('homeCards');if(readyEggs>0){if(fridgeCard.parentElement!==homeCards)homeCards.appendChild(fridgeCard);}else{hidden.insertBefore(fridgeCard,harvestedCard);}hidden.appendChild(harvestedCard);document.getElementById('hiddenMore').classList.remove('hidden');
 }
 
-async function editCounterEggs(){if(!isAdmin()){showTab('eggs');return;}const n=prompt('Counter Eggs',S.counterEggs==null?sumRange(7):S.counterEggs);if(n===null)return;const count=Math.max(0,parseInt(n,10)||0),x=await pairAPI('counter_eggs_update',{count});if(x.error){alert(x.error);return;}S=cleanState(x.data);rowVersion=x.version;dirty=false;saveLocal();renderHome();}
+async function editCounterEggs(){if(!isAdmin()){showTab('eggs');return;}const n=prompt('Counter Eggs',S.counterEggs==null?sumRange(7):S.counterEggs);if(n===null)return;const d=prompt('Date last edited (YYYY-MM-DD)',S.counterEggsUpdated||today());let upd=S.counterEggsUpdated;if(d!==null){const t=d.trim();if(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(t))upd=t;else alert('Use YYYY-MM-DD.');}const count=Math.max(0,parseInt(n,10)||0),x=await pairAPI('counter_eggs_update',{count});if(x.error){alert(x.error);return;}S=cleanState(x.data);S.counterEggsUpdated=upd;rowVersion=x.version;dirty=false;save();renderHome();}
 function goFridgeEggs(){document.getElementById('nextGen').open=true;document.getElementById('eggCartonsSection').open=true;requestAnimationFrame(()=>document.getElementById('fridgeEggsField').scrollIntoView({behavior:'smooth',block:'center'}));}
 function goMyFlock(){const d=document.getElementById('nextGen');d.open=true;requestAnimationFrame(()=>document.getElementById('myFlockHome').scrollIntoView({behavior:'smooth',block:'start'}));}
 function goEggMonths(){showTab('eggs');const d=document.getElementById('eggMonthsSection');d.open=true;requestAnimationFrame(()=>{const months=document.querySelectorAll('#eggMonths details.month-block');if(months[0])months[0].open=true;d.scrollIntoView({behavior:'smooth',block:'start'});});}
@@ -1955,14 +1955,14 @@ function renderFactTopics(){const el=document.getElementById('factTopics');if(!e
 function selectFactTopic(topic){selectedFactTopic=topic;renderFactTopics();}
 function factSource(x){return '<a href="'+x.source+'" target="_blank" rel="noopener">'+esc(x.sourceName)+'</a><div class="r source-url">'+esc(x.source)+'</div>';}
 function randomArchiveFact(){const x=FACT_ARCHIVE[Math.floor(Math.random()*FACT_ARCHIVE.length)];document.getElementById('randomFactResult').innerHTML='<div class="row"><span><b>'+esc(x.category)+'</b><br>'+esc(x.tip)+'<br>'+factSource(x)+'</span></div>';}
-function openFactArchive(topic=selectedFactTopic){selectedFactTopic=topic;renderFactTopics();const rows=FACT_ARCHIVE.filter(x=>topic==='All'||x.category===topic),w=window.open('','_blank');if(!w){alert('Allow pop-ups to view the archive.');return;}const cats=['All',...new Set(FACT_ARCHIVE.map(x=>x.category))],html='<!doctype html><meta name="viewport" content="width=device-width"><title>Did You Know? Archive</title><style>body{font-family:system-ui;background:#fbf7ef;color:#403526;max-width:760px;margin:auto;padding:20px}.close{position:fixed;z-index:9999;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:grid;place-items:center;font-size:32px;font-weight:800;line-height:1;color:#fff;background:#7b3617;border:3px solid #fff;border-radius:50%;width:54px;height:54px;box-shadow:0 3px 12px rgba(0,0,0,.38);cursor:pointer;-webkit-tap-highlight-color:transparent}.nav{display:flex;gap:6px;overflow-x:auto;padding:6px 8px 12px 0;margin-right:72px;position:sticky;top:0;background:#fbf7ef}.nav a{white-space:nowrap;background:#eee4d3;padding:8px 11px;border-radius:12px;text-decoration:none;color:#403526}.nav .on{background:#eb7826;color:white}.tip{background:white;padding:14px;margin:10px 0;border-radius:14px}a{color:#9a5a16}.url{font-size:11px;color:#88755e;overflow-wrap:anywhere;margin-top:3px}</style><button class="close" aria-label="Close archive" title="Close archive" onclick="window.close()">×</button><div class="nav">'+cats.map(c=>'<a class="'+(c===topic?'on':'')+'" href="javascript:void(0)" onclick="window.opener.openFactArchive(\''+c.replace(/'/g,"\\'")+'\');window.close()">'+esc(c)+'</a>').join('')+'</div><h1>'+esc(topic==='All'?'Did You Know? Archive':topic)+'</h1><p>'+rows.length+' tips</p>'+rows.map(x=>'<div class="tip"><b>'+esc(x.category)+'</b><br>'+esc(x.tip)+'<br><a href="'+x.source+'" target="_blank" rel="noopener">'+esc(x.sourceName)+'</a><div class="url">'+esc(x.source)+'</div></div>').join('');w.document.write(html);w.document.close();}
+function openFactArchive(topic=selectedFactTopic){selectedFactTopic=topic;renderFactTopics();const rows=FACT_ARCHIVE.filter(x=>topic==='All'||x.category===topic),w=window.open('','_blank');if(!w){alert('Allow pop-ups to view the archive.');return;}const cats=['All',...new Set(FACT_ARCHIVE.map(x=>x.category))],html='<!doctype html><meta name="viewport" content="width=device-width"><title>Did You Know? Archive</title><style>body{font-family:system-ui;background:#fbf7ef;color:#403526;max-width:760px;margin:auto;padding:20px}.close{position:fixed;z-index:9999;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));display:grid;place-items:center;font-size:32px;font-weight:800;line-height:1;color:#fff;background:#7b3617;border:3px solid #fff;border-radius:50%;width:54px;height:54px;box-shadow:0 3px 12px rgba(0,0,0,.38);cursor:pointer;-webkit-tap-highlight-color:transparent}.nav{display:flex;gap:6px;overflow-x:auto;padding:6px 8px 12px 0;margin-right:72px;position:sticky;top:0;background:#fbf7ef}.nav a{white-space:nowrap;background:#eee4d3;padding:8px 11px;border-radius:12px;text-decoration:none;color:#403526}.nav .on{background:#eb7826;color:white}.tip{background:white;padding:14px;margin:10px 0;border-radius:14px}a{color:#9a5a16}.url{font-size:11px;color:#88755e;overflow-wrap:anywhere;margin-top:3px}</style><button class="close" aria-label="Close archive" title="Close archive" onclick="window.close()">Ã</button><div class="nav">'+cats.map(c=>'<a class="'+(c===topic?'on':'')+'" href="javascript:void(0)" onclick="window.opener.openFactArchive(\''+c.replace(/'/g,"\\'")+'\');window.close()">'+esc(c)+'</a>').join('')+'</div><h1>'+esc(topic==='All'?'Did You Know? Archive':topic)+'</h1><p>'+rows.length+' tips</p>'+rows.map(x=>'<div class="tip"><b>'+esc(x.category)+'</b><br>'+esc(x.tip)+'<br><a href="'+x.source+'" target="_blank" rel="noopener">'+esc(x.sourceName)+'</a><div class="url">'+esc(x.source)+'</div></div>').join('');w.document.write(html);w.document.close();}
 function newFact(){const x=FACT_ARCHIVE[Math.floor(Math.random()*FACT_ARCHIVE.length)];document.getElementById('factTxt').textContent=x.tip;factSeconds=60;document.getElementById('factCountdown').textContent='';clearInterval(factTimer);factTimer=setInterval(()=>{factSeconds--;document.getElementById('factCountdown').textContent=factSeconds<=5?factSeconds+'s':'';if(factSeconds<=0)newFact();},1000);}
 
 document.getElementById('factCard').onclick = newFact;
 
 
 /* ---------- chicken calls ---------- */
-const CALL_CATEGORIES=[['Social Calls','🐔'],['Distress Calls','🆘'],['Hunger & Feeding Calls','🍽️'],['Rooster Calls','🐓'],['Hen & Chicks Clucks','🐣'],['Mating Calls','💞'],['Aggression & Warning','⚠️'],['Content & Relaxed','😌'],['Unique Calls','🎵']];
+const CALL_CATEGORIES=[['Social Calls','ð'],['Distress Calls','ð'],['Hunger & Feeding Calls','ð½ï¸'],['Rooster Calls','ð'],['Hen & Chicks Clucks','ð£'],['Mating Calls','ð'],['Aggression & Warning','â ï¸'],['Content & Relaxed','ð'],['Unique Calls','ðµ']];
 const CALL_LIBRARY=[
 {id:"lib-fs-social-01",file:"79-fs-social-01.mp3",title:"Everyday hen clucking",category:"Social Calls",emotion:"chatty",description:"A settled hen chatting to the flock, the classic soft bwok-bwok you hear all day.",source:"Freesound",author:"Breviceps",license:"CC0",url:"https://freesound.org/people/Breviceps/sounds/456803/",duration:15},
 {id:"lib-fs-social-03",file:"81-fs-social-03.mp3",title:"Flock conversation",category:"Social Calls",emotion:"calm",description:"Several hens trading clucks back and forth.",source:"Freesound",author:"Dann93",license:"CC0",url:"https://freesound.org/people/Dann93/sounds/192035/",duration:20},
@@ -2004,25 +2004,25 @@ async function getClipBlob(id){try{const d=await callsDB();return await new Prom
 async function delClipBlob(id){try{const d=await callsDB();await new Promise((res,rej)=>{const t=d.transaction('clips','readwrite');t.objectStore('clips').delete(id);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}catch(e){}}
 function fmtSecs(s){s=Math.max(0,Math.round(Number(s)||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function parseDur(v){v=String(v||'').trim();if(!v)return null;const m=v.match(/^(\d+):(\d{1,2})$/);if(m)return parseInt(m[1],10)*60+parseInt(m[2],10);const n=parseFloat(v);return isFinite(n)?Math.round(n):null;}
-function catEmoji(c){const f=CALL_CATEGORIES.find(x=>x[0]===c);return f?f[1]:'🐔';}
+function catEmoji(c){const f=CALL_CATEGORIES.find(x=>x[0]===c);return f?f[1]:'ð';}
 function stopCallsAudio(){if(callsAudio){try{callsAudio.pause();}catch(e){}callsAudio=null;callsAudioId=null;}if(callsAudioUrl){URL.revokeObjectURL(callsAudioUrl);callsAudioUrl=null;}}
 async function playCall(id){if(callsAudioId===id&&callsAudio){stopCallsAudio();renderCallsList();return;}stopCallsAudio();const lib=CALL_LIBRARY.find(x=>x.id===id);if(lib){callsAudio=new Audio(encodeURI(lib.file));callsAudioId=id;callsAudio.onended=()=>{stopCallsAudio();renderCallsList();};try{await callsAudio.play();}catch(e){stopCallsAudio();}renderCallsList();return;}const blob=await getClipBlob(id);if(!blob)return;callsAudioUrl=URL.createObjectURL(blob);callsAudio=new Audio(callsAudioUrl);callsAudioId=id;callsAudio.onended=()=>{stopCallsAudio();renderCallsList();};try{await callsAudio.play();}catch(e){stopCallsAudio();}renderCallsList();}
 function openCalls(){document.getElementById('callsOverlay').classList.remove('hidden');renderCallsChips();renderCallsList();}
 function closeCalls(){stopCallsAudio();toggleCallForm(true);document.getElementById('callsOverlay').classList.add('hidden');}
-function renderCallsChips(){const chips=[['All','✨'],...CALL_CATEGORIES];document.getElementById('callsChips').innerHTML=chips.map(c=>'<button class="chip'+(callsChip===c[0]?' on':'')+'" onclick="setCallsChip(\''+c[0].replace(/'/g,"\\'")+'\')">'+c[1]+' '+esc(c[0])+'</button>').join('')+'<button class="chip'+(callsFavOnly?' on':'')+'" onclick="toggleCallsFav()">⭐ Favorites</button>';}
+function renderCallsChips(){const chips=[['All','â¨'],...CALL_CATEGORIES];document.getElementById('callsChips').innerHTML=chips.map(c=>'<button class="chip'+(callsChip===c[0]?' on':'')+'" onclick="setCallsChip(\''+c[0].replace(/'/g,"\\'")+'\')">'+c[1]+' '+esc(c[0])+'</button>').join('')+'<button class="chip'+(callsFavOnly?' on':'')+'" onclick="toggleCallsFav()">â­ Favorites</button>';}
 function setCallsChip(c){callsChip=c;renderCallsChips();renderCallsList();}
 function toggleCallsFav(){callsFavOnly=!callsFavOnly;renderCallsChips();renderCallsList();}
 function filteredCalls(){const q=(document.getElementById('callsSearch')?.value||'').trim().toLowerCase();const f=c=>(callsChip==='All'||c.category===callsChip)&&(!callsFavOnly||c.favorite)&&(!q||(c.title||'').toLowerCase().includes(q)||(c.emotion||'').toLowerCase().includes(q)||(c.description||'').toLowerCase().includes(q)||(c.category||'').toLowerCase().includes(q));const mine=S.calls.filter(f).slice().sort((a,b)=>(b.added||'').localeCompare(a.added||''));const lib=CALL_LIBRARY.map(c=>Object.assign({},c,{library:true,favorite:libFav(c.id)})).filter(f);return mine.concat(lib);}
-function renderCallsList(){const el=document.getElementById('callsList');if(!el)return;const rows=filteredCalls();if(!S.calls.length&&!CALL_LIBRARY.length){el.innerHTML='<div class="hint">No calls yet. Add your first recording below - once a clip is on this device, Guess the Call unlocks.</div>';return;}if(!rows.length){el.innerHTML='<div class="hint">No calls match that search or filter.</div>';return;}el.innerHTML=rows.map(c=>'<div class="callcard" data-callid="'+c.id+'"><h3>'+catEmoji(c.category)+' '+esc(c.title||'Untitled')+(c.favorite?' ⭐':'')+(c.library?' <span style="font-size:11px;color:#8a7a63;font-weight:400">📚 Library</span>':'')+'</h3><div class="meta">'+esc(c.category||'')+(c.emotion?' · '+esc(c.emotion):'')+(c.duration!=null?' · '+fmtSecs(c.duration):'')+(c.library?'':' · added '+esc(c.added||''))+'</div>'+(c.description?'<div class="desc">'+esc(c.description)+'</div>':'')+(c.library?'<div class="desc" style="margin-top:6px"><a href="'+c.url+'" target="_blank" rel="noopener">'+esc(c.source)+' · '+esc(c.author)+' · '+esc(c.license)+'</a><div class="r source-url">'+esc(c.url)+'</div></div>':'')+'<div class="noaudio" id="noaudio-'+c.id+'"></div><div class="actions"><button class="btn small" id="playbtn-'+c.id+'" onclick="playCall(\''+c.id+'\')">'+(callsAudioId===c.id?'⏸ Stop':'▶ Play')+'</button><button class="btn small gray" onclick="toggleFavorite(\''+c.id+'\')">'+(c.favorite?'★ Unfavorite':'☆ Favorite')+'</button>'+(c.library?'':'<button class="btn small gray" onclick="editCall(\''+c.id+'\')">Edit</button><button class="btn small gray danger" onclick="deleteCall(\''+c.id+'\')">Delete</button>')+'</div></div>').join('');rows.forEach(async c=>{if(c.library)return;const blob=await getClipBlob(c.id);const na=document.getElementById('noaudio-'+c.id),pb=document.getElementById('playbtn-'+c.id);if(!na)return;if(!blob){na.textContent='Audio saved on another device.';if(pb)pb.disabled=true;}});setupCallHold();}
+function renderCallsList(){const el=document.getElementById('callsList');if(!el)return;const rows=filteredCalls();if(!S.calls.length&&!CALL_LIBRARY.length){el.innerHTML='<div class="hint">No calls yet. Add your first recording below - once a clip is on this device, Guess the Call unlocks.</div>';return;}if(!rows.length){el.innerHTML='<div class="hint">No calls match that search or filter.</div>';return;}el.innerHTML=rows.map(c=>'<div class="callcard" data-callid="'+c.id+'"><h3>'+catEmoji(c.category)+' '+esc(c.title||'Untitled')+(c.favorite?' â­':'')+(c.library?' <span style="font-size:11px;color:#8a7a63;font-weight:400">ð Library</span>':'')+'</h3><div class="meta">'+esc(c.category||'')+(c.emotion?' Â· '+esc(c.emotion):'')+(c.duration!=null?' Â· '+fmtSecs(c.duration):'')+(c.library?'':' Â· added '+esc(c.added||''))+'</div>'+(c.description?'<div class="desc">'+esc(c.description)+'</div>':'')+(c.library?'<div class="desc" style="margin-top:6px"><a href="'+c.url+'" target="_blank" rel="noopener">'+esc(c.source)+' Â· '+esc(c.author)+' Â· '+esc(c.license)+'</a><div class="r source-url">'+esc(c.url)+'</div></div>':'')+'<div class="noaudio" id="noaudio-'+c.id+'"></div><div class="actions"><button class="btn small" id="playbtn-'+c.id+'" onclick="playCall(\''+c.id+'\')">'+(callsAudioId===c.id?'â¸ Stop':'â¶ Play')+'</button><button class="btn small gray" onclick="toggleFavorite(\''+c.id+'\')">'+(c.favorite?'â Unfavorite':'â Favorite')+'</button>'+(c.library?'':'<button class="btn small gray" onclick="editCall(\''+c.id+'\')">Edit</button><button class="btn small gray danger" onclick="deleteCall(\''+c.id+'\')">Delete</button>')+'</div></div>').join('');rows.forEach(async c=>{if(c.library)return;const blob=await getClipBlob(c.id);const na=document.getElementById('noaudio-'+c.id),pb=document.getElementById('playbtn-'+c.id);if(!na)return;if(!blob){na.textContent='Audio saved on another device.';if(pb)pb.disabled=true;}});setupCallHold();}
 function setupCallHold(){document.querySelectorAll('#callsList .callcard').forEach(el=>{const id=el.dataset.callid;if(id.indexOf('lib-')===0)return;el.addEventListener('pointerdown',e=>{if(e.target.closest('button,input,select,a'))return;clearTimeout(holdTimer);holdTimer=setTimeout(()=>deleteCall(id),700);});['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(holdTimer)));el.addEventListener('contextmenu',e=>e.preventDefault());});}
 function toggleFavorite(id){if(id.indexOf('lib-')===0){libToggleFav(id);renderCalls();return;}const c=S.calls.find(x=>x.id===id);if(!c)return;c.favorite=!c.favorite;save();renderCalls();}
 function toggleCallForm(forceHide){const f=document.getElementById('callForm'),btn=document.getElementById('callsAddBtn');const show=forceHide===true?false:f.classList.contains('hidden');f.classList.toggle('hidden',!show);btn.classList.toggle('hidden',show);if(!show){editingCallId=null;pendingCallBlob=null;document.getElementById('callFormTitle').textContent='Add a Call';['callFile','callTitle','callEmotion','callDuration','callDesc'].forEach(i=>document.getElementById(i).value='');document.getElementById('callFileMeta').textContent='';document.getElementById('callCategory').selectedIndex=0;}else{if(!document.getElementById('callCategory').options.length)document.getElementById('callCategory').innerHTML=CALL_CATEGORIES.map(c=>'<option value="'+esc(c[0])+'">'+c[1]+' '+esc(c[0])+'</option>').join('');}}
-function callFilePicked(){const f=document.getElementById('callFile').files[0];pendingCallBlob=f||null;const meta=document.getElementById('callFileMeta');if(!f){meta.textContent='';return;}meta.textContent=f.name+' · '+Math.max(1,Math.round(f.size/1024))+' KB';detectCallDuration(f);}
+function callFilePicked(){const f=document.getElementById('callFile').files[0];pendingCallBlob=f||null;const meta=document.getElementById('callFileMeta');if(!f){meta.textContent='';return;}meta.textContent=f.name+' Â· '+Math.max(1,Math.round(f.size/1024))+' KB';detectCallDuration(f);}
 async function detectCallDuration(f){try{const buf=await f.arrayBuffer();const ctx=new (window.AudioContext||window.webkitAudioContext)();const dec=await ctx.decodeAudioData(buf);if(isFinite(dec.duration))document.getElementById('callDuration').value=fmtSecs(dec.duration);try{ctx.close();}catch(e){}return;}catch(e){}const u=URL.createObjectURL(f),a=new Audio();a.preload='metadata';a.onloadedmetadata=()=>{if(isFinite(a.duration))document.getElementById('callDuration').value=fmtSecs(a.duration);URL.revokeObjectURL(u);};a.onerror=()=>URL.revokeObjectURL(u);a.src=u;}
 async function saveCall(){const title=document.getElementById('callTitle').value.trim();if(!title){alert('Give the call a title.');return;}const category=document.getElementById('callCategory').value||CALL_CATEGORIES[0][0];const emotion=document.getElementById('callEmotion').value.trim();const duration=parseDur(document.getElementById('callDuration').value);const description=document.getElementById('callDesc').value.trim();if(editingCallId){const c=S.calls.find(x=>x.id===editingCallId);if(!c){toggleCallForm(true);return;}c.title=title;c.category=category;c.emotion=emotion;c.duration=duration;c.description=description;if(pendingCallBlob)await putClipBlob(editingCallId,pendingCallBlob);}else{if(!pendingCallBlob){alert('Pick a recording from your phone first.');return;}const id='call-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);await putClipBlob(id,pendingCallBlob);S.calls.push({id,title,category,emotion,duration,description,favorite:false,added:today()});}save();toggleCallForm(true);renderCalls();}
 function editCall(id){const c=S.calls.find(x=>x.id===id);if(!c)return;toggleCallForm(true);toggleCallForm();editingCallId=id;document.getElementById('callFormTitle').textContent='Edit Call';document.getElementById('callTitle').value=c.title||'';document.getElementById('callCategory').value=c.category||CALL_CATEGORIES[0][0];document.getElementById('callEmotion').value=c.emotion||'';document.getElementById('callDuration').value=c.duration!=null?fmtSecs(c.duration):'';document.getElementById('callDesc').value=c.description||'';document.getElementById('callFileMeta').textContent='Leave empty to keep the current recording.';document.getElementById('callForm').scrollIntoView({behavior:'smooth',block:'start'});}
 async function deleteCall(id){const c=S.calls.find(x=>x.id===id);if(!c)return;if(!confirm('Delete "'+(c.title||'this call')+'"?'))return;stopCallsAudio();S.calls=S.calls.filter(x=>x.id!==id);await delClipBlob(id);save();renderCalls();}
-function renderCalls(){const m=S.calls.length,l=CALL_LIBRARY.length,favs=S.calls.filter(c=>c.favorite).length+CALL_LIBRARY.filter(c=>libFav(c.id)).length;const el=document.getElementById('callsSummary');if(el)el.textContent=(m+l)+' clips · '+l+' library · '+m+' yours'+(favs?' · '+favs+' favorite'+(favs===1?'':'s'):'');if(!document.getElementById('callsOverlay').classList.contains('hidden'))renderCallsList();}
+function renderCalls(){const m=S.calls.length,l=CALL_LIBRARY.length,favs=S.calls.filter(c=>c.favorite).length+CALL_LIBRARY.filter(c=>libFav(c.id)).length;const el=document.getElementById('callsSummary');if(el)el.textContent=(m+l)+' clips Â· '+l+' library Â· '+m+' yours'+(favs?' Â· '+favs+' favorite'+(favs===1?'':'s'):'');if(!document.getElementById('callsOverlay').classList.contains('hidden'))renderCallsList();}
 
 /* ---------- guess the call ---------- */
 let quizClip=null,quizUrl=null,quizAudio=null,quizAnswered=false,quizScore={right:0,total:0},quizLastId=null;
@@ -2032,10 +2032,10 @@ function closeQuiz(){quizStop();document.getElementById('quizOverlay').classList
 function quizStop(){if(quizAudio){try{quizAudio.pause();}catch(e){}quizAudio=null;}if(quizUrl){URL.revokeObjectURL(quizUrl);quizUrl=null;}}
 async function quizNext(){quizStop();quizAnswered=false;document.getElementById('quizFeedback').textContent='';document.getElementById('quizNextBtn').classList.add('hidden');document.getElementById('quizPlayBtn').classList.remove('hidden');document.getElementById('quizScore').textContent='Score '+quizScore.right+'/'+quizScore.total;const pool=await quizEligible();if(!pool.length){closeQuiz();return;}let c=pool[Math.floor(Math.random()*pool.length)];if(pool.length>1){let guard=0;while(c.id===quizLastId&&guard++<10)c=pool[Math.floor(Math.random()*pool.length)];}quizClip=c;quizLastId=c.id;const others=CALL_CATEGORIES.map(x=>x[0]).filter(x=>x!==c.category).sort(()=>Math.random()-.5).slice(0,3);const choices=[c.category,...others].sort(()=>Math.random()-.5);document.getElementById('quizChoices').innerHTML=choices.map(x=>'<button class="btn gray" style="margin-top:10px" onclick="quizGuess(this,\''+x.replace(/'/g,"\\'")+'\')">'+catEmoji(x)+' '+esc(x)+'</button>').join('');let qsrc=null;if(c.library){qsrc=encodeURI(c.file);}else{const blob=await getClipBlob(c.id);if(!blob)return;quizUrl=URL.createObjectURL(blob);qsrc=quizUrl;}quizAudio=new Audio(qsrc);try{await quizAudio.play();}catch(e){}}
 function quizReplay(){if(quizAudio){try{quizAudio.currentTime=0;quizAudio.play();}catch(e){}}}
-function quizGuess(btn,guess){if(quizAnswered||!quizClip)return;quizAnswered=true;quizScore.total++;const right=guess===quizClip.category;if(right)quizScore.right++;quizStop();document.getElementById('quizScore').textContent='Score '+quizScore.right+'/'+quizScore.total;document.getElementById('quizFeedback').textContent=(right?'✅ Correct — ':'❌ That was ')+'"'+ (quizClip.title||'Untitled')+'" · '+quizClip.category;document.getElementById('quizPlayBtn').classList.add('hidden');document.getElementById('quizNextBtn').classList.remove('hidden');}
+function quizGuess(btn,guess){if(quizAnswered||!quizClip)return;quizAnswered=true;quizScore.total++;const right=guess===quizClip.category;if(right)quizScore.right++;quizStop();document.getElementById('quizScore').textContent='Score '+quizScore.right+'/'+quizScore.total;document.getElementById('quizFeedback').textContent=(right?'â Correct â ':'â That was ')+'"'+ (quizClip.title||'Untitled')+'" Â· '+quizClip.category;document.getElementById('quizPlayBtn').classList.add('hidden');document.getElementById('quizNextBtn').classList.remove('hidden');}
 
 /* ---------- export & reset ---------- */
-function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); ALL_SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' · '+x.destinationCode:''),(x.note||'')+(x.destination?' · '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Meat Bird Tracking',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' · '+x.note:'')])); S.quarantine.forEach(x=>rows.push(['quarantine',x.quarantined,x.name,x.reintroduced?('reintroduced '+x.reintroduced):'in quarantine',x.note||''])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.scratch.forEach(f=>rows.push(['scratch',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); S.calls.forEach(c=>rows.push(['call',c.added||today(),c.title||'Untitled',c.category||'',(c.emotion||'')+(c.duration!=null?' · '+fmtSecs(c.duration):'')+(c.description?' · '+c.description:'')])); return rows; }
+function exportRows(){ const rows=[['section','date','item','value','notes']]; rows.push(['flock',today(),'laying hens',S.hens,''],['flock',today(),'roosters',S.roosters,'']); Object.keys(S.eggs).sort().forEach(d=>rows.push(['eggs',d,'eggs collected',S.eggs[d],''])); ALL_SUPPLIES.forEach(([k,label])=>(S.supplyEntries[k]||[]).forEach(x=>rows.push(['supply',x.date,label,'refilled/full as of',x.note||'']))); S.dispatches.forEach(x=>rows.push(['dispatch',x.date,x.name,'dispatched'+(x.destinationCode?' Â· '+x.destinationCode:''),(x.note||'')+(x.destination?' Â· '+x.destination:'' )])); S.hatches.forEach(h=>rows.push(['hatch',h.set,h.name||'Hatch run',h.count+' eggs',h.done?('complete'+(h.hatched!=null?', '+h.hatched+' hatched':'')):'active'])); S.tractorLogs.forEach(x=>rows.push(['tractor',x.created||x.date,'Meat Bird Tracking',x.count||0,'Last moved '+(x.moved||x.date)+(x.note?' Â· '+x.note:'')])); S.quarantine.forEach(x=>rows.push(['quarantine',x.quarantined,x.name,x.reintroduced?('reintroduced '+x.reintroduced):'in quarantine',x.note||''])); S.cohorts.forEach(x=>rows.push(['rearing',x.hatchDate,x.note||'chick group',x.count,cohortStage(x)])); S.scratch.forEach(f=>rows.push(['scratch',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); S.feed.forEach(f=>rows.push(['feed',f.date,(f.lbs?f.lbs+' lbs':'fill-up'),'',f.note||''])); S.calls.forEach(c=>rows.push(['call',c.added||today(),c.title||'Untitled',c.category||'',(c.emotion||'')+(c.duration!=null?' Â· '+fmtSecs(c.duration):'')+(c.description?' Â· '+c.description:'')])); return rows; }
 function downloadBlob(name,type,text){ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0); }
 function exportData(format){ const rows=exportRows(), base='coop-tracker-'+today(); if(format==='xlsx'){ if(typeof XLSX==='undefined'){alert('Spreadsheet exporter is still loading. Try again.');return;} const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Coop Records');XLSX.writeFile(wb,base+'.xlsx');return; } if(format==='txt'){ downloadBlob(base+'.txt','text/plain',rows.map(r=>r.join(' | ')).join('\n'));return; } const groups={};rows.slice(1).forEach(r=>(groups[r[0]]??=[]).push(r));let md='# Coop Tracker Export\n\nGenerated '+today()+'\n';Object.entries(groups).forEach(([k,v])=>{md+='\n## '+k[0].toUpperCase()+k.slice(1)+'\n\n| Date | Item | Value | Notes |\n|---|---|---|---|\n'+v.map(r=>'| '+r.slice(1).map(x=>String(x).replace(/\|/g,'\\|')).join(' | ')+' |').join('\n')+'\n'});downloadBlob(base+'.md','text/markdown',md); }
 function exportCSV(){ exportData('xlsx'); }
