@@ -239,6 +239,7 @@
       <div class="hatchcard"><h3>🌾 Scratch</h3><div class="meta">Last fill: <span id="scratchLast">—</span></div>
         <label>Date</label><input id="scratchDate" type="date"><label>Pounds</label><input id="scratchLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="scratchNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addScratch()">Add Scratch</button><details class="history"><summary>History</summary><div id="scratchList"></div></details></div>
       <div id="inventorySupplyList"></div>
+      <details class="archive" id="herbs"><summary>Herbs</summary><div id="herbsList"></div></details>
     </details>
   </div>
 </section>
@@ -368,7 +369,8 @@ const SUPABASE_PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
 const SUPPLIES = [ ['water','💧 Big Water'], ['bigFood','🍽️ Big Food'], ['calcium','🐚 Calcium'], ['grit','🪨 Grit'], ['fsl','🌾 First Saturday Lime (FSL)'] ];
 const INVENTORY_SUPPLIES = [];
-const ALL_SUPPLIES=[...SUPPLIES,...INVENTORY_SUPPLIES];
+const HERBS = [ ['calendula','🌼 Calendula'], ['garlicPowder','🧄 Garlic Powder'], ['oregano','🌿 Oregano'] ];
+const ALL_SUPPLIES=[...SUPPLIES,...INVENTORY_SUPPLIES,...HERBS];
 const ADMIN_EMAIL='aerauwolf15@gmail.com';
 const FACT_ARCHIVE = [
   {
@@ -1843,7 +1845,7 @@ function renderSupplies(){
     const DETAILS={water:'Refill with hose until full; refill hanging white bucket',bigFood:'Refill from metal container / open 50-pound feed sack and fill',calcium:'Open bucket and refill in coop areas',grit:'Open bucket and refill in coop areas',fsl:'Sprinkle around all of coop &amp; run'};
     const detail=DETAILS[k]?'<div class="meta">'+DETAILS[k]+'</div>':'';
     const archive=`<details class="history"><summary>History</summary>${history||'<div class="row"><span class="r">No refill history.</span></div>'}</details>`;
-    return `<div class="hatchcard"><h3>${label}</h3>${detail}<div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${archive}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join('');
+    return `<div class="hatchcard"><h3>${label}</h3>${detail}<div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${archive}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join(''); document.getElementById('herbsList').innerHTML=HERBS.map(cards).join('');
 }
 
 /* ---------- flock, feed, finance ---------- */
