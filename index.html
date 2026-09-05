@@ -234,7 +234,7 @@
     
     <div id="supplyList"></div>
     <details class="archive" id="inventory"><summary>Inventory</summary>
-      <div class="hatchcard"><h3>🌾 Feed</h3><div class="meta">All Flock Pellets (Maple Hill Feed and Farm or Hayward Feed and Seed)</div><div class="meta">Last fill: <span id="feedLast">—</span></div>
+      <div class="hatchcard"><h3>🌾 Feed</h3><div class="meta">All Flock Pellets</div><div class="meta"><a href="https://maps.app.goo.gl/ktoZcPFkCzaGxbM86?g_st=ic">Maple Hill Feed and Farm</a></div><div class="meta"><a href="https://maps.app.goo.gl/1BGWzGhRNR9ZyfpT6?g_st=ic">Hayward Feed and Seed</a></div><div class="meta">Last fill: <span id="feedLast">—</span></div>
         <label>Date</label><input id="fDate" type="date"><label>Pounds</label><input id="fLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="fNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addFeed()">Add Feed</button><details class="history"><summary>History</summary><div id="feedList"></div></details></div>
       <div class="hatchcard"><h3>🌾 Scratch</h3><div class="meta">Last fill: <span id="scratchLast">—</span></div>
         <label>Date</label><input id="scratchDate" type="date"><label>Pounds</label><input id="scratchLbs" type="number" min="0" placeholder="Optional"><label>Note</label><input id="scratchNote" placeholder="Optional · brand, type…"><button class="btn" onclick="addScratch()">Add Scratch</button><details class="history"><summary>History</summary><div id="scratchList"></div></details></div>
@@ -1842,7 +1842,7 @@ function renderSupplies(){
   const cards=([k,label])=>{ const entries=S.supplyEntries[k]||[], latest=entries.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
     const add=`<label>Date</label><input id="sd-${k}" type="date" value="${today()}"><label>Note</label><input id="sn-${k}" placeholder="Optional"><button class="btn small" onclick="addSupply('${k}')">✔ Add Refill</button>`;
     const history=entries.slice().sort((a,b)=>a.date<b.date?1:-1).map(x=>`<div class="row"><span>${short(x.date)}${x.note?' · '+esc(x.note):''}</span><button class="btn small gray adminAction" onclick="delSupply('${k}','${x.id}')">Delete</button></div>`).join('');
-    const DETAILS={water:'Refill with hose until full; refill hanging white bucket',bigFood:'Refill from metal container / open 50-pound feed sack and fill',calcium:'Open bucket and refill in coop areas',grit:'Open bucket and refill in coop areas',fsl:'Sprinkle around all of coop &amp; run'};
+    const DETAILS={water:'Refill with hose until full; refill hanging white bucket',bigFood:'Refill from metal container / fill from feed sack',calcium:'Open bucket and refill in coop areas',grit:'Open bucket and refill in coop areas',fsl:'Sprinkle around all of coop &amp; run'};
     const detail=DETAILS[k]?'<div class="meta">'+DETAILS[k]+'</div>':'';
     const archive=`<details class="history"><summary>History</summary>${history||'<div class="row"><span class="r">No refill history.</span></div>'}</details>`;
     return `<div class="hatchcard"><h3>${label}</h3>${detail}<div class="meta">${latest?'Last refilled: <b>'+short(latest.date)+'</b> · '+daysBetween(latest.date,today())+' days ago':'Not logged yet'}</div>${add}${archive}</div>`; }; document.getElementById('supplyList').innerHTML=SUPPLIES.map(cards).join(''); document.getElementById('inventorySupplyList').innerHTML=INVENTORY_SUPPLIES.map(cards).join(''); document.getElementById('herbsList').innerHTML=HERBS.map(cards).join('');
