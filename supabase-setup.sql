@@ -29,3 +29,20 @@ do $$ begin
   alter publication supabase_realtime add table public.coop_state;
 exception when duplicate_object then null;
 end $$;
+
+-- Chicken Calls cloud audio (2026-09-06): private bucket, one folder per user.
+insert into storage.buckets (id, name, public) values ('chicken-calls', 'chicken-calls', false)
+on conflict (id) do nothing;
+
+drop policy if exists "call clips owner read" on storage.objects;
+create policy "call clips owner read" on storage.objects for select to authenticated
+  using (bucket_id = 'chicken-calls' and (storage.foldername(name))[1] = (select auth.uid())::text);
+drop policy if exists "call clips owner write" on storage.objects;
+create policy "call clips owner write" on storage.objects for insert to authenticated
+  with check (bucket_id = 'chicken-calls' and (storage.foldername(name))[1] = (select auth.uid())::text);
+drop policy if exists "call clips owner update" on storage.objects;
+create policy "call clips owner update" on storage.objects for update to authenticated
+  using (bucket_id = 'chicken-calls' and (storage.foldername(name))[1] = (select auth.uid())::text);
+drop policy if exists "call clips owner delete" on storage.objects;
+create policy "call clips owner delete" on storage.objects for delete to authenticated
+  using (bucket_id = 'chicken-calls' and (storage.foldername(name))[1] = (select auth.uid())::text);
