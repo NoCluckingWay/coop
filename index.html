@@ -257,6 +257,7 @@
 <section id="tab-finance">
   <div class="wrap">
     <h2 class="sec">Finance</h2>
+    <div id="financeMonthSections"></div>
     <details class="nextgen" id="financeRecurringSection"><summary>Recurring</summary></details>
     <details class="nextgen" id="financeOneTimeSection"><summary>One Time / Startup / Inventory</summary></details>
     <details class="nextgen" id="financeEtcSection"><summary>ETC</summary>
@@ -1584,8 +1585,8 @@ const FACT_ARCHIVE = [
 ];
 const FACTS = FACT_ARCHIVE.map(x=>x.tip);
 
-function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], quarantine:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:24}, tasks:[], feed:[], scratch:[], eggsTodayTs:0, supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:''}, etc:{filler1:'',filler2:'',filler3:''}, cartons:{small:0,regular:0,large:0,plastic:0,plasticCapacity:12,ready:0,readyUpdated:'',readyUpdatedTs:0,log:{}}, counterEggs:null, counterEggsUpdated:'', calls:[], updated:0 }; }
-function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.etc=Object.assign(def().etc,(x&&x.etc)||{}); y.cartons=Object.assign(def().cartons,(x&&x.cartons)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); if(y.rearing.henWeeks===18)y.rearing.henWeeks=24; y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.quarantine=Array.isArray(y.quarantine)?y.quarantine:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.calls=Array.isArray(y.calls)?y.calls:[]; y.calls.forEach(c=>{if(typeof c.favorite!=="boolean")c.favorite=!!c.favorite;}); y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
+function def(){ return { hens:27, roosters:2, eggs:{}, hatches:[], dispatches:[], cohorts:[], quarantine:[], tractorLogs:[], rearing:{chickWeeks:8,henWeeks:24}, tasks:[], feed:[], scratch:[], eggsTodayTs:0, supplies:{}, supplyEntries:{}, hideHsHint:false, financeLink:'', finance:{lastAmount:'',lastLink:'',tbd1:'',tbd2:'',tbd3:'',entries:[]}, etc:{filler1:'',filler2:'',filler3:''}, cartons:{small:0,regular:0,large:0,plastic:0,plasticCapacity:12,ready:0,readyUpdated:'',readyUpdatedTs:0,log:{}}, counterEggs:null, counterEggsUpdated:'', calls:[], updated:0 }; }
+function cleanState(x){ const y=Object.assign(def(), x||{}); y.finance=Object.assign(def().finance,(x&&x.finance)||{}); y.finance.entries=Array.isArray(y.finance.entries)?y.finance.entries:[]; y.etc=Object.assign(def().etc,(x&&x.etc)||{}); y.cartons=Object.assign(def().cartons,(x&&x.cartons)||{}); y.rearing=Object.assign(def().rearing,(x&&x.rearing)||{}); if(y.rearing.henWeeks===18)y.rearing.henWeeks=24; y.cohorts=Array.isArray(y.cohorts)?y.cohorts:[]; y.tractorLogs=Array.isArray(y.tractorLogs)?y.tractorLogs:[]; y.quarantine=Array.isArray(y.quarantine)?y.quarantine:[]; y.dispatches=Array.isArray(y.dispatches)?y.dispatches:[]; y.calls=Array.isArray(y.calls)?y.calls:[]; y.calls.forEach(c=>{if(typeof c.favorite!=="boolean")c.favorite=!!c.favorite;}); y.feed=Array.isArray(y.feed)?y.feed:[]; y.scratch=Array.isArray(y.scratch)?y.scratch:[]; y.supplyEntries=Object.assign({},y.supplyEntries||{}); ALL_SUPPLIES.forEach(([k])=>{ if(!Array.isArray(y.supplyEntries[k]))y.supplyEntries[k]=[]; if(y.supplies?.[k]&&!y.supplyEntries[k].length)y.supplyEntries[k].push({id:'legacy-'+k,date:y.supplies[k],note:''}); }); if(y.financeLink&&!y.finance.lastLink)y.finance.lastLink=y.financeLink; delete y.syncUrl; delete y.financeLink; return y; }
 function loadKey(k){ try { const x=JSON.parse(localStorage.getItem(k)); return x ? cleanState(x) : null; } catch(e){ return null; } }
 let S = loadKey(LEGACY_KEY) || def();
 let accountRole='limited',trustedDevice=false,trustedExists=false;
@@ -1905,9 +1906,11 @@ function renderMore(){
 function money(v){ return Number.parseFloat(v)||0; }
 function setFinance(k,v){ S.finance[k]=v; save(); renderFinance(); }
 function renderFinance(){
-  const f=S.finance;
-  const total=money(f.lastAmount)+money(f.tbd1)+money(f.tbd2)+money(f.tbd3);
+  const f=S.finance, entries=Array.isArray(f.entries)?f.entries:[];
+  const total=money(f.lastAmount)+money(f.tbd1)+money(f.tbd2)+money(f.tbd3)+entries.reduce((n,x)=>n+money(x.amount),0);
   document.getElementById('financeTotal').textContent=total.toLocaleString('en-US',{style:'currency',currency:'USD'});
+  const months={}; entries.forEach(x=>{const key=x.month||((x.date||'').slice(0,7));if(key)(months[key]||(months[key]=[])).push(x);});
+  document.getElementById('financeMonthSections').innerHTML=Object.keys(months).sort().reverse().map(key=>{const label=key.includes('-')?(Number(key.slice(5))+'/'+key.slice(0,4)):key;const rows=months[key].slice().sort((a,b)=>(a.date||'')<(b.date||'')?1:-1).map(x=>'<div class="row"><span><b>'+esc(x.vendor||x.note||'Expense')+'</b><br><span class="r">'+short(x.date)+'</span></span><span>'+money(x.amount).toLocaleString('en-US',{style:'currency',currency:'USD'})+'</span></div>').join('');return '<details class="nextgen"><summary>'+esc(label)+'</summary>'+rows+'</details>';}).join('');
   const fields={financeLastAmount:'lastAmount',financeLastLink:'lastLink',financeTbd1:'tbd1',financeTbd2:'tbd2',financeTbd3:'tbd3'};
   Object.entries(fields).forEach(([id,k])=>{ const e=document.getElementById(id); if(document.activeElement!==e)e.value=f[k]||''; });
   document.getElementById('financeLastOpen').innerHTML=f.lastLink
@@ -2116,5 +2119,6 @@ if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.s
 </script>
 </body>
  </html>
+
 
 
