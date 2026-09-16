@@ -393,6 +393,7 @@ const CACHE_PREFIX = 'coopTrackerV2:';
 const DEVICE_KEY='coopDeviceId';
 const DEVICE_SECRET_KEY='coopDeviceSecret';
 const REMEMBERED_EMAIL_KEY='coopRememberedEmail';
+const LOGGED_OUT_KEY='coopLoggedOutOnPurpose';
 const ADMIN_TOKEN_KEY='coopPasskeyAdminToken';
 let supportMode=false;
 const SUPABASE_URL = 'https://bcuahzcvfdhnftwmlvro.supabase.co';
@@ -1629,6 +1630,21 @@ function requireAdmin(){ if(isAdmin())return true; alert('Admin+ access is requi
 function renderRestore(){ const email=localStorage.getItem(REMEMBERED_EMAIL_KEY)||''; const note=document.getElementById('restoreNote'),btn=document.getElementById('restoreBtn'); if(!note||!btn)return; note.textContent=email?'Remembered on this device: '+email:'No remembered email on this device yet.'; btn.disabled=!localStorage.getItem(DEVICE_SECRET_KEY); }
 async function restoreSignIn(){ const secret=localStorage.getItem(DEVICE_SECRET_KEY); if(!secret){authMsg('This device is not registered yet. Use an email sign-in link.',true);return;} authMsg('Restoring this device…'); const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action:'restore',device_id:deviceId(),secret})}); const x=await r.json(); if(!r.ok){authMsg(x.error||'Could not restore this device',true);return;} const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type}); if(v.error){authMsg(v.error.message,true);return;} authMsg('Device restored. Syncing…'); }
 
+async function tryAutoRestore(){
+  try{
+    if(localStorage.getItem(LOGGED_OUT_KEY))return false;
+    const secret=localStorage.getItem(DEVICE_SECRET_KEY);
+    if(!secret)return false;
+    setSync('Restoring sign-in…');
+    const r=await fetch(SUPABASE_URL+'/functions/v1/coop-device-pair',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLIC_KEY},body:JSON.stringify({action:'restore',device_id:deviceId(),secret})});
+    const x=await r.json();
+    if(!r.ok){setSync('Sign in to sync');return false;}
+    const v=await db.auth.verifyOtp({token_hash:x.token_hash,type:x.type});
+    if(v.error){setSync('Sign in to sync');return false;}
+    return true;
+  }catch(e){setSync('Sign in to sync');return false;}
+}
+
 function randomizeNumericPlaceholders(){document.querySelectorAll('[data-random-placeholder]').forEach(x=>x.placeholder=String(1+Math.floor(Math.random()*10)));}
 function placeSettingsQR(){const qr=document.getElementById('qrWrap'),sync=document.getElementById('settingsSync');if(!qr||!sync)return;const target=isAdmin()&&!sync.open?document.getElementById('adminQRSlot'):document.getElementById('backupRestore');if(target&&qr.parentElement!==target)target.prepend(qr);}
 document.getElementById('settingsSync')?.addEventListener('toggle',placeSettingsQR);
@@ -1692,6 +1708,7 @@ async function forgetThisDevice(){ const dl=document.getElementById('deviceList'
 async function signOutAccount(){
   const dl=document.getElementById('deviceList');if(dl)dl.innerHTML='';
   localStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.setItem(LOGGED_OUT_KEY,'1');
   if(dirty) await pushCloud();
   await db.auth.signOut({scope:'local'});
   currentUser=null; rowVersion=null;
@@ -1710,7 +1727,7 @@ async function pushCloud(force=false){
  if(x.error){if(x.error==='version_conflict'){conflictCloud={data:x.data,version:x.version};document.getElementById('conflictBox').classList.remove('hidden');setSync('⚠️ Choose which copy to keep');}else{setSync('⚠️ '+x.error);if(!isAdmin())await loadCloud();}return;}
  rowVersion=x.version;dirty=false;setSync('☁️ Synced '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}));
 }
-async function syncNow(){ if(!currentUser)return; setSync('Checking session…'); const fresh=await db.auth.refreshSession(); if(fresh.error||!fresh.data.session){ setSync('⚠️ Sign-in expired'); authMsg('Your device session was invalidated. Use the sign-in link once more; future sign-outs now affect only this device.',true); document.getElementById('authSignedIn').classList.add('hidden'); document.getElementById('authSignedOut').classList.remove('hidden'); document.getElementById('accountEmail').value=currentUser.email||''; return; } currentUser=fresh.data.session.user; if(dirty)await pushCloud(); else await loadCloud(); setTimeout(renderAccountQR,0); if(admin)setTimeout(renderPasskeys,0); }
+async function syncNow(){ if(!currentUser)return; setSync('Checking session…'); const fresh=await db.auth.refreshSession(); if(fresh.error||!fresh.data.session){ if(await tryAutoRestore())return; setSync('⚠️ Sign-in expired'); authMsg('Your device session was invalidated. Use the sign-in link once more; future sign-outs now affect only this device.',true); document.getElementById('authSignedIn').classList.add('hidden'); document.getElementById('authSignedOut').classList.remove('hidden'); document.getElementById('accountEmail').value=currentUser.email||''; return; } currentUser=fresh.data.session.user; if(dirty)await pushCloud(); else await loadCloud(); setTimeout(renderAccountQR,0); if(admin)setTimeout(renderPasskeys,0); }
 async function resolveConflict(which){
   document.getElementById('conflictBox').classList.add('hidden');
   if(which==='cloud'){ S=cleanState(conflictCloud.data); rowVersion=conflictCloud.version; dirty=false; saveLocal(); renderAll(); setSync('✔ Cloud copy loaded'); }
@@ -1720,7 +1737,7 @@ function subscribeRealtime(){}
 async function handleSession(session){
   const next=session?.user||null;
   const same=next?.id===currentUser?.id && next?.email===currentUser?.email;
-  currentUser=next; if(isAccountUser()){localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email);const r=await pairAPI('role');accountRole=r.role||'limited';trustedDevice=!!r.trusted_device;trustedExists=!!r.trusted_exists;} showAuth(); renderRestore();
+  currentUser=next; if(isAccountUser()){localStorage.removeItem(LOGGED_OUT_KEY);localStorage.setItem(REMEMBERED_EMAIL_KEY,currentUser.email);const r=await pairAPI('role');accountRole=r.role||'limited';trustedDevice=!!r.trusted_device;trustedExists=!!r.trusted_exists;} showAuth(); renderRestore();
   if(same)return;
   if(isAccountUser()){ subscribeRealtime(); await loadCloud(); await registerDevice(); }
   else { if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;} rowVersion=null; S=loadKey(LEGACY_KEY)||S||def(); authMsg(''); renderAll(); setSync('Sign in to sync'); }
@@ -1729,6 +1746,7 @@ async function initCloud(){
   db.auth.onAuthStateChange((_e,session)=>setTimeout(()=>handleSession(session),0));
   const {data}=await db.auth.getSession();
   if(data.session?.user){ await handleSession(data.session); return; }
+  if(await tryAutoRestore()) return;
   currentUser=null; showAuth(); renderAll(); setSync('Sign in to sync');
 }
 
@@ -2146,6 +2164,5 @@ if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.s
 </script>
 </body>
  </html>
-
 
 
